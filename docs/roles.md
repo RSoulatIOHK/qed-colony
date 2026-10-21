@@ -11,6 +11,7 @@ runtime and attempt caps.
 | Engineer | Implement and test the local Lean tactic | Write only permitted tactic, example, and research paths; independent exact-head review and CI precede routine integration. |
 | SRE | Reliability, recovery, and controller process improvements | Write a fixed set of controller, test, and runbook files in a separate governance PR. After independent review and CI it awaits controller integration. The worker cannot merge or deploy itself. |
 | Operations steward | Audit how the swarm works, identify missing roles, and propose concrete improvements | Read-only structured report. Reviewed and merged reports may create at most three bounded follow-up jobs using existing execution profiles. New-role charters are proposals, not permission grants. |
+| Blocker triage | Diagnose a particular parked PR and propose one bounded next action | Read-only structured operational planning; the controller validates the diagnosis, existing role, and unchanged acceptance criteria before queuing one repair. It cannot publish, broaden scope, or spawn a recovery chain. |
 | Reviewer | Assess an independently authored artifact and exact candidate head | Separate read-only model context; proof and SRE changes start on the stronger review tier. |
 | Planner | Refill an empty runnable queue with bounded tasks | Read-only structured planning; it may select an existing role but cannot create execution permissions. |
 
@@ -37,3 +38,26 @@ proposal must name its purpose, ownership, execution profile, and handoffs.
 Changing the actual profile or permissions goes through a separate SRE
 governance PR. Audit output never directly installs a role, expands authority,
 changes a budget, or edits the proof acceptance rules.
+
+## Ownership of parked work
+
+The operations steward improves the process across jobs. Blocker triage owns a
+specific diagnosis after the controller records a parked cycle. Its report can
+queue a repair directly after controller validation; it does not wait for an
+operations audit PR to merge. The controller records the recovery owner, reason,
+next action, fixed deadline, diagnosis, and linked triage/repair work on the
+original cycle. The Observatory exposes those fields on the overview, Kanban
+cards, and task details.
+
+Each case gets at most one 180-second triage attempt and one fresh repair cycle,
+with at most one author and one independent reviewer. They share the normal
+model/runtime caps. Creating the recovery record and assigning its owner consume
+no model attempt, so exhausting the cap does not leave the blocker unowned.
+Failure or an unknown execution profile escalates to the controller without
+another repair chain. A role proposal or diagnosis never grants new permissions.
+
+An independently approved SRE governance PR awaiting integration is already at
+its intended handoff: the controller owns integration, and automatic recovery
+neither rewrites it nor deploys it. Original tasks and PRs remain parked until
+actual repair acceptance and any required remote closure are reconciled. A
+merged repair is distinct from a resolved case. See [parked PR recovery](recovery.md).

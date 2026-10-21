@@ -284,6 +284,32 @@ def recorded_lane(item, state):
     return lane, "recorded task status: " + str(status)
 
 
+def resolved_source_lane(item, state):
+    """An original closed PR can represent work completed by a verified repair.
+
+    The controller's fresh resolved record is necessary: a closed PR or public
+    superseded comment alone never establishes successful task completion.
+    """
+    if item.get("kind") != "pr" or item.get("state") != "CLOSED" or item.get("merged"):
+        return None
+    task = task_for_item(item, state.get("tasks", []))
+    if not task or task.get("status") != "done" or task.get("pr_url") != item.get("url"):
+        return None
+    cycle = next((entry for entry in (state.get("autonomy") or {}).get("cycles", [])
+                  if entry.get("task_id") == task.get("id")), {})
+    if (cycle.get("recovery_status") != "resolved" or cycle.get("pr_url") != item.get("url")
+            or cycle.get("source_pr_url") != item.get("url")
+            or not cycle.get("source_head_sha")
+            or cycle.get("source_head_sha") != item.get("headRefOid")):
+        return None
+    source = re.fullmatch(r"(https://github\.com/[^/]+/[^/]+/pull/)[1-9][0-9]*", item.get("url", ""))
+    replacement = cycle.get("recovery_replacement_pr_url")
+    if (not source or not isinstance(replacement, str) or replacement == item["url"]
+            or not re.fullmatch(re.escape(source[1]) + r"[1-9][0-9]*", replacement)):
+        return None
+    return "Done", "original task completed by a verified merged replacement; original PR superseded"
+
+
 def desired_items(issues, prs, state=None, review_author=None):
     result = []
     for item in issues + prs:
@@ -293,7 +319,10 @@ def desired_items(issues, prs, state=None, review_author=None):
         # Terminal GitHub records always outrank local state. Hard GitHub blockers
         # also outrank an optimistic local phase (e.g. an author still revising).
         terminal = item.get("state") in {"CLOSED", "MERGED"} or item.get("merged")
-        if state and not terminal and lane != "Blocked":
+        resolved = resolved_source_lane(item, state) if state else None
+        if resolved:
+            lane, reason = resolved
+        elif state and not terminal and lane != "Blocked":
             override = recorded_lane(item, state)
             if override:
                 lane, reason = override

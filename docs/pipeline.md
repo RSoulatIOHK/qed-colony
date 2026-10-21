@@ -17,7 +17,9 @@ Each task has one cycle in SQLite. The stages are `queued`, `authoring`,
 `publishing`, `reviewing`, `review_publication`, `ci`, `merging`, and `done`.
 `failed`, `blocked`, and `needs_review` stop that cycle. The original task stays
 in review until the controller verifies the merge. A stopped cycle remains
-visible and does not prevent other scoped tasks from progressing.
+visible and does not prevent other scoped tasks from progressing. The supervisor
+advances active cycles in round-robin order, so a cycle waiting for CI does not
+monopolize the next step.
 
 The author and reviewer have separate ephemeral model contexts. Review comments
 explicitly identify themselves as model reviews published by the controller's
@@ -37,6 +39,30 @@ An interrupted model attempt retains its entire reserved budget and is not
 blindly repeated. Uncertain local mutations, including a crash between making
 a Git commit and persisting its SHA, conservatively require review. This initial
 controller does not automatically resolve conflicts with a moving base branch.
+
+## Recovery of parked PRs
+
+Before selecting work or applying the model budget gate, each controller tick
+scans parked cycles and records a bounded recovery case with an owner and next
+action. Recording that case uses no LLM call. Dispatch still requires the normal
+daily runtime and attempt reservations; recovery never raises either cap.
+
+A case permits one read-only, 180-second triage attempt. After validating its
+structured diagnosis and the existing execution profile, the controller may
+queue one fresh repair task/cycle carrying the original specification and
+acceptance criteria unchanged. It need not wait for an operations audit PR to
+merge. The repair gets at most one author attempt and one independent review,
+then the normal publication, required CI, and exact-head approval gates. A
+failed or rejected repair escalates instead of generating further repairs.
+Unknown or mismatched execution scope also requires controller action; an audit
+proposal cannot silently satisfy an implementation requirement.
+
+Approved SRE governance candidates awaiting controller integration are excluded
+from automatic repair and remain controller-owned. Repair cannot grant itself
+merge, deployment, credential, or policy authority. The original task/PR stays
+parked while the repair runs. `repair_merged` records that intermediate event;
+`resolved` is reserved for recorded acceptance and any required remote closure
+reconciliation. See [recovery states and evidence](recovery.md).
 
 ## Publication scope
 
