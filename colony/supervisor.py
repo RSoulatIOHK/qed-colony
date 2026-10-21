@@ -206,6 +206,12 @@ class Supervisor:
     def _next_cycle(self):
         cycles = [item for item in self.autonomy.list_cycles()
                   if item["phase"] not in TERMINAL_PHASES and not self._controller_stage(item)]
+        # A persisted wait must not monopolize round-robin dispatch before
+        # its deadline. Keep a waiting cycle for status reporting only when
+        # every existing cycle is blocked; provider gating still lives in _job.
+        eligible = [item for item in cycles if item["phase"] != "waiting_network" or due(item)]
+        if eligible:
+            cycles = eligible
         # Existing public candidates get their independent review before new
         # authorship. Each head has bounded review retries, so this finite queue
         # drains without an unbounded review convoy. Within each group, durable

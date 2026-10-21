@@ -87,6 +87,8 @@ class Pipeline:
             stage += ":net%s" % int(cycle.get("review_network_retry_count", 0))
         elif stage.startswith("planner:"):
             stage += ":net%s" % int(cycle.get("planner_network_retry_count", 0))
+        elif stage.startswith("triage:"):
+            stage += ":net%s" % int(cycle.get("triage_network_retry_count", 0))
         attempt = self.autonomy.reserve_attempt(cycle["id"], stage, timeout, self.policy)
         revision = int(cycle.get("review_attempt", 0)) if stage.startswith("review:") else int(cycle.get("revision", 0))
         selection = choose_model(self.policy, cycle["role"], stage.split(":")[0], revision=revision,
@@ -115,7 +117,8 @@ class Pipeline:
                     self._provider_failed(cycle)
                 field = ("author_network_retry_count" if stage.startswith("author:") else
                          "review_network_retry_count" if stage.startswith("review:") else
-                         "planner_network_retry_count" if stage.startswith("planner:") else None)
+                         "planner_network_retry_count" if stage.startswith("planner:") else
+                         "triage_network_retry_count" if stage.startswith("triage:") else None)
                 if field:
                     self._update(cycle, **{field: int(cycle.get(field, 0)) + 1})
                 raise failure from error
@@ -136,7 +139,8 @@ class Pipeline:
                     self._provider_failed(cycle)
                 field = ("author_network_retry_count" if stage.startswith("author:") else
                          "review_network_retry_count" if stage.startswith("review:") else
-                         "planner_network_retry_count" if stage.startswith("planner:") else None)
+                         "planner_network_retry_count" if stage.startswith("planner:") else
+                         "triage_network_retry_count" if stage.startswith("triage:") else None)
                 if field:
                     self._update(cycle, **{field: int(cycle.get(field, 0)) + 1})
                 raise failure

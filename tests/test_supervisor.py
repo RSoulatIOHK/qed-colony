@@ -150,6 +150,18 @@ class SupervisorTests(unittest.TestCase):
         self.assertEqual(self.pipeline.advanced, [cycle["id"], cycle["id"]])
         self.assertEqual(self.autonomy.get_cycle(cycle["id"])["phase"], "done")
 
+    def test_not_due_network_wait_does_not_starve_another_existing_author(self):
+        waiting = self.autonomy.create_cycle("github-wait", "engineer")
+        self.autonomy.update_cycle(waiting["id"], phase="waiting_network", resume_phase="ci",
+                                   next_retry_at=9999999999, last_scheduled_order=0)
+        author = self.autonomy.create_cycle("runnable-author", "engineer")
+        self.autonomy.update_cycle(author["id"], phase="authoring", last_scheduled_order=1)
+        self.supervisor.tick()
+        self.assertEqual(self.pipeline.advanced, [author["id"]])
+        self.assertEqual(self.autonomy.get_cycle(waiting["id"])["phase"], "waiting_network")
+        self.assertEqual(self.supervisor.tick()["status"], "waiting_network")
+        self.assertEqual(self.pipeline.advanced, [author["id"]])
+
     def test_reconnection_probe_failure_reschedules_without_advancing(self):
         self.seed()
         self.supervisor.tick()

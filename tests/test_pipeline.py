@@ -295,6 +295,96 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(attempt["charged_seconds"], 10)
         self.assertFalse(self.cycle.get("provider_network_offline", False))
 
+    def test_fair_dispatch_cannot_bypass_known_provider_outage(self):
+        from colony.supervisor import Supervisor
+        self.step()
+        self.auto.update_cycle(self.cycle["id"], phase="waiting_network", resume_phase="authoring",
+                               next_retry_at=9999999999, provider_network_offline=True,
+                               provider_next_retry_at=9999999999, last_scheduled_order=0)
+        self.store.seed([{"id": "T2", "title": "Another scoped task", "role": "engineer",
+                         "description": "Implement another scoped case", "acceptance": ["Verified result"]}])
+        second = self.pipeline.advance(self.auto.create_cycle("T2", "engineer"))
+        self.auto.update_cycle(second["id"], last_scheduled_order=1)
+        policy = dict(self.pipeline.policy, enabled=True)
+        supervisor = Supervisor(self.root, self.store.path, policy,
+                                pipeline=self.pipeline, task_store=self.store)
+        self.addCleanup(supervisor.release_lock)
+        self.assertEqual(supervisor.tick()["status"], "waiting_network")
+        self.assertEqual(self.auto.get_cycle(second["id"])["phase"], "waiting_network")
+        self.assertEqual(self.auto.get_budget(policy)["attempts"], 0)
+        self.assertEqual(self.jobs, [])
+        self.provider_probe.assert_not_called()
+
+    def test_actual_triage_outage_reconnects_after_restart_and_replays_completed_handoff(self):
+        import sys
+        from colony.recovery import scan_recoveries
+        from colony.supervisor import Supervisor
+        from colony.worker import execute_job
+        self.store.transition("T1", "blocked", "controller", summary="Original case needs repair")
+        self.broker.pr = good_pr("a" * 40)
+        self.store.set_task_artifacts("T1", branch="codex/original", pr_url=self.broker.pr["url"])
+        self.auto.update_cycle(self.cycle["id"], phase="needs_review", pr_number=7,
+                               pr_url=self.broker.pr["url"], head_sha="a" * 40,
+                               base_sha="b" * 40, last_error="Original case needs repair")
+        self.pipeline.policy.update(enabled=True, max_daily_attempts=2)
+        scan_recoveries(self.store, self.auto, self.pipeline.policy)
+        root = self.auto.get_cycle(self.cycle["id"])
+        triage_id = root["recovery_triage_cycle_id"]
+        binary = self.root / "fake-triage-provider"
+        binary.write_text("#!" + sys.executable + "\nimport json,sys\nsys.stdin.read()\n"
+                          "print(json.dumps({'type':'turn.failed','error':{'message':'Connection reset by provider'}}))\n")
+        binary.chmod(0o755)
+        self.pipeline.executor = execute_job
+        supervisor = Supervisor(self.root, self.store.path, self.pipeline.policy,
+                                pipeline=self.pipeline, task_store=self.store)
+        self.addCleanup(supervisor.release_lock)
+        with patch("colony.worker.shutil.which", return_value=str(binary)):
+            self.assertEqual(supervisor.tick()["status"], "waiting_network")
+        triage = self.auto.get_cycle(triage_id)
+        self.assertEqual(triage["triage_network_retry_count"], 1)
+        self.assertEqual(triage["resume_phase"], "triaging")
+        self.assertEqual(self.auto.get_budget(self.pipeline.policy)["attempts"], 1)
+        supervisor.release_lock()
+        restarted_pipeline = Pipeline(self.root, self.store, self.auto, self.pipeline.policy,
+                                      broker=self.broker, executor=execute_job)
+        restarted = Supervisor(self.root, self.store.path, self.pipeline.policy,
+                               pipeline=restarted_pipeline, task_store=self.store)
+        self.addCleanup(restarted.release_lock)
+        self.assertEqual(restarted.tick()["status"], "waiting_network")
+        self.provider_probe.assert_not_called()
+        self.auto.update_cycle(triage_id, next_retry_at=0, provider_next_retry_at=0)
+        diagnosis = {"action": "repair", "diagnosis": "Repair the original missing case.",
+                     "repair_title": "Repair the original required case",
+                     "repair_description": "Implement the full original required acceptance without weakening it.",
+                     "role": "engineer"}
+        binary.write_text("#!" + sys.executable + "\nimport json,pathlib,sys\nsys.stdin.read()\n"
+                          "pathlib.Path(sys.argv[sys.argv.index('--output-last-message')+1]).write_text(%r)\n"
+                          "print(json.dumps({'type':'turn.completed','usage':{}}))\n" % json.dumps(diagnosis))
+        with patch("colony.worker.shutil.which", return_value=str(binary)), \
+                patch("colony.pipeline.apply_triage_result", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                restarted.tick()
+        cached = self.auto.get_cycle(triage_id)
+        self.assertEqual(cached["phase"], "triage_handoff")
+        self.assertEqual(cached["triage_result"], diagnosis)
+        attempts = self.auto.list_attempts(triage_id)
+        self.assertEqual([a["stage"] for a in attempts], ["triage:0:net0", "triage:0:net1"])
+        self.assertEqual([a["status"] for a in attempts], ["failed", "completed"])
+        self.assertTrue(all(a["charged_seconds"] > 0 for a in attempts))
+        self.assertEqual(self.auto.get_budget(self.pipeline.policy)["remaining_attempts"], 0)
+        restarted.release_lock()
+        final_pipeline = Pipeline(self.root, self.store, self.auto, self.pipeline.policy,
+                                  broker=self.broker, executor=Mock(side_effect=AssertionError("No model may rerun")))
+        final = Supervisor(self.root, self.store.path, self.pipeline.policy,
+                           pipeline=final_pipeline, task_store=self.store)
+        self.addCleanup(final.release_lock)
+        final.tick()
+        self.assertEqual(self.auto.get_cycle(triage_id)["phase"], "done")
+        self.assertEqual(len(self.auto.list_attempts(triage_id)), 2)
+        final_pipeline.executor.assert_not_called()
+        repaired = self.auto.get_cycle(self.cycle["id"])
+        self.assertIsNotNone(repaired["recovery_repair_cycle_id"])
+
     def test_actual_cli_provider_failure_waits_without_spending_revision(self):
         import sys
         from colony.worker import execute_job
