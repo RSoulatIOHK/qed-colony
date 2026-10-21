@@ -93,6 +93,16 @@ private def productPortfolio (subject : Ident) : TacticM Unit := do
     evalTactic (← `(tactic| solve | simp_all <;> omega))
   setGoals []
 
+/-- Split one `Fin (n + 1)` local into zero and successor cases. The caller
+restores the candidate snapshot unless simplification and arithmetic close both. -/
+private def finPortfolio (subject : Ident) : TacticM Unit := do
+  evalTactic (← `(tactic| cases $subject:ident using Fin.cases))
+  let branches ← getGoals
+  for branch in branches do
+    setGoals [branch]
+    evalTactic (← `(tactic| solve | simp_all <;> omega))
+  setGoals []
+
 private def listProcessInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
   evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
   let branches ← getGoals
@@ -242,6 +252,30 @@ elab "colony" : tactic => do
           catch _ => candidateState.restore
     return false
   if productSolved then
+    return
+  let finSolved ← withMainContext do
+    let context ← getLCtx
+    let mut candidate : Option LocalDecl := none
+    for decl in context do
+      unless decl.isImplementationDetail || candidate.isSome do
+        let type := decl.type
+        if type.isAppOf ``Fin then
+          let args := type.getAppArgs
+          if args.size == 1 then
+            let index ← whnf args[0]!
+            if index.isAppOf ``Nat.succ then
+              candidate := some decl
+    match candidate with
+    | none => return false
+    | some decl =>
+      let candidateState ← saveState
+      try
+        finPortfolio (mkIdent decl.userName)
+        return true
+      catch _ =>
+        candidateState.restore
+        return false
+  if finSolved then
     return
   try
     let bridge := mkIdent (.str (.mkSimple "Colony") "reverseAcc_bridge")
