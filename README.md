@@ -43,7 +43,7 @@ python3 -m colony service install --port 7331
 python3 -m colony service status
 ```
 
-The current experimental policy permits one active worker, up to 7,200 aggregate model seconds (two worker-hours) and 36 attempts per Paris calendar day. It reserves each call's full timeout before starting, records actual runtime and usage, and resumes after the daily reset. Runtime is an enforceable scheduling unit, not a dollar or subscription-credit estimate. Interrupted calls retain their full reservation.
+The current experimental policy permits one active worker, up to 14,400 aggregate model seconds (four worker-hours) and 72 attempts per Paris calendar day. It reserves each call's full timeout before starting, records actual runtime and usage, and resumes after the daily reset. Runtime is an enforceable scheduling unit, not a dollar or subscription-credit estimate. Interrupted calls retain their full reservation.
 
 Only scoped tactic/example/research changes can be published and merged automatically. Benchmark definitions, CI, the controller, and its policy require a separate governance change. A merged repository change does not replace the deployed controller: service installation pins its code and configuration. See [autonomy](docs/autonomy.md), [the pipeline](docs/pipeline.md), and [service operation](docs/service.md).
 
