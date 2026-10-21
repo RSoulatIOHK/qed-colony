@@ -27,7 +27,7 @@
     "repository": "RSoulatIOHK/qed-colony",
     "base_branch": "main",
     "max_daily_seconds": 28800,
-    "max_daily_attempts": 144,
+    "max_daily_attempts": 216,
     "timezone": "Europe/Paris",
     "max_concurrency": 4,
     "poll_seconds": 15,

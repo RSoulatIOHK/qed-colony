@@ -91,14 +91,14 @@ operational limits include:
 {
   "enabled": true,
   "max_daily_seconds": 28800,
-  "max_daily_attempts": 144,
+  "max_daily_attempts": 216,
   "timezone": "Europe/Paris",
   "max_concurrency": 4,
   "poll_seconds": 30
 }
 ```
 
-The current experimental allocation is eight aggregate worker-hours and 144 attempts per Paris calendar day, not a monetary price. Four agents each working for one hour consume four worker-hours. Existing usage is retained when limits change. The
+The current experimental allocation is eight aggregate worker-hours and 216 attempts per Paris calendar day, not a monetary price. Four agents each working for one hour consume four worker-hours. Existing usage is retained when limits change. The
 selected model, reasoning effort, tokens, and measured elapsed time should be
 recorded with the attempt. Model selection policy can use cheaper models for
 routine work and stronger models for difficult research or review while sharing
