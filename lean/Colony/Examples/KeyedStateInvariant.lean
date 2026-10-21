@@ -35,7 +35,9 @@ theorem update_preserves_sum_except (state : State) (key value : Nat) :
 
 /-- A concrete update changes the selected value while keeping the other
 value in the sum. -/
-example : sumExcept 2 (update 2 99 [(1, 7), (2, 5), (3, 11)]) = 18 := by
+example :
+    update 2 99 [(1, 7), (2, 5), (3, 11)] = [(1, 7), (2, 99), (3, 11)] ∧
+    sumExcept 2 (update 2 99 [(1, 7), (2, 5), (3, 11)]) = 18 := by
   decide
 
 /-- A nearby false property is not established by `colony`. -/
