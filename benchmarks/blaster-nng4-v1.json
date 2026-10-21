@@ -1,0 +1,305 @@
+{
+  "schema": "colony.external_corpus.v1",
+  "id": "blaster-nng4-prefix-v1",
+  "scope": "First 12 named NNG4 theorems in source order; exploratory rehost, not the full upstream benchmark.",
+  "source": {
+    "repository": "https://github.com/input-output-hk/Blaster-benchmarking",
+    "commit": "b7cc5304bde87c269bb3ba57e560304ffd9f2189",
+    "path": "BlasterBenchmarks/NNG4/NNG4.lean",
+    "url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean",
+    "vendored_path": "benchmarks/upstream/blaster-b7cc5304/NNG4.lean",
+    "sha256": "93d6755ade248473aff71ae5832f30aaf2ff205a5e2619955c8f9585631328cf",
+    "git_blob": "39330d6867b8e307015588aa1fc5ded7feae8b78",
+    "upstream_toolchain": "leanprover/lean4:v4.24.0",
+    "named_theorem_count": 108,
+    "unnamed_example_count": 9,
+    "license": "Apache-2.0",
+    "license_path": "benchmarks/upstream/blaster-b7cc5304/LICENSE",
+    "license_sha256": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+    "license_git_blob": "b09cd7856d58590578ee1a4f3ad45d1310a97f87"
+  },
+  "selection": {
+    "kind": "first_named_theorems",
+    "count": 12,
+    "remaining_named_theorems": 96,
+    "excluded_unnamed_examples": 9,
+    "policy": "Source order only; no theorem-name, proof-success or difficulty selection."
+  },
+  "imports": [
+    "Colony.Tactic"
+  ],
+  "local_toolchain": "leanprover/lean4:v4.35.0",
+  "resource_limits": {
+    "timeout_seconds": 20,
+    "max_heartbeats": 200000
+  },
+  "allowed_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "proof_contract": {
+    "candidate_body": "by colony",
+    "isolated_declaration": true,
+    "extra_imports": false,
+    "extra_helpers": false,
+    "manual_proof_steps": false
+  },
+  "comparability": "Upstream uses Lean 4.24.0; this rehost uses 4.35.0. No official Blaster comparison or superiority claim.",
+  "cases": [
+    {
+      "id": "nng4.zero_add",
+      "source_name": "zero_add",
+      "full_name": "BlasterBenchmarks.NNG4.zero_add",
+      "source_line": 7,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section Addition",
+        "open Nat"
+      ],
+      "header": "  theorem zero_add : ∀ (n : ℕ), 0 + n = n :=",
+      "context_closers": [
+        "end Addition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "9fe3a58a0d34bffe3b84b75283b4153232cf5b5abe2b90fc28730a5bd7bf56f0"
+    },
+    {
+      "id": "nng4.succ_add",
+      "source_name": "succ_add",
+      "full_name": "BlasterBenchmarks.NNG4.succ_add",
+      "source_line": 8,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section Addition",
+        "open Nat"
+      ],
+      "header": "  theorem succ_add (a b : ℕ) : succ a + b = succ (a + b)  :=",
+      "context_closers": [
+        "end Addition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "13a0380e3b9f2f7235b08edbd31419a1ace0b9b9d8f9244f2d75bcc4463e24fd"
+    },
+    {
+      "id": "nng4.add_comm",
+      "source_name": "add_comm",
+      "full_name": "BlasterBenchmarks.NNG4.add_comm",
+      "source_line": 9,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section Addition",
+        "open Nat"
+      ],
+      "header": "  theorem add_comm (a b : ℕ) : a + b = b + a :=",
+      "context_closers": [
+        "end Addition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "54cd687281c66c2a8a9e1185260a8ee23b3e1bf08a573e0f80c3698d8280e011"
+    },
+    {
+      "id": "nng4.add_assoc",
+      "source_name": "add_assoc",
+      "full_name": "BlasterBenchmarks.NNG4.add_assoc",
+      "source_line": 10,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section Addition",
+        "open Nat"
+      ],
+      "header": "  theorem add_assoc (a b c : ℕ) : a + b + c = a + (b + c) :=",
+      "context_closers": [
+        "end Addition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "012912338cb536050a53f1cfe386760a9c3a93c96c936535dba5ffef85f67686"
+    },
+    {
+      "id": "nng4.add_right_comm",
+      "source_name": "add_right_comm",
+      "full_name": "BlasterBenchmarks.NNG4.add_right_comm",
+      "source_line": 11,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section Addition",
+        "open Nat"
+      ],
+      "header": "  theorem add_right_comm (a b c : ℕ) : a + b + c = a + c + b :=",
+      "context_closers": [
+        "end Addition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "b9202d29a99e2b6b3d8d9f4a4dad9ebf828e7f7479f5adececcd7f6175babd33"
+    },
+    {
+      "id": "nng4.add_right_cancel",
+      "source_name": "add_right_cancel",
+      "full_name": "BlasterBenchmarks.NNG4.add_right_cancel",
+      "source_line": 15,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section AdvAddition"
+      ],
+      "header": "  theorem add_right_cancel (a b n : ℕ) : a + n = b + n → a = b :=",
+      "context_closers": [
+        "end AdvAddition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "a7dce20e660b6ce6afe2aff1e71fb30fa9015a1076c858aeae82125d9290bdce"
+    },
+    {
+      "id": "nng4.add_left_cancel",
+      "source_name": "add_left_cancel",
+      "full_name": "BlasterBenchmarks.NNG4.add_left_cancel",
+      "source_line": 16,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section AdvAddition"
+      ],
+      "header": "  theorem add_left_cancel (a b n : ℕ) : n + a = n + b → a = b :=",
+      "context_closers": [
+        "end AdvAddition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "c1e873e3bca8a1bd3593f8cdd9b3a302440e0b978d9296ceacd6c397f7df0fdf"
+    },
+    {
+      "id": "nng4.add_left_eq_self",
+      "source_name": "add_left_eq_self",
+      "full_name": "BlasterBenchmarks.NNG4.add_left_eq_self",
+      "source_line": 17,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section AdvAddition"
+      ],
+      "header": "  theorem add_left_eq_self (x y : ℕ) : x + y = y → x = 0 :=",
+      "context_closers": [
+        "end AdvAddition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "346ecc34722d415b91fe5222ed0f1881d03e02b6dc4ad4e5449340efbe6a624f"
+    },
+    {
+      "id": "nng4.add_right_eq_self",
+      "source_name": "add_right_eq_self",
+      "full_name": "BlasterBenchmarks.NNG4.add_right_eq_self",
+      "source_line": 18,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section AdvAddition"
+      ],
+      "header": "  theorem add_right_eq_self (x y : ℕ) : x + y = x → y = 0 :=",
+      "context_closers": [
+        "end AdvAddition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "c1669afda8d3ca3bc0ad345160fbbf820d9566f2cb49a461b20eb6e8cab84beb"
+    },
+    {
+      "id": "nng4.add_right_eq_zero",
+      "source_name": "add_right_eq_zero",
+      "full_name": "BlasterBenchmarks.NNG4.add_right_eq_zero",
+      "source_line": 19,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section AdvAddition"
+      ],
+      "header": "  theorem add_right_eq_zero (a b : ℕ) : a + b = 0 → a = 0 :=",
+      "context_closers": [
+        "end AdvAddition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "14bac239c7a6a34fead986dee631370ddb5426f634e01ab60ac31cf4eed74f4c"
+    },
+    {
+      "id": "nng4.add_left_eq_zero",
+      "source_name": "add_left_eq_zero",
+      "full_name": "BlasterBenchmarks.NNG4.add_left_eq_zero",
+      "source_line": 20,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section AdvAddition"
+      ],
+      "header": "  theorem add_left_eq_zero (a b : ℕ) : a + b = 0 → b = 0 :=",
+      "context_closers": [
+        "end AdvAddition",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "34c6ca631750dade9051a0b435a828158182fd1452a21552598289cc00668394"
+    },
+    {
+      "id": "nng4.mul_le_mul_right",
+      "source_name": "mul_le_mul_right",
+      "full_name": "BlasterBenchmarks.NNG4.mul_le_mul_right",
+      "source_line": 25,
+      "kind": "positive",
+      "context": [
+        "namespace BlasterBenchmarks.NNG4",
+        "abbrev ℕ := Nat",
+        "section AdvMultiplication",
+        "open Nat"
+      ],
+      "header": "  theorem mul_le_mul_right (a b t : ℕ) (h : a ≤ b) : a * t ≤ b * t :=",
+      "context_closers": [
+        "end AdvMultiplication",
+        "end BlasterBenchmarks.NNG4"
+      ],
+      "statement_sha256": "867fe0c1710bc59adad0c0a9e6064c1031e55839fa6d1016222a9fbfa571c198"
+    }
+  ],
+  "controls": [
+    {
+      "id": "control.witness",
+      "source_name": "witness",
+      "full_name": "ColonyNNG4Controls.witness",
+      "source_line": null,
+      "kind": "nonvacuity",
+      "context": [
+        "namespace ColonyNNG4Controls"
+      ],
+      "header": "theorem witness : (0 : Nat) + 1 ≠ 0 :=",
+      "context_closers": [
+        "end ColonyNNG4Controls"
+      ],
+      "statement_sha256": "e0414541d9c695157a094ebdaef52baaf208c5e419c496702039ac33ff28ecb9"
+    },
+    {
+      "id": "control.impossible",
+      "source_name": "impossible",
+      "full_name": "ColonyNNG4Controls.impossible",
+      "source_line": null,
+      "kind": "negative",
+      "context": [
+        "namespace ColonyNNG4Controls"
+      ],
+      "header": "theorem impossible : ∀ n : Nat, n + 1 = n :=",
+      "context_closers": [
+        "end ColonyNNG4Controls"
+      ],
+      "statement_sha256": "be3c51e09cdb9db3305376855dc199bbcc3d4b8468026f74e119f10871c246b1"
+    }
+  ]
+}

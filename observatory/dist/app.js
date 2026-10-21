@@ -723,7 +723,139 @@
     return { label: 'Unspecified', className: '' };
   }
 
+  const liveStrategies = [['colony', 'Colony'], ['simp', 'simp_all'], ['omega', 'omega'], ['grind', 'grind']];
+
+  function liveResultLabel(result, kind) {
+    if (kind === 'negative' && result.status === 'kernel_accepted') return 'INVALID CONTROL ACCEPTED';
+    if (kind === 'negative' && result.status === 'proof_failed') return 'Rejected as expected';
+    return ({ kernel_accepted: 'Kernel accepted', proof_failed: 'No proof', timeout: 'Time limit',
+      error: 'Harness error', disallowed_axioms: 'Disallowed axioms', missing_axiom_evidence: 'Missing kernel evidence' })[result.status] || 'Unrecognized outcome';
+  }
+
+  function liveCaseCard(item, control = false) {
+    const card = el('details', 'live-benchmark-case');
+    card.id = `live-case-${item.id}`;
+    const heading = el('summary');
+    heading.append(el('strong', '', item.source_name), el('span', 'subtle-label', control ? pretty(item.kind) : item.id));
+    card.append(heading, el('pre', 'live-statement', item.header));
+    const provenance = el('div', 'live-case-provenance');
+    const upstream = link(item.source_line ? `Original source · line ${item.source_line} ↗` : 'Original source ↗', item.source_url);
+    if (upstream) provenance.append(upstream);
+    provenance.append(el('span', '', `Statement SHA-256: ${item.statement_sha256}`));
+    card.append(provenance);
+    const outcomes = el('div', 'live-case-outcomes');
+    liveStrategies.forEach(([strategy, label]) => {
+      const result = item.results[strategy];
+      const row = el('div', 'live-case-outcome');
+      const accepted = result.status === 'kernel_accepted';
+      row.append(el('strong', '', label), el('code', '', result.proof_body),
+        el('span', accepted && item.kind === 'negative' ? 'live-result-error' : accepted ? 'live-result-proved' : 'live-result-unproved', liveResultLabel(result, item.kind)),
+        el('span', 'subtle-label', `${Number(result.wall_seconds).toFixed(3)} s`));
+      const evidence = el('details', 'live-generated-source');
+      evidence.id = `live-proof-${item.id}-${strategy}`;
+      evidence.append(el('summary', '', 'Generated declaration and axiom evidence'),
+        el('p', '', `Generated source SHA-256: ${result.generated_source_sha256}`),
+        el('p', '', `Axioms: ${Array.isArray(result.axioms) ? result.axioms.length ? result.axioms.join(', ') : 'none (reported axiom-free)' : 'no axiom evidence produced'}`),
+        el('pre', '', result.generated_source));
+      row.append(evidence);
+      outcomes.append(row);
+    });
+    card.append(outcomes);
+    return card;
+  }
+
+  function renderLiveBenchmark() {
+    const container = $('live-benchmark');
+    const expanded = new Set(Array.from(container.querySelectorAll?.('details[open]') || [], (detail) => detail.id));
+    container.replaceChildren();
+    const live = state.data.live_benchmark || {};
+    const recorded = live.status || {};
+    const report = live.report;
+    const current = state.source === 'live';
+    const stale = !current || recorded.stale !== false;
+    const invalid = report?.valid === false;
+    const heading = el('div', 'live-benchmark-heading');
+    heading.append(el('span', 'section-index', 'FIXED STATEMENTS / FIXED TACTIC BODIES'),
+      el('span', invalid ? 'live-benchmark-state is-invalid' : stale ? 'live-benchmark-state is-stale' : 'live-benchmark-state',
+        invalid ? `Invalid controls · comparison not certified${stale ? ' · stale run' : ''}` : !current ? 'Saved evidence · freshness unconfirmed' : recorded.state === 'running' ? 'Refresh running · previous report is stale' : stale ? 'Stale or unavailable evidence' : 'Complete for the observed revision'));
+    container.append(heading);
+    if (recorded.message) container.append(el('p', 'live-benchmark-message', recorded.message));
+    if (recorded.freshness_reason) container.append(el('p', 'live-benchmark-message', recorded.freshness_reason));
+    if (recorded.state === 'running' && recorded.total_rows > 0 && recorded.completed_rows !== undefined) {
+      container.append(el('p', 'live-benchmark-progress', `Current refresh: ${recorded.completed_rows} / ${recorded.total_rows} measured rows. Scores below belong only to the last complete run.`));
+    }
+    if (!report) {
+      container.append(empty('No completed strict benchmark report.', 'A successful worker, a manual theorem proof, or a legacy seed result does not fill this score table. Measured results appear after the runner completes and validates the fixed suite.'));
+      return;
+    }
+    const metadata = el('dl', 'live-benchmark-metadata');
+    const addMetadata = (label, value) => {
+      const pair = el('div');
+      pair.append(el('dt', '', label), el('dd', '', value));
+      metadata.append(pair);
+    };
+    addMetadata('Completed run', report.run_id);
+    addMetadata('Measured source revision', report.source_revision);
+    addMetadata('Runner’s observed target revision', recorded.target_revision || 'Not reported · freshness unconfirmed');
+    addMetadata('Runner last observed its target', recorded.observed_at ? `${dateTime(recorded.observed_at)} · ${relative(recorded.observed_at)}` : 'Not reported · freshness unconfirmed');
+    addMetadata('Started / completed', `${dateTime(report.started_at)} / ${dateTime(report.completed_at)}`);
+    addMetadata('Suite / scored denominator', `${report.suite.id} · ${report.suite.case_count} source cases`);
+    if (report.toolchain?.pin) addMetadata('Pinned Lean toolchain', report.toolchain.pin);
+    addMetadata('Suite SHA-256', report.suite.suite_sha256);
+    addMetadata('Manifest / statement lock SHA-256', `${report.suite.manifest_sha256} / ${report.suite.lock_sha256}`);
+    container.append(metadata);
+    const revisionLink = link('Inspect the measured colony revision ↗', `${state.data.project.repo_url || ''}/commit/${report.source_revision}`);
+    if (revisionLink) container.append(revisionLink);
+    if (report.suite.scope) container.append(el('p', 'live-benchmark-selection', report.suite.scope));
+    const selection = report.suite.selection || {};
+    if (selection.kind || selection.policy) container.append(el('p', 'live-benchmark-selection', `${selection.kind ? pretty(selection.kind) + '. ' : ''}${selection.policy || ''}${selection.remaining_named_theorems !== undefined ? ` ${selection.remaining_named_theorems} other named upstream theorems are outside this sample.` : ''}`));
+    container.append(el('p', 'live-benchmark-contract', `Strict Colony contract: exactly “by colony”, importing Colony.Tactic. No per-case manual steps, helpers or extra imports count as tactic wins. Each strategy gets ${report.protocol.timeout_seconds} seconds and ${report.protocol.max_heartbeats.toLocaleString()} heartbeats per case.`));
+    const tableWrap = el('div', 'live-benchmark-table-wrap');
+    const table = el('table', 'live-benchmark-table');
+    const caption = el('caption', '', 'Completed scored cases · controls excluded');
+    const header = el('tr');
+    ['Strategy', 'Fixed proof body', 'Proved / cases', 'No proof', 'Timeout', 'Error', 'Total wall time'].forEach((label) => {
+      const cell = el('th', '', label); cell.scope = 'col'; header.append(cell);
+    });
+    const thead = el('thead'); thead.append(header);
+    const tbody = el('tbody');
+    liveStrategies.forEach(([strategy, label]) => {
+      const measured = report.summary[strategy];
+      const row = el('tr', measured.valid ? '' : 'is-invalid');
+      const name = el('th', '', label); name.scope = 'row'; row.append(name);
+      const proof = el('td'); proof.append(el('code', '', report.protocol.proof_bodies[strategy])); row.append(proof);
+      [measured.valid ? `${measured.proved} / ${measured.total}` : 'Not certified · invalid controls', measured.proof_failed, measured.timeouts, measured.errors, `${Number(measured.wall_seconds).toFixed(3)} s`]
+        .forEach((value) => row.append(el('td', '', String(value))));
+      tbody.append(row);
+    });
+    table.append(caption, thead, tbody); tableWrap.append(table); container.append(tableWrap);
+    const comparison = report.baseline_comparability.blaster;
+    container.append(el('p', 'live-benchmark-comparability', `Lean Blaster comparison: ${pretty(comparison.state)}. ${comparison.reason}`),
+      el('p', 'live-benchmark-assurance', `${report.assurance.label}. Independent external replay: not performed. Freshness is relative to the runner’s last observed target; saved exports do not establish a live run.`));
+    if (report.timing_note) container.append(el('p', 'live-benchmark-assurance', report.timing_note));
+    if (report.assurance.security_boundary) container.append(el('p', 'live-benchmark-assurance', report.assurance.security_boundary));
+    if (report.source_sha256 || report.runtime_source_sha256) {
+      const hashes = el('details', 'live-generated-source');
+      hashes.id = 'live-input-hashes';
+      hashes.append(el('summary', '', 'Exact tactic and pinned evaluator input hashes'),
+        el('pre', '', JSON.stringify({ source_sha256: report.source_sha256, runtime_source_sha256: report.runtime_source_sha256 }, null, 2)));
+      container.append(hashes);
+    }
+    const cases = el('section', 'live-benchmark-cases');
+    cases.append(el('h3', '', 'Original source cases'), el('p', '', 'Expand a theorem to inspect its unchanged statement, pinned provenance, exact proof bodies and all four measured outcomes.'));
+    report.cases.forEach((item) => cases.append(liveCaseCard(item)));
+    container.append(cases);
+    const controls = el('section', 'live-benchmark-controls');
+    controls.append(el('h3', '', 'Validity controls · excluded from the score'),
+      el('p', '', 'Witnesses establish non-vacuity. An intentionally invalid theorem must fail; rejecting it is a control check, not a scored theorem win.'));
+    report.controls.forEach((item) => controls.append(liveCaseCard(item, true)));
+    if (!report.controls.length) controls.append(el('p', 'live-result-error', 'No validity controls were recorded in this report.'));
+    container.append(controls);
+    container.querySelectorAll?.('details').forEach((detail) => { detail.open = expanded.has(detail.id); });
+  }
+
   function renderBenchmarks() {
+    renderLiveBenchmark();
     const container = $('benchmark-list');
     container.replaceChildren();
     const reports = state.data.benchmarks;
@@ -759,7 +891,7 @@
         added.add(label);
       });
       if (metrics.childElementCount) card.append(metrics);
-      if (Array.isArray(result.axioms)) card.append(el('p', 'benchmark-assumptions', `Axioms: ${result.axioms.length ? result.axioms.join(', ') : 'none reported'}`));
+      if (Array.isArray(result.axioms)) card.append(el('p', 'benchmark-assumptions', `Axioms: ${Array.isArray(result.axioms) ? result.axioms.length ? result.axioms.join(', ') : 'none (reported axiom-free)' : 'no axiom evidence produced'}`));
       if (result.independent_replay === false) card.append(el('p', 'benchmark-assumptions', 'Independent replay: not performed'));
       const artifact = link('Inspect evidence ↗', result.artifact_url || result.report_url || result.pr_url || result.url);
       if (artifact) card.append(artifact);

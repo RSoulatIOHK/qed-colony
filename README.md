@@ -47,6 +47,11 @@ The current experimental policy permits up to four independent model workers in 
 
 Only scoped tactic/example/research changes can be published and merged automatically. Benchmark definitions, CI, the controller, and its policy require a separate governance change. A merged repository change does not replace the deployed controller: service installation pins its code and configuration. See [autonomy](docs/autonomy.md), [the pipeline](docs/pipeline.md), and [service operation](docs/service.md).
 
+The [live benchmark report](docs/live-benchmarks.md) uses a frozen upstream NNG4
+sample and scores Colony only when the unchanged theorem closes with exactly
+`by colony`. It shows tested revisions, failures, timeouts, controls and fixed
+automation baselines; manual proofs in experiment PRs do not count as wins.
+
 ```sh
 python3 -m colony service stop
 python3 -m colony service start

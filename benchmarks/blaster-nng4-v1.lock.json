@@ -1,0 +1,14 @@
+{
+  "schema": "colony.external_corpus_lock.v1",
+  "corpus_id": "blaster-nng4-prefix-v1",
+  "manifest": {
+    "path": "benchmarks/blaster-nng4-v1.json",
+    "sha256": "6feede4f577665a9db818a8fb51ecee86424c4122cb09fcf1515ccd8b9369859"
+  },
+  "protected_files": {
+    "benchmarks/upstream/blaster-b7cc5304/NNG4.lean": "93d6755ade248473aff71ae5832f30aaf2ff205a5e2619955c8f9585631328cf",
+    "benchmarks/upstream/blaster-b7cc5304/LICENSE": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+    "benchmarks/upstream/blaster-b7cc5304/lean-toolchain": "42779d67b81608af8a12aa4328d2ab47ca201925b3b2bd68369587b5340bb434",
+    "scripts/extract_blaster_nng4.py": "4c1c8cc40bbdc607407d0359f83b4abee0b3dbbef7f5f2b4f966f6fb78448183"
+  }
+}
