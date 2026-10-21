@@ -1,0 +1,20 @@
+{
+  "schema": "colony.blaster_north_star_inventory_lock.v1",
+  "catalog_id": "blaster-full-inventory-b7cc5304-v1",
+  "catalog": {
+    "path": "benchmarks/blaster-full-inventory.json",
+    "sha256": "6d9a1449b19f65497cf8c77906e65e87b3f9d010abda8bbc2693b4f763f66b03"
+  },
+  "source": {
+    "repository": "https://github.com/input-output-hk/Blaster-benchmarking",
+    "commit": "b7cc5304bde87c269bb3ba57e560304ffd9f2189",
+    "files_sha256": "12e7a43e83b7fd326632c005fa91ba0c5926911f3435ea26a606002e555dd2fd"
+  },
+  "protected_files": {
+    "scripts/inventory_blaster.py": "5ab43826cb315b952de83155e367b301682951e0da0103f248d34b7e04ea0fd7",
+    "benchmarks/blaster-nng4-v1.json": "6feede4f577665a9db818a8fb51ecee86424c4122cb09fcf1515ccd8b9369859",
+    "benchmarks/blaster-nng4-v1.lock.json": "7bebc6d54162ab2ac5bd61401769763f6632ec14ce76cd37aab23d5c9c62202b",
+    "benchmarks/upstream/blaster-b7cc5304/LICENSE": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+    "benchmarks/results/blaster-nng4-first-run.json": "b8041b98a2c7cd318e94024a34df228d792cccca6a0db12b64b93f37a2ba57e6"
+  }
+}

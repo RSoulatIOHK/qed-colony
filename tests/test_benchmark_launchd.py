@@ -20,7 +20,7 @@ class BenchmarkLaunchdTests(unittest.TestCase):
             (self.source / name).mkdir(parents=True)
         (self.source / "colony" / "__init__.py").write_text("")
         (self.source / "benchmarks" / "frozen.json").write_text('{"id":"fixed"}')
-        for name in ("run_live_benchmarks.py", "extract_blaster_nng4.py", "evaluate_lean.py"):
+        for name in ("run_live_benchmarks.py", "extract_blaster_nng4.py", "evaluate_lean.py", "inventory_blaster.py"):
             (self.source / "scripts" / name).write_text("# reviewed evaluator\n")
         mock.patch("colony.benchmark_launchd.sys.platform", "darwin").start()
         mock.patch("colony.benchmark_launchd.shutil.which", return_value="/usr/bin/tool").start()
@@ -50,6 +50,7 @@ class BenchmarkLaunchdTests(unittest.TestCase):
         self.assertEqual(spec["ExitTimeOut"], 30)
         self.assertEqual(Path(result["plist"]).stat().st_mode & 0o777, 0o600)
         self.assertIn("benchmarks/frozen.json", result["source_sha256"])
+        self.assertIn("scripts/inventory_blaster.py", result["source_sha256"])
         stop_service(self.root, home=self.home)
         self.assertTrue(runtime.exists())
 

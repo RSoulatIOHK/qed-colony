@@ -80,3 +80,24 @@
 .live-benchmark-state.is-invalid{color:var(--red);border-color:#744f43}
 
 .live-benchmark-table tr.is-invalid td:nth-child(3){color:var(--red)}
+.north-star-panel .live-benchmark-heading h3{font-size:21px;font-weight:500;margin:0}
+.north-star-panel .north-star-denominator{font-size:16px;color:var(--ink);margin-bottom:21px}
+.north-star-links{display:flex;gap:14px 28px;flex-wrap:wrap;margin:18px 0}
+.north-star-panel .north-star-admission{color:var(--muted)}
+.north-star-counts{padding:18px 0;border-top:1px solid var(--line-soft)}
+.north-star-counts h4{font-size:12px;font-weight:500;margin:0 0 18px;color:var(--ink)}
+.north-star-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.north-star-metrics>div{display:flex;flex-direction:column;gap:9px}
+.north-star-metrics strong{font-family:var(--mono);font-size:26px;font-weight:400;color:var(--lime)}
+.north-star-metrics span{font-family:var(--mono);font-size:9px;color:var(--quiet);line-height:1.6}
+.north-star-counts.is-historical{border-left:2px solid var(--amber);padding-left:18px}
+.north-star-counts.is-historical strong{color:var(--amber)}
+.north-star-family-table tbody tr:first-child{background:none}
+.north-star-panel .north-star-family-table tbody tr:first-child:not(.is-invalid) td:nth-child(3){color:inherit;font-weight:400}
+.north-star-issues{border:1px solid #6d5734;border-radius:4px;padding:15px 18px}
+.north-star-issues>summary{color:var(--amber);font-family:var(--mono);font-size:10px;line-height:1.8;cursor:pointer}
+.north-star-issues>div{border-top:1px solid var(--line-soft);padding:16px 0 4px;margin-top:14px}
+.north-star-issues strong{font-size:11px;font-weight:500;overflow-wrap:anywhere}
+.north-star-panel .north-star-next{margin-top:24px;border-left:2px solid var(--lime);padding:10px 16px}
+.sample-heading{margin-top:45px}
+@media(max-width:570px){.north-star-panel .north-star-denominator{font-size:13px}.north-star-metrics{gap:8px}.north-star-metrics strong{font-size:20px}.north-star-metrics span{font-size:8px}.north-star-panel .live-benchmark-heading h3{font-size:18px}}

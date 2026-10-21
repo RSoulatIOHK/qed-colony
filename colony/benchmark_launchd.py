@@ -31,7 +31,7 @@ def install_service(root, source_root=None, interval=120, *, home=None,
     paths = _paths(root, home)
     root = paths["root"]
     source = Path(source_root or root).resolve()
-    scripts = ("run_live_benchmarks.py", "extract_blaster_nng4.py", "evaluate_lean.py")
+    scripts = ("run_live_benchmarks.py", "extract_blaster_nng4.py", "evaluate_lean.py", "inventory_blaster.py")
     if (source / "scripts").is_symlink():
         raise ValueError("Reviewed benchmark scripts directory must be regular")
     for name in scripts:

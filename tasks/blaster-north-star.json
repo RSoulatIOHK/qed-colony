@@ -1,0 +1,38 @@
+{
+  "tasks": [
+    {
+      "id": "NORTHSTAR-NNG4-ADMISSION",
+      "title": "Prepare complete NNG4 admission in fixed source-order shards",
+      "role": "engineer",
+      "priority": 140,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Prepare a controller-reviewable admission prototype for all 108 canonical NNG4 slots in benchmarks/blaster-full-inventory.json, using the pinned source and existing full-source vendored NNG4 file. Own only new research/northstar/nng4_admission.py and research/northstar/nng4-admission.md, plus generated evidence beneath research/northstar/nng4/. Do not edit Tactic.lean, examples, protected benchmarks, scripts, evaluator, controller, policy, toolchain or CI. Validate every original header, source context and canonical identity; generate isolated theorem attempts whose entire proof body is exactly by colony, importing only the approved tactic and original proof-free supporting context. Preserve original definitions, assumptions and bounds. Include dotted declaration names and the later hard goals; never substitute a helper proof or drop a failed target. Group cases deterministically in source-order shards with the same tested revision/protocol, separate positive and invalid controls, and explicit per-case outcomes. Use bounded local runs; measure one complete representative shard within the worker allocation and label all unrun slots unattempted. Return an executable, tested proposal and evidence for separate controller admission, not an official expanded score or authority to install it.",
+      "acceptance": [
+        "All 108 canonical NNG4 targets are mapped exactly to the pinned catalog and original source hashes, including the 96 not currently admitted; no source declaration is silently substituted or omitted.",
+        "Generated positive and witness attempts have entire proof body exactly by colony, with original statements, definitions, assumptions and bounds; no earlier theorem proofs, target-specific helpers, new axioms, sorry, admit or native evaluation axioms enter the imported closure.",
+        "Shards are deterministic, bounded, revision/protocol-bound and include separate valid and invalid controls. Aggregation rejects mixed source revisions or measurement rules and never counts unattempted cases as failures or wins.",
+        "Execute and retain one complete bounded representative shard with full generated sources, commands, actual diagnostics and proof axiom evidence; retain proof failures, timeouts and harness errors separately, and mark all unrun targets unattempted.",
+        "The proposal respects the current matched-strategy resources and modern pinned toolchain, records rehost/support-definition limitations and failed experiments, and cannot alter the existing official 12-case score.",
+        "Only the named research artifacts change. The worker hands the admission prototype to the controller for a separate protected governance review; it must not publish, merge, deploy or expand its authority."
+      ]
+    },
+    {
+      "id": "NORTHSTAR-FAMILY-PORTS",
+      "title": "Plan faithful admission of every remaining Blaster family",
+      "role": "researcher",
+      "priority": 110,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Read the pinned whole-corpus inventory and north-star contract. Produce a concise complete source-based admission plan for STG4, ITL4, MiniF2F, Verina, UPLCWidth, UPLCDepth and the five Home families. The current 12 NNG4 measurements do not establish coverage of these families. For each family identify exact source/configuration identities, local definitions and imports that must be preserved, pinned dependency/toolchain obstacles, original resource profile, proof-free challenge extraction risks, controls/non-vacuity needs and a concrete next bounded artifact. Explain the two Verina helper-target mismatches without silently switching to a final specification, the extra checked-in UPLC depth case, and canonical slots versus distinct mathematics. Use only source inspection; do not execute upstream code or claim a runnable port, proof success, Cardano execution correspondence or matched Blaster comparison. Return the report for normal public review under the existing researcher execution profile.",
+      "acceptance": [
+        "Account for all 12 source families and all 671 canonical slots, clearly separating the existing 12-case admission from unattempted, integration-pending and source-blocked work.",
+        "For each not-yet-admitted family record source provenance, original dependencies/definitions/resource profile and a concrete independently scoped next admission artifact; preserve original theorem semantics and bounds.",
+        "Identify Verina47/48 canonical helper versus intended program specs and require separately governed clarification; retain the seventh checked-in UPLC depth case and disclose possible source-slot duplication.",
+        "Specify controls, complete failure reporting and fixed by colony proof bodies for every future admission; do not claim unrun targets failed or use manual proofs to inflate a tactic score.",
+        "Distinguish static inventory, faithful rehost, local kernel acceptance, exported/independent replay and execution correspondence; state which claims are still unavailable and why.",
+        "Read-only source work produces a complete public research artifact with source links and explicit uncertainties, without running upstream code, editing protected files, changing policy or granting authority."
+      ]
+    }
+  ]
+}

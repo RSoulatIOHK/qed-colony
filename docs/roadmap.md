@@ -1,5 +1,23 @@
 # Roadmap
 
+## North star: the complete pinned Blaster benchmark corpus
+
+The performance target is all 671 canonical harness slots in the 12 upstream
+Blaster-benchmarking families, with their original statements and definitions.
+See [the north-star contract](blaster-north-star.md) and its locked source
+inventory. The initial 12-case NNG4 prefix is a pilot, and 12/12 on that prefix
+is not completion of this objective.
+
+Prioritize generic mathematical automation driven by measured corpus failures,
+and admission of currently unattempted source-order cases. Extend NNG4 beyond
+the first 12, then the other families. Do not fill the research queue with new
+state-machine scaffolds as a substitute for coverage. Independent experiments
+should own different files or integration surfaces and avoid active objectives.
+Workers may prepare admission artifacts within their existing scopes; protected
+benchmark/evaluator changes need separate controller governance. Every scored
+proof remains exactly `by colony`; source ambiguities, unattempted cases and
+invalid controls must stay visible. Architecture remains open.
+
 ## Bootstrap: an inspectable local pilot
 
 - Durable dependency-aware task queue, leases, and restart recovery.
