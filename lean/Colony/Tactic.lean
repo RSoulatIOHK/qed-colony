@@ -1,5 +1,6 @@
 import Lean
 import Std.Tactic
+import Colony.Procedures.ListState
 
 open Lean Elab Tactic Meta
 
@@ -44,6 +45,27 @@ elab "colony" : tactic => do
           catch _ => candidateState.restore
     return false
   if booleanSolved then
+    return
+  let commandSolved ← withMainContext do
+    let context ← getLCtx
+    for decl in context do
+      unless decl.isImplementationDetail do
+        if (← whnf decl.type).isConstOf ``Colony.Procedure.ListCommand then
+          let candidateState ← saveState
+          try
+            evalTactic (← `(tactic| cases $(mkIdent decl.userName):ident))
+            let branches ← getGoals
+            for branch in branches do
+              setGoals [branch]
+              evalTactic (← `(tactic| solve |
+                simp_all [Colony.Procedure.step] <;> omega))
+            setGoals []
+            return true
+          catch _ =>
+            candidateState.restore
+            return false
+    return false
+  if commandSolved then
     return
   try
     let bridge := mkIdent (.str (.mkSimple "Colony") "reverseAcc_bridge")
