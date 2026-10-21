@@ -49,32 +49,103 @@ private def exceptPortfolio (subject : Ident) : TacticM Unit := do
       throwError "colony: an Except branch remains unsolved"
   setGoals []
 
+/-- Find the first visible `if` condition in deterministic expression order. -/
+private partial def firstIfCondition (e : Expr) : Option Expr := Id.run do
+  let (fn, args) := e.getAppFnArgs
+  if fn == ``ite && args.size >= 3 then
+    return some args[2]!
+  if fn == ``dite && args.size >= 3 then
+    return some args[2]!
+  for arg in args do
+    if let some cond := firstIfCondition arg then return some cond
+  match e with
+  | .lam _ t b _ | .forallE _ t b _ =>
+      if let some cond := firstIfCondition t then return some cond
+      return firstIfCondition b
+  | .letE _ t v b _ =>
+      if let some cond := firstIfCondition t then return some cond
+      if let some cond := firstIfCondition v then return some cond
+      return firstIfCondition b
+  | _ => return none
+
+/-- In a single induction branch, try at most one visible decidable condition.
+The caller snapshots state; all children must close for this attempt to commit. -/
+private def splitOneConditional (cond : Expr) : TacticM Unit := do
+  let goal ← getMainGoal
+  let dec ← synthInstance (mkApp (mkConst ``Decidable) cond)
+  let cases ← goal.byCasesDec cond dec `h
+  let children := [cases.1.mvarId, cases.2.mvarId]
+  setGoals children
+  for child in children do
+    setGoals [child]
+    evalTactic (← `(tactic| solve | simp_all <;> omega))
+  setGoals []
+
 private def listProcessInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
   evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
   let branches ← getGoals
   for branch in branches do
     setGoals [branch]
+    let branchState ← saveState
     try
       evalTactic (← `(tactic| solve |
         simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))
     catch _ =>
-      let command ← withMainContext do
-        let context ← getLCtx
-        let mut found : Option Ident := none
-        for decl in context do
-          unless decl.isImplementationDetail do
-            if (← whnf decl.type).isConstOf ``Colony.Procedure.ListCommand then
-              found := some (mkIdent decl.userName)
-        return found
-      match command with
-      | none => throwError "colony: induction branch lacks a command constructor"
-      | some command =>
-        evalTactic (← `(tactic| cases $command:ident))
-        let splitBranches ← getGoals
-        for splitBranch in splitBranches do
-          setGoals [splitBranch]
-          evalTactic (← `(tactic| solve |
-            simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))
+      branchState.restore
+      evalTactic (← `(tactic| dsimp))
+      try evalTactic (← `(tactic| simp_all)) catch _ => pure ()
+      let condition ← withMainContext do
+        let target ← getMainTarget
+        return firstIfCondition target
+      match condition with
+      | some cond =>
+        let splitState ← saveState
+        try
+          splitOneConditional cond
+        catch _ =>
+          splitState.restore
+          throwError "colony: conditional split did not close every branch"
+      | none =>
+        let command ← withMainContext do
+          let context ← getLCtx
+          let mut found : Option Ident := none
+          for decl in context do
+            unless decl.isImplementationDetail do
+              if (← whnf decl.type).isConstOf ``Colony.Procedure.ListCommand then
+                found := some (mkIdent decl.userName)
+          return found
+        match command with
+        | none => throwError "colony: induction branch lacks a command constructor"
+        | some command =>
+          evalTactic (← `(tactic| cases $command:ident))
+          let splitBranches ← getGoals
+          for splitBranch in splitBranches do
+            setGoals [splitBranch]
+            evalTactic (← `(tactic| solve |
+              simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))
+  setGoals []
+
+private def genericListInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
+  evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
+  let branches ← getGoals
+  for branch in branches do
+    setGoals [branch]
+    let branchState ← saveState
+    try
+      evalTactic (← `(tactic| solve | simp_all <;> omega))
+    catch _ =>
+      branchState.restore
+      evalTactic (← `(tactic| simp_all [update, sumExcept]))
+      let condition ← withMainContext do
+        let target ← getMainTarget
+        return firstIfCondition target
+      match condition with
+      | none =>
+        branchState.restore
+        evalTactic (← `(tactic| solve |
+          induction $subject:ident generalizing $[$generalized:ident]* <;>
+            (simp_all <;> omega)))
+      | some cond => splitOneConditional cond
   setGoals []
 
 /--

@@ -20,18 +20,7 @@ def sumExcept (excluded : Nat) : State → Nat
 
 /-- Updating one key preserves the sum of values at every other key. -/
 theorem update_preserves_sum_except (state : State) (key value : Nat) :
-    sumExcept key (update key value state) = sumExcept key state := by
-  fail_if_success
-    (have preserved : sumExcept key (update key value state) =
-        sumExcept key state := by
-      colony)
-  induction state with
-  | nil => rfl
-  | cons entry rest ih =>
-      rcases entry with ⟨storedKey, storedValue⟩
-      by_cases hkey : storedKey = key
-      · simp [update, sumExcept, hkey]
-      · simp [update, sumExcept, hkey, ih]
+    sumExcept key (update key value state) = sumExcept key state := by colony
 
 /-- A concrete update changes the selected value while keeping the other
 value in the sum. -/
