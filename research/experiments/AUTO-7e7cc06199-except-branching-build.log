@@ -1,0 +1,53 @@
+Prior-attempt output inherited at continuation entry; source snapshot not identified.
+Not final acceptance evidence. See AUTO-7e7cc06199-except-branching.md for current commands, hashes, and results.
+
+✔ [3/10] Built Colony.Tactic (7.4s)
+✔ [4/10] Built Colony.Examples.BooleanBranching (12s)
+⚠ [5/10] Built Colony.Examples.OptionBranching (12s)
+warning: Colony/Examples/OptionBranching.lean:13:5: Variable name `irrelevant` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _irrelevant
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/OptionBranching.lean:19:9: Variable name `choice` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _choice
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+✔ [6/10] Built Colony.Seeds (12s)
+⚠ [7/10] Built Colony.Examples.ListStateInvariant (12s)
+warning: Colony/Examples/ListStateInvariant.lean:35:9: Variable name `state` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _state
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/ListStateInvariant.lean:35:29: Variable name `command` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _command
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [8/10] Built Colony.Examples.ResultFlow (12s)
+warning: Colony/Examples/ResultFlow.lean:38:39: Variable name `irrelevant` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _irrelevant
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/ResultFlow.lean:48:9: Variable name `state` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _state
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/ResultFlow.lean:48:29: Variable name `result` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _result
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+✔ [9/10] Built Colony (4.6s)
+Build completed successfully (10 jobs).
