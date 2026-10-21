@@ -121,9 +121,17 @@ private def listProcessInduction (subject : Ident) (generalized : Array Ident) :
             simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))
   setGoals []
 
+private def arrayInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
+  evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
+  let branches ← getGoals
+  for branch in branches do
+    setGoals [branch]
+    evalTactic (← `(tactic| solve | dsimp at *; simp_all <;> omega))
+  setGoals []
+
 /--
 The initial deterministic proof portfolio: simplification, Presburger arithmetic,
-closed decision procedures, and one structural induction on a list or natural.
+closed decision procedures, and structural induction on supported containers.
 Every successful branch constructs an ordinary Lean proof term. This is a seed
 implementation, not the intended final architecture.
 -/
@@ -227,6 +235,29 @@ elab "colony" : tactic => do
       candidateState.restore
       return false
   if listInductionSolved then
+    return
+  let arrayInductionSolved ← withMainContext do
+    let context ← getLCtx
+    let mut candidates : Array LocalDecl := #[]
+    for decl in context do
+      unless decl.isImplementationDetail do
+        if (← whnf decl.type).isAppOf ``Array then
+          candidates := candidates.push decl
+    if candidates.size != 1 then
+      return false
+    let candidateState ← saveState
+    let mut generalized : Array Ident := #[]
+    for decl in context do
+      unless decl.isImplementationDetail || decl.userName == candidates[0]!.userName do
+        unless (← isProp decl.type) do
+          generalized := generalized.push (mkIdent decl.userName)
+    try
+      arrayInduction (mkIdent candidates[0]!.userName) generalized
+      return true
+    catch _ =>
+      candidateState.restore
+      return false
+  if arrayInductionSolved then
     return
   -- Use local-context order and attempt at most one product candidate at a time.
   -- A candidate is committed only if its complete split tree closes.
