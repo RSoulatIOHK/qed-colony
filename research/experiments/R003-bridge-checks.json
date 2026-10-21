@@ -1,0 +1,34 @@
+[
+  {
+    "check": "bounded_bridge_module",
+    "command": [
+      "lake",
+      "env",
+      "lean",
+      "-DmaxHeartbeats=200000",
+      "Colony.lean"
+    ],
+    "returncode": 0,
+    "wall_seconds": 4.700368,
+    "output": "",
+    "timeout_seconds": 15,
+    "max_heartbeats": 200000,
+    "source_sha256": {
+      "lean/Colony.lean": "574aff076baaeca2ad80ec598ff990b41dbb65b34268b2a8a826333001d41e82"
+    }
+  },
+  {
+    "check": "bridge_axioms",
+    "command": [
+      "lake",
+      "env",
+      "lean",
+      "--stdin"
+    ],
+    "returncode": 0,
+    "wall_seconds": 3.412336,
+    "output": "'Colony.reverseAcc_bridge' depends on axioms: [propext]\nColony.reverseAcc_bridge (xs acc : List Nat) : Colony.Seed.reverseAcc xs acc = xs.reverse ++ acc\n",
+    "timeout_seconds": 15,
+    "stdin": "import Colony\n#print axioms Colony.reverseAcc_bridge\n#check Colony.reverseAcc_bridge\n"
+  }
+]
