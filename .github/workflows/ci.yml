@@ -48,6 +48,9 @@ jobs:
       - run: python3 scripts/evaluate_lean.py --output artifacts/benchmark-results.json
       - name: Install proof export sandbox
         run: sudo apt-get update && sudo apt-get install -y bubblewrap
+      - name: Expose the pinned independent kernel binaries
+        run: dirname "$(elan which lean)" >> "$GITHUB_PATH"
+        working-directory: lean
       - name: Compare fixed theorem roots and replay with an independent kernel
         run: lake comparator --config comparator.json
         working-directory: lean
