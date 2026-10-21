@@ -61,16 +61,28 @@ elab "colony" : tactic => do
           let mut generalized : Array Ident := #[]
           for other in context do
             unless other.isImplementationDetail || other.fvarId == decl.fvarId do
-              unless (← isProp other.type) do
-                generalized := generalized.push (mkIdent other.userName)
+              generalized := generalized.push (mkIdent other.userName)
           try
-            if generalized.isEmpty then
+            let procedure := .str (.mkSimple "Colony") "Procedure"
+            if type.isAppOf ``List &&
+                (type.getAppArgs[0]!).isConstOf (.str procedure "ListCommand") then
+              let process := mkIdent (.str procedure "process")
+              let step := mkIdent (.str procedure "step")
               evalTactic (← `(tactic| solve |
-                induction $subject:ident <;> (simp_all <;> omega)))
+                induction $subject:ident generalizing $[$generalized:ident]* with
+                | nil => simp_all [$process:ident]
+                | cons command rest ih =>
+                    simp only [$process:ident]
+                    apply ih
+                    cases command <;> simp_all [$step:ident] <;> omega))
+            else if generalized.isEmpty then
+              evalTactic (← `(tactic| solve |
+                induction $subject:ident <;>
+                  (simp_all [process, step] <;> omega)))
             else
               evalTactic (← `(tactic| solve |
                 induction $subject:ident generalizing $[$generalized:ident]* <;>
-                  (simp_all <;> omega)))
+                  (simp_all [process, step] <;> omega)))
             return
           catch _ => initial.restore
     throwError "colony: the initial proof portfolio could not close this goal"
