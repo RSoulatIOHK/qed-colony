@@ -28,6 +28,10 @@ private def optionPortfolio (subject : Ident) : TacticM Unit := do
     arithmeticPortfolio
   setGoals []
 
+/-! The procedure fallback performs one induction on the sole eligible command
+list. Its caller rejects ambiguous candidate sets and restores the saved tactic
+state if any branch remains open. The induction itself may generate the
+ordinary nil/cons branches, but it does not recursively search other lists. -/
 private def listProcessInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
   evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
   let branches ← getGoals
