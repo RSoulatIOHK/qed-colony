@@ -41,6 +41,7 @@
         <nav class="tabs" aria-label="Observatory views" role="tablist">
           <button type="button" role="tab" id="tab-overview" aria-selected="true" aria-controls="view-overview" data-view="overview" tabindex="0">Overview</button>
           <button type="button" role="tab" id="tab-queue" aria-selected="false" aria-controls="view-queue" data-view="queue" tabindex="-1">Research queue <span id="queue-count" class="tab-count">0</span></button>
+          <button type="button" role="tab" id="tab-kanban" aria-selected="false" aria-controls="view-kanban" data-view="kanban" tabindex="-1">Kanban</button>
           <button type="button" role="tab" id="tab-frontier" aria-selected="false" aria-controls="view-frontier" data-view="frontier" tabindex="-1">Proof frontier</button>
           <button type="button" role="tab" id="tab-activity" aria-selected="false" aria-controls="view-activity" data-view="activity" tabindex="-1">Activity</button>
         </nav>
@@ -53,7 +54,7 @@
             <div class="controller-status"><span class="section-index">THE AUTONOMOUS LOOP</span><h2 id="autonomy-title"><span id="controller-dot" class="controller-dot unknown" aria-hidden="true"></span><span id="controller-label">Controller not reported</span></h2><p id="controller-message">Waiting for a recorded controller heartbeat.</p><span id="controller-heartbeat" class="subtle-label">No heartbeat recorded</span><p id="controller-model-policy" class="controller-policy" hidden></p></div>
             <div class="runtime-budget"><div class="budget-heading"><span class="section-index">DAILY AGENT RUNTIME</span><span id="budget-date" class="subtle-label">No limit reported</span></div><div class="budget-value"><strong id="budget-remaining">—</strong><span id="budget-limit">remaining</span></div><div id="budget-meter" class="budget-meter" role="progressbar" aria-label="Daily agent runtime consumed or reserved" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="budget-fill"></span></div><p id="budget-detail">Aggregate worker time, including implementation, planning, and review.</p></div>
           </div>
-          <div class="autonomy-cycle-heading"><span class="section-index">IMPLEMENT → REVIEW → CI → MERGE</span><span id="cycle-count" class="subtle-label">No cycles recorded</span></div>
+          <div class="autonomy-cycle-heading"><span class="section-index">IMPLEMENT → REVIEW → CI → MERGE</span><div class="cycle-heading-links"><span id="cycle-count" class="subtle-label">No cycles recorded</span><button type="button" class="text-button" data-go="kanban">Open Kanban <span aria-hidden="true">↗</span></button></div></div>
           <div id="autonomy-cycles" class="autonomy-cycles"><p class="cycle-empty">Public PRs and their recorded review and CI results will appear here.</p></div>
         </section>
         <div class="overview-grid">
@@ -96,6 +97,14 @@
         <div class="view-heading"><div><p class="eyebrow">Hypotheses become experiments</p><h2>The research queue</h2><p>Every assignment has an owner, a state, and a definition of done.</p></div><div class="filters"><label class="search-box"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="m12 12 5 5"/></svg><input id="task-search" type="search" placeholder="Find a task…" aria-label="Search research tasks"></label><label class="select-wrap"><span class="sr-only">Task status</span><select id="task-status"><option value="all">All statuses</option></select></label></div></div>
         <div class="panel queue-panel"><div class="table-heading"><span>Research task</span><span>Role / owner</span><span>Status</span><span>Artifact</span></div><div id="queue-list"></div></div>
         <section class="reviews-section"><div class="panel-heading"><div><span class="section-index">INDEPENDENT SCRUTINY</span><h2>Reviews</h2></div><span id="review-count" class="subtle-label"></span></div><div id="reviews-list" class="review-list"></div></section>
+      </section>
+
+      <section id="view-kanban" class="view-section" role="tabpanel" aria-labelledby="tab-kanban" tabindex="0" hidden>
+        <div class="view-heading kanban-heading"><div><p class="eyebrow">Work, with its next gate visible</p><h2>The colony board</h2><p>Recorded tasks, linked to their PRs and the reasons work is waiting.</p></div><a id="github-project-link" class="project-board-link" hidden target="_blank" rel="noopener noreferrer">Open GitHub Project <span aria-hidden="true">↗</span></a></div>
+        <div class="kanban-toolbar"><p id="kanban-count" class="subtle-label" aria-live="polite">No tasks recorded</p><div class="filters"><label class="search-box"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="m12 12 5 5"/></svg><input id="kanban-search" type="search" placeholder="Find work or a PR…" aria-label="Search Kanban tasks"></label><label class="select-wrap"><span class="sr-only">Kanban role</span><select id="kanban-role"><option value="all">All roles</option></select></label></div></div>
+        <p id="kanban-budget" class="kanban-notice" hidden></p>
+        <p class="kanban-help">Read-only view of colony state. Select a task for acceptance criteria and history. PR checks, independent review, and controller integration are separate gates; green CI alone does not mean a task is done.</p>
+        <div id="kanban-board" class="kanban-board" aria-label="Tasks by workflow stage"></div>
       </section>
 
       <section id="view-frontier" class="view-section" role="tabpanel" aria-labelledby="tab-frontier" tabindex="0" hidden>

@@ -2,9 +2,9 @@
 
 **Built by a swarm. Checked by Lean.**
 
-[Open the public Observatory](https://qed-colony-observatory.iohk-9108.chatgpt.site/) · [Browse pull requests](https://github.com/RSoulatIOHK/qed-colony/pulls)
+[Open the public Observatory](https://qed-colony-observatory.iohk-9108.chatgpt.site/) · [GitHub Kanban board](https://github.com/users/RSoulatIOHK/projects/15) · [Browse pull requests](https://github.com/RSoulatIOHK/qed-colony/pulls)
 
-The public Observatory shows timestamped colony snapshots. The local Observatory shows live controller activity while its service is running.
+The public Observatory shows timestamped colony snapshots. Its Kanban view groups recorded work and exposes review, CI, budget, and intervention blockers. The local Observatory shows live controller activity while its service is running. The [GitHub Project](https://github.com/users/RSoulatIOHK/projects/15) tracks public issues and PRs; a separate local sync job updates it every two minutes. See [board setup](docs/github-project.md).
 
 QED Colony is an autonomous research laboratory building a local, deterministic Lean 4 tactic for program verification. Agents discover benchmarks, propose architectures, implement changes, review one another, and publish their evidence in pull requests. The released tactic does not call an LLM.
 

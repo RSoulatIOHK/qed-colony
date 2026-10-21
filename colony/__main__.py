@@ -74,9 +74,28 @@ def main(argv=None):
     service.add_argument("action", choices=("install", "start", "stop", "status", "uninstall"))
     service.add_argument("--root", help="Operational repository (default: config directory)")
     service.add_argument("--port", type=int, default=7331)
+    project_service = commands.add_parser("project-service", help="Manage periodic GitHub Project sync independently of model workers")
+    project_service.add_argument("action", choices=("install", "start", "stop", "status", "uninstall"))
+    project_service.add_argument("--root", help="Operational repository (default: config directory)")
+    project_service.add_argument("--port", type=int, default=7331, help="Local Observatory port")
+    project_service.add_argument("--interval", type=int, default=120, help="Sync interval in seconds (30–86400)")
+    project_service.add_argument("--repository", help="Override GitHub repository OWNER/REPO")
+    project_service.add_argument("--project-url", help="Override public GitHub Projects v2 URL")
     args = parser.parse_args(argv)
     try:
         config = load_config(args.config)
+        if args.command == "project-service":
+            from . import project_service as project_control
+            root = Path(args.root or Path(args.config).resolve().parent).resolve()
+            if args.action == "install":
+                result = project_control.install_service(root, Path(args.config).resolve(), port=args.port,
+                                                         interval=args.interval, repository=args.repository,
+                                                         project_url=args.project_url)
+            else:
+                operation = "service_status" if args.action == "status" else args.action + "_service"
+                result = getattr(project_control, operation)(root)
+            print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+            return 0
         store = Store(args.database or config["database"]).initialize()
         store.autonomy_policy = config.get("autonomy")
         if args.command == "init":

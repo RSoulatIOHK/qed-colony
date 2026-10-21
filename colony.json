@@ -3,7 +3,8 @@
   "project": {
     "name": "QED Colony",
     "repo_url": "https://github.com/RSoulatIOHK/qed-colony",
-    "mission": "An autonomous research colony building a local Lean tactic with kernel-checked proofs."
+    "mission": "An autonomous research colony building a local Lean tactic with kernel-checked proofs.",
+    "github_project_url": "https://github.com/users/RSoulatIOHK/projects/15"
   },
   "database": ".colony/colony.db",
   "seed_file": "tasks/initial.json",

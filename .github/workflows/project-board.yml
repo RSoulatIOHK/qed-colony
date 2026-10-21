@@ -1,0 +1,53 @@
+name: Project board sync
+
+on:
+  issues:
+    types: [opened, edited, reopened, closed, labeled, unlabeled]
+  pull_request_target:
+    types: [opened, reopened, closed, ready_for_review, converted_to_draft, synchronize, labeled, unlabeled]
+  pull_request_review:
+    types: [submitted, dismissed]
+  issue_comment:
+    types: [created, edited, deleted]
+  workflow_run:
+    workflows: [Colony checks]
+    types: [completed]
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: colony-project-board
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The project token is never exposed to a PR checkout or event-provided code.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Sync configured public board
+        env:
+          GH_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECT_URL: ${{ vars.COLONY_PROJECT_URL }}
+          COLONY_REPOSITORY: ${{ github.repository }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo 'Project sync is not active: configure the PROJECTS_TOKEN secret with Projects access.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if [ -n "$PROJECT_URL" ]; then
+            python3 scripts/sync_github_project.py --repository "$COLONY_REPOSITORY" --project-url "$PROJECT_URL" --apply
+          else
+            python3 scripts/sync_github_project.py --repository "$COLONY_REPOSITORY" --apply
+          fi
