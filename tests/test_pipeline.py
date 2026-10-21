@@ -2,10 +2,12 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
 
 from colony.autonomy_store import AutonomyStore, BudgetExceeded
 from colony.pipeline import PLAN_SCHEMA, Pipeline
 from colony.github_broker import PublicationRejected
+from colony.network import NetworkUnavailable
 from colony.operations import OPS_SCHEMA
 from colony.store import Store
 
@@ -56,6 +58,8 @@ class FakeBroker:
 
 class PipelineTests(unittest.TestCase):
     def setUp(self):
+        self.provider_probe = patch("colony.pipeline.probe_model_connectivity", return_value=True).start()
+        self.addCleanup(patch.stopall)
         self.directory = tempfile.TemporaryDirectory()
         self.root = Path(self.directory.name)
         self.store = Store(self.root / "db.sqlite").initialize()
@@ -107,6 +111,389 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(self.cycle["phase"], "ci")
         self.assertEqual(self.broker.merges, [])
         self.assertEqual(len(self.jobs), 2)
+
+    def test_ci_network_outage_waits_without_revision_and_recovers_same_head(self):
+        self.to_ci()
+        original_get = self.broker.get_pr
+        calls = {"n": 0}
+
+        def unavailable_once(number):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise NetworkUnavailable("offline")
+            return original_get(number)
+
+        self.broker.get_pr = unavailable_once
+        self.step()
+        self.assertEqual(self.cycle["phase"], "waiting_network")
+        self.assertEqual(self.cycle["resume_phase"], "ci")
+        self.assertEqual(self.cycle["revision"], 0)
+        self.assertEqual(len(self.jobs), 2)
+        self.cycle = self.auto.update_cycle(self.cycle["id"], phase="ci", resume_phase=None)
+        self.step()
+        self.assertEqual(self.cycle["phase"], "done")
+        self.assertEqual(self.broker.merges, [self.cycle["reviewed_sha"]])
+
+    def test_remote_merge_then_local_timeout_is_reconciled_without_second_merge(self):
+        self.to_ci()
+        original_merge = self.broker.merge
+
+        def merged_then_timeout(number, sha):
+            original_merge(number, sha)
+            raise NetworkUnavailable("response lost after remote success")
+
+        self.broker.merge = merged_then_timeout
+        self.step()
+        self.assertEqual(self.cycle["phase"], "waiting_network")
+        self.assertEqual(self.cycle["resume_phase"], "merging")
+        self.cycle = self.auto.update_cycle(self.cycle["id"], phase="merging", resume_phase=None)
+        self.step()
+        self.assertEqual(self.cycle["phase"], "done")
+        self.assertEqual(len(self.broker.merges), 1)
+
+    def test_author_provider_outage_keeps_revision_and_charges_failed_attempt(self):
+        self.step()
+        original = self.pipeline.executor
+        calls = {"count": 0}
+
+        def flaky(*args, **kwargs):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                return {"status": "failed", "summary": "Could not resolve model provider", "elapsed_seconds": 2}
+            return original(*args, **kwargs)
+
+        self.pipeline.executor = flaky
+        self.step()
+        self.assertEqual(self.cycle["phase"], "waiting_network")
+        self.assertEqual(self.cycle["resume_phase"], "authoring")
+        self.assertEqual(self.cycle["revision"], 0)
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 1)
+        self.cycle = self.auto.update_cycle(self.cycle["id"], phase="authoring", resume_phase=None, provider_next_retry_at=0)
+        self.step()
+        self.assertEqual(self.cycle["phase"], "publishing")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 2)
+
+    def test_review_provider_outage_does_not_escalate_reviewer_tier(self):
+        for _ in range(3):
+            self.step()
+        self.assertEqual(self.cycle["phase"], "reviewing")
+        original = self.pipeline.executor
+        calls = {"count": 0}
+
+        def flaky(*args, **kwargs):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                return {"status": "failed", "summary": "Failed to connect to provider", "elapsed_seconds": 3}
+            return original(*args, **kwargs)
+
+        self.pipeline.executor = flaky
+        self.step()
+        self.assertEqual(self.cycle["phase"], "waiting_network")
+        self.assertEqual(self.cycle.get("review_attempt", 0), 0)
+        self.assertEqual(self.cycle["revision"], 0)
+        self.cycle = self.auto.update_cycle(self.cycle["id"], phase="reviewing", resume_phase=None, provider_next_retry_at=0)
+        self.step()
+        self.assertEqual(self.cycle["phase"], "ci")
+        self.assertEqual(self.jobs[-1]["policy"]["model"], "gpt-6-sol")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 3)
+
+    def test_uncertain_author_process_requires_attention_without_relaunch(self):
+        self.step()
+        self.pipeline.executor = lambda *args, **kwargs: {
+            "status": "uncertain", "summary": "Worker process status is unknown", "elapsed_seconds": 4}
+        self.step()
+        self.assertEqual(self.cycle["phase"], "needs_review")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 1)
+
+    def test_planner_outage_persists_and_resumes_same_cycle(self):
+        original = self.pipeline.executor
+        calls = {"count": 0}
+
+        def flaky(*args, **kwargs):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                return {"status": "failed", "summary": "Connection reset by peer", "elapsed_seconds": 1}
+            return {"status": "completed", "summary": json.dumps({"tasks": [{
+                "title": "A bounded follow-up", "role": "researcher",
+                "description": "Investigate one bounded research question with evidence.",
+                "acceptance": ["Report includes a falsifiable observation"]}]}), "elapsed_seconds": 1}
+
+        self.pipeline.executor = flaky
+        result = self.pipeline.plan()
+        self.assertEqual(result["status"], "waiting_network")
+        cycle, = [item for item in self.auto.list_cycles() if item["role"] == "planner"]
+        self.assertEqual(cycle["phase"], "waiting_network")
+        self.assertEqual(cycle["resume_phase"], "planning")
+        cycle = self.auto.update_cycle(cycle["id"], phase="planning", resume_phase=None, provider_next_retry_at=0)
+        self.pipeline.plan()
+        resumed = self.auto.get_cycle(cycle["id"])
+        self.assertEqual(resumed["phase"], "done")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 2)
+
+    def test_planner_worktree_outage_resumes_queued_planner_after_restart(self):
+        original = self.broker.prepare_worktree
+        self.broker.prepare_worktree = Mock(side_effect=NetworkUnavailable("fetch offline"))
+        self.assertEqual(self.pipeline.plan()["status"], "waiting_network")
+        planner, = [c for c in self.auto.list_cycles() if c["role"] == "planner"]
+        self.assertEqual(planner["resume_phase"], "queued")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 0)
+        self.broker.prepare_worktree = original
+        self.pipeline.executor = lambda *a, **k: {"status": "completed", "elapsed_seconds": 1,
+            "summary": json.dumps({"tasks": [{"title": "New bounded research",
+            "role": "researcher", "description": "Investigate one falsifiable small research question.",
+            "acceptance": ["Evidence supports the result"]}]})}
+        resumed = self.auto.update_cycle(planner["id"], phase="queued", resume_phase=None)
+        restarted = Pipeline(self.root, self.store, self.auto, self.policy,
+                             broker=self.broker, executor=self.pipeline.executor)
+        self.assertEqual(restarted.advance(resumed)["status"], "planned")
+        self.assertEqual(self.auto.get_cycle(planner["id"])["phase"], "done")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 1)
+
+    def test_planner_worktree_auth_failure_requires_attention(self):
+        from colony.network import AuthenticationFailure
+        self.broker.prepare_worktree = Mock(side_effect=AuthenticationFailure("credentials invalid"))
+        self.assertEqual(self.pipeline.plan()["status"], "needs_review")
+        planner, = [c for c in self.auto.list_cycles() if c["role"] == "planner"]
+        self.assertEqual(planner["phase"], "needs_review")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 0)
+
+    def test_uncertain_process_network_summary_retains_full_charge_and_never_retries(self):
+        for index, status in enumerate(["uncertain", "interrupted", "running"]):
+            task = "UNCERTAIN-%s" % index
+            self.store.seed([{"id": task, "title": "Scoped uncertain task", "role": "engineer",
+                             "description": "Implement one scoped change", "acceptance": ["Verified result"]}])
+            cycle = self.auto.create_cycle(task, "engineer")
+            cycle = self.pipeline.advance(cycle)
+            self.pipeline.executor = lambda *a, **k: {"status": status,
+                "summary": "Connection reset while process remains unknown", "elapsed_seconds": 1}
+            result = self.pipeline.advance(cycle)
+            self.assertEqual(result["phase"], "needs_review")
+            self.assertFalse(result.get("provider_network_offline", False))
+            attempt, = self.auto.list_attempts(cycle["id"])
+            self.assertEqual(attempt["status"], "interrupted")
+            self.assertEqual(attempt["charged_seconds"], 10)
+            self.assertEqual(result["revision"], 0)
+
+    def test_uncertain_reviewer_network_summary_does_not_retry_or_escalate(self):
+        for _ in range(3):
+            self.step()
+        self.pipeline.executor = lambda *a, **k: {"status": "uncertain",
+            "summary": "Connection reset while reviewer process remains unknown", "elapsed_seconds": 1}
+        self.step()
+        self.assertEqual(self.cycle["phase"], "needs_review")
+        self.assertEqual(self.cycle.get("review_attempt", 0), 0)
+        self.assertEqual(self.auto.list_attempts(self.cycle["id"])[-1]["charged_seconds"], 10)
+
+    def test_worker_cleanup_uncertainty_retains_attempt_reservation(self):
+        from colony.worker import WorkerProcessUncertain
+        self.step()
+        self.pipeline.executor = Mock(side_effect=WorkerProcessUncertain("termination unknown after connection reset"))
+        self.step()
+        self.assertEqual(self.cycle["phase"], "needs_review")
+        attempt, = self.auto.list_attempts(self.cycle["id"])
+        self.assertEqual(attempt["status"], "interrupted")
+        self.assertEqual(attempt["charged_seconds"], 10)
+        self.assertFalse(self.cycle.get("provider_network_offline", False))
+
+    def test_fair_dispatch_cannot_bypass_known_provider_outage(self):
+        from colony.supervisor import Supervisor
+        self.step()
+        self.auto.update_cycle(self.cycle["id"], phase="waiting_network", resume_phase="authoring",
+                               next_retry_at=9999999999, provider_network_offline=True,
+                               provider_next_retry_at=9999999999, last_scheduled_order=0)
+        self.store.seed([{"id": "T2", "title": "Another scoped task", "role": "engineer",
+                         "description": "Implement another scoped case", "acceptance": ["Verified result"]}])
+        second = self.pipeline.advance(self.auto.create_cycle("T2", "engineer"))
+        self.auto.update_cycle(second["id"], last_scheduled_order=1)
+        policy = dict(self.pipeline.policy, enabled=True)
+        supervisor = Supervisor(self.root, self.store.path, policy,
+                                pipeline=self.pipeline, task_store=self.store)
+        self.addCleanup(supervisor.release_lock)
+        self.assertEqual(supervisor.tick()["status"], "waiting_network")
+        self.assertEqual(self.auto.get_cycle(second["id"])["phase"], "waiting_network")
+        self.assertEqual(self.auto.get_budget(policy)["attempts"], 0)
+        self.assertEqual(self.jobs, [])
+        self.provider_probe.assert_not_called()
+
+    def test_ready_task_admission_cannot_launch_through_known_provider_outage(self):
+        from colony.supervisor import Supervisor
+        self.step()
+        self.auto.update_cycle(self.cycle["id"], phase="waiting_network", resume_phase="authoring",
+                               next_retry_at=9999999999, provider_network_offline=True,
+                               provider_next_retry_at=9999999999)
+        self.store.seed([{"id": "T2", "title": "Another scoped task", "role": "engineer",
+                         "description": "Implement another scoped case", "acceptance": ["Verified result"]}])
+        policy = dict(self.pipeline.policy, enabled=True)
+        supervisor = Supervisor(self.root, self.store.path, policy,
+                                pipeline=self.pipeline, task_store=self.store)
+        self.addCleanup(supervisor.release_lock)
+        supervisor.tick()
+        second = next(c for c in self.auto.list_cycles() if c["task_id"] == "T2")
+        self.assertEqual(second["phase"], "authoring")
+        self.assertEqual(supervisor.tick()["status"], "waiting_network")
+        self.assertEqual(self.auto.get_cycle(second["id"])["phase"], "waiting_network")
+        self.assertEqual(self.auto.get_budget(policy)["attempts"], 0)
+        self.assertEqual(self.jobs, [])
+        self.provider_probe.assert_not_called()
+
+    def test_actual_triage_outage_reconnects_after_restart_and_replays_completed_handoff(self):
+        import sys
+        from colony.recovery import scan_recoveries
+        from colony.supervisor import Supervisor
+        from colony.worker import execute_job
+        self.store.transition("T1", "blocked", "controller", summary="Original case needs repair")
+        self.broker.pr = good_pr("a" * 40)
+        self.store.set_task_artifacts("T1", branch="codex/original", pr_url=self.broker.pr["url"])
+        self.auto.update_cycle(self.cycle["id"], phase="needs_review", pr_number=7,
+                               pr_url=self.broker.pr["url"], head_sha="a" * 40,
+                               base_sha="b" * 40, last_error="Original case needs repair")
+        self.pipeline.policy.update(enabled=True, max_daily_attempts=2)
+        scan_recoveries(self.store, self.auto, self.pipeline.policy)
+        root = self.auto.get_cycle(self.cycle["id"])
+        triage_id = root["recovery_triage_cycle_id"]
+        binary = self.root / "fake-triage-provider"
+        binary.write_text("#!" + sys.executable + "\nimport json,sys\nsys.stdin.read()\n"
+                          "print(json.dumps({'type':'turn.failed','error':{'message':'Connection reset by provider'}}))\n")
+        binary.chmod(0o755)
+        self.pipeline.executor = execute_job
+        supervisor = Supervisor(self.root, self.store.path, self.pipeline.policy,
+                                pipeline=self.pipeline, task_store=self.store)
+        self.addCleanup(supervisor.release_lock)
+        with patch("colony.worker.shutil.which", return_value=str(binary)):
+            self.assertEqual(supervisor.tick()["status"], "waiting_network")
+        triage = self.auto.get_cycle(triage_id)
+        self.assertEqual(triage["triage_network_retry_count"], 1)
+        self.assertEqual(triage["resume_phase"], "triaging")
+        self.assertEqual(self.auto.get_budget(self.pipeline.policy)["attempts"], 1)
+        supervisor.release_lock()
+        restarted_pipeline = Pipeline(self.root, self.store, self.auto, self.pipeline.policy,
+                                      broker=self.broker, executor=execute_job)
+        restarted = Supervisor(self.root, self.store.path, self.pipeline.policy,
+                               pipeline=restarted_pipeline, task_store=self.store)
+        self.addCleanup(restarted.release_lock)
+        self.assertEqual(restarted.tick()["status"], "waiting_network")
+        self.provider_probe.assert_not_called()
+        self.auto.update_cycle(triage_id, next_retry_at=0, provider_next_retry_at=0)
+        diagnosis = {"action": "repair", "diagnosis": "Repair the original missing case.",
+                     "repair_title": "Repair the original required case",
+                     "repair_description": "Implement the full original required acceptance without weakening it.",
+                     "role": "engineer"}
+        binary.write_text("#!" + sys.executable + "\nimport json,pathlib,sys\nsys.stdin.read()\n"
+                          "pathlib.Path(sys.argv[sys.argv.index('--output-last-message')+1]).write_text(%r)\n"
+                          "print(json.dumps({'type':'turn.completed','usage':{}}))\n" % json.dumps(diagnosis))
+        with patch("colony.worker.shutil.which", return_value=str(binary)), \
+                patch("colony.pipeline.apply_triage_result", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                restarted.tick()
+        cached = self.auto.get_cycle(triage_id)
+        self.assertEqual(cached["phase"], "triage_handoff")
+        self.assertEqual(cached["triage_result"], diagnosis)
+        attempts = self.auto.list_attempts(triage_id)
+        self.assertEqual([a["stage"] for a in attempts], ["triage:0:net0", "triage:0:net1"])
+        self.assertEqual([a["status"] for a in attempts], ["failed", "completed"])
+        self.assertTrue(all(a["charged_seconds"] > 0 for a in attempts))
+        self.assertEqual(self.auto.get_budget(self.pipeline.policy)["remaining_attempts"], 0)
+        restarted.release_lock()
+        final_pipeline = Pipeline(self.root, self.store, self.auto, self.pipeline.policy,
+                                  broker=self.broker, executor=Mock(side_effect=AssertionError("No model may rerun")))
+        final = Supervisor(self.root, self.store.path, self.pipeline.policy,
+                           pipeline=final_pipeline, task_store=self.store)
+        self.addCleanup(final.release_lock)
+        final.tick()
+        self.assertEqual(self.auto.get_cycle(triage_id)["phase"], "done")
+        self.assertEqual(len(self.auto.list_attempts(triage_id)), 2)
+        final_pipeline.executor.assert_not_called()
+        repaired = self.auto.get_cycle(self.cycle["id"])
+        self.assertIsNotNone(repaired["recovery_repair_cycle_id"])
+
+    def test_actual_cli_provider_failure_waits_without_spending_revision(self):
+        import sys
+        from colony.worker import execute_job
+        binary = self.root / "fake-provider-cli"
+        binary.write_text("#!" + sys.executable + "\nimport json,sys\nsys.stdin.read()\n"
+                          "print(json.dumps({'type':'turn.failed','error':{'message':'Connection reset by provider'}}))\n")
+        binary.chmod(0o755)
+        self.pipeline.policy["allow_implementation"] = True
+        self.pipeline.executor = execute_job
+        self.step()
+        with patch("colony.worker.shutil.which", return_value=str(binary)):
+            self.step()
+        self.assertEqual(self.cycle["phase"], "waiting_network")
+        self.assertEqual(self.cycle["revision"], 0)
+        self.assertTrue(self.cycle["provider_network_offline"])
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 1)
+
+    def test_uncertain_planner_network_summary_requires_attention(self):
+        self.pipeline.executor = lambda *a, **k: {"status": "uncertain",
+            "summary": "Connection reset; process unknown", "elapsed_seconds": 1}
+        self.assertEqual(self.pipeline.plan()["status"], "needs_review")
+        planner, = [c for c in self.auto.list_cycles() if c["role"] == "planner"]
+        self.assertEqual(self.auto.list_attempts(planner["id"])[0]["charged_seconds"], 10)
+
+    def test_provider_outage_blocks_other_cycles_and_survives_restart_until_probe(self):
+        self.step()
+        self.pipeline.executor = Mock(return_value={"status": "failed",
+            "summary": "Failed to connect to model provider", "elapsed_seconds": 1})
+        self.step()
+        self.assertTrue(self.cycle["provider_network_offline"])
+        self.store.seed([{"id": "T2", "title": "Second scoped task", "role": "engineer",
+                         "description": "Implement another scoped procedure", "acceptance": ["Verified result"]}])
+        second = self.pipeline.advance(self.auto.create_cycle("T2", "engineer"))
+        restarted = Pipeline(self.root, self.store, self.auto, self.policy,
+                             broker=self.broker, executor=self.executor)
+        waiting = restarted.advance(second)
+        self.assertEqual(waiting["phase"], "waiting_network")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 1)
+        self.provider_probe.assert_not_called()
+        self.auto.update_cycle(self.cycle["id"], provider_next_retry_at=0)
+        self.provider_probe.side_effect = NetworkUnavailable("still offline")
+        resumed = self.auto.update_cycle(second["id"], phase="authoring", resume_phase=None)
+        self.assertEqual(restarted.advance(resumed)["phase"], "waiting_network")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 1)
+        self.auto.update_cycle(self.cycle["id"], provider_next_retry_at=0)
+        self.provider_probe.side_effect = None
+        resumed = self.auto.update_cycle(second["id"], phase="authoring", resume_phase=None)
+        self.assertEqual(restarted.advance(resumed)["phase"], "publishing")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 2)
+        self.assertFalse(self.auto.get_cycle(self.cycle["id"])["provider_network_offline"])
+        self.assertEqual(self.jobs[-1]["policy"]["model"], "gpt-6-luna")
+
+    def test_revision_publication_persists_prior_head_across_lost_response(self):
+        for _ in range(3):
+            self.step()
+        old = self.cycle["head_sha"]
+        self.cycle = self.auto.update_cycle(self.cycle["id"], phase="publishing")
+        self.broker.commit = Mock(return_value="c" * 40)
+        self.broker.publish = Mock(side_effect=NetworkUnavailable("push response lost"))
+        self.step()
+        self.assertEqual(self.cycle["publish_previous_head_sha"], old)
+        self.assertEqual(self.cycle["publish_candidate_sha"], "c" * 40)
+        self.broker.publish = Mock(return_value=good_pr("c" * 40))
+        resumed = self.auto.update_cycle(self.cycle["id"], phase="publishing", resume_phase=None)
+        restarted = Pipeline(self.root, self.store, self.auto, self.policy,
+                             broker=self.broker, executor=self.executor)
+        self.cycle = restarted.advance(resumed)
+        published = self.broker.publish.call_args[0][0]
+        self.assertEqual(published["publish_previous_head_sha"], old)
+        self.assertEqual(self.cycle["published_head_sha"], "c" * 40)
+        self.assertEqual(self.cycle["phase"], "reviewing")
+
+    def test_local_timeout_and_authentication_do_not_enter_network_wait(self):
+        self.step()
+        original = self.pipeline.executor
+        self.pipeline.executor = lambda *args, **kwargs: {
+            "status": "failed", "summary": "Local worker timed out", "elapsed_seconds": 10}
+        self.step()
+        self.assertEqual(self.cycle["phase"], "authoring")
+        self.assertEqual(self.cycle["revision"], 1)
+        self.cycle = self.auto.update_cycle(self.cycle["id"], phase="authoring", revision=0,
+                                            feedback=None, reviewed_sha=None, review=None,
+                                            author_completed=False, author_network_retry_count=1)
+        self.pipeline.executor = lambda *args, **kwargs: {
+            "status": "failed", "summary": "HTTP 401: Bad credentials", "elapsed_seconds": 1}
+        self.step()
+        self.assertEqual(self.cycle["phase"], "needs_review")
+        self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 2)
 
     def test_external_head_change_and_merge_never_claims_checked_success(self):
         self.to_ci()

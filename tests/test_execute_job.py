@@ -68,6 +68,38 @@ print(json.dumps({'type': 'turn.completed', 'usage': {'input_tokens': 13, 'outpu
         finished = [event for event in self.store.snapshot()["events"] if event["kind"] == "job.finished"]
         self.assertEqual(finished[0]["data"]["model"], "gpt-6-luna")
 
+    def test_actual_provider_error_events_keep_safe_connectivity_classification(self):
+        from colony.network import AuthenticationFailure, NetworkUnavailable, classify_model_failure
+        for event_type, detail, expected in [
+                ("turn.failed", "connection reset by peer with private details", NetworkUnavailable),
+                ("error", "Could not resolve model provider", NetworkUnavailable),
+                ("turn.failed", "HTTP 401: Bad credentials with private details", AuthenticationFailure),
+                ("error", "Local candidate compilation failed with private details", type(None))]:
+            with self.subTest(event=event_type, expected=expected.__name__):
+                self.script("import json,sys\nsys.stdin.read()\nprint(json.dumps(%r))\n" %
+                            {"type": event_type, "error": {"message": detail}})
+                with patch("colony.worker.shutil.which", return_value=str(self.binary)):
+                    result = self.run_job()
+                self.assertEqual(result["status"], "failed")
+                self.assertIsInstance(classify_model_failure(result["summary"]), expected)
+                self.assertNotIn("private details", result["summary"])
+                self.assertEqual(self.store.get_agent("test-author")["status"], "idle")
+
+    def test_unverifiable_cleanup_keeps_process_record_and_worker_slot(self):
+        from colony.worker import WorkerProcessUncertain
+        self.script("import sys\nsys.stdin.read()\n")
+        with patch("colony.worker.shutil.which", return_value=str(self.binary)), \
+                patch("colony.worker._stop_process", side_effect=PermissionError("cannot signal")):
+            with self.assertRaises(WorkerProcessUncertain):
+                self.run_job()
+        self.assertTrue(list((self.root / ".colony/runs").glob("*/process.json")))
+        self.assertEqual(self.store.get_agent("test-author")["status"], "working")
+        with sqlite3.connect(str(self.path)) as conn:
+            self.assertEqual(conn.execute("SELECT COUNT(*) FROM worker_runs WHERE status='uncertain'").fetchone()[0], 1)
+            conn.execute("UPDATE worker_runs SET expires=0")
+        with self.assertRaisesRegex(RuntimeError, "concurrency cap"):
+            _reserve_slot(self.path, "must-not-launch", 1, 5)
+
     def test_timeout_stops_process_and_clears_agent_and_concurrency_slot(self):
         self.script("import sys, time\nsys.stdin.read()\ntime.sleep(60)\n")
         started = time.monotonic()
@@ -164,7 +196,7 @@ output.write_text('Completed controlled worker')
                 self.assertTrue(all(call.args[1] == 0 for call in signal_group.call_args_list))
                 self.assertTrue(record.exists())
                 with sqlite3.connect(str(self.path)) as conn:
-                    self.assertEqual(conn.execute("SELECT status FROM worker_runs WHERE id=?", (run_id,)).fetchone()[0], "active")
+                    self.assertEqual(conn.execute("SELECT status FROM worker_runs WHERE id=?", (run_id,)).fetchone()[0], "uncertain")
 
 
 if __name__ == "__main__":

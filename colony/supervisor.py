@@ -11,6 +11,8 @@ import threading
 
 from .autonomy_store import AutonomyStore, BudgetExceeded, TERMINAL_PHASES
 from .store import Store
+from .network import AuthenticationFailure, NetworkUnavailable
+from .network_recovery import due, schedule_retry
 
 
 CONTROLLER_PHASES = frozenset({"publishing", "review_publication", "ci", "merging"})
@@ -105,6 +107,41 @@ class Supervisor:
         controller_results = self._advance_controller_stages()
         cycle = self._next_cycle()
         if cycle is not None:
+            if cycle["phase"] == "waiting_network":
+                if not due(cycle):
+                    # Already-scoped Store work can still enter the queue; a
+                    # future network deadline suppresses only speculative work.
+                    self.tasks.recover_expired()
+                    ready = self._ready_task()
+                    if ready is not None:
+                        budget = self.autonomy.get_budget(self.policy)
+                        if budget["exhausted"]:
+                            return self._service("budget_limited", "Daily model budget exhausted; resumes after " + budget["resets_at"])
+                        return self._dispatch_task(ready)
+                    return self._service("waiting_network", "Network unavailable; retry scheduled at %s" %
+                                         cycle.get("next_retry_at"), cycle["id"])
+                resume = cycle.get("resume_phase")
+                if not resume:
+                    self.autonomy.update_cycle(cycle["id"], phase="needs_review",
+                                               last_error="Network wait has no saved resume phase")
+                    return self._service("needs_review", "Network recovery state is incomplete", cycle["id"])
+                try:
+                    probe = getattr(self.pipeline, "probe_connectivity", None)
+                    if probe is not None:
+                        probe()
+                except NetworkUnavailable:
+                    current = self.autonomy.get_cycle(cycle["id"])
+                    schedule_retry(current,
+                                   lambda saved, phase, **data: self.autonomy.update_cycle(saved["id"], phase, **data),
+                                   base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                                   max_seconds=self.policy.get("network_backoff_max_seconds", 900))
+                    return self._service("waiting_network", "Connectivity probe failed; retry rescheduled", cycle["id"])
+                except AuthenticationFailure:
+                    self.autonomy.update_cycle(cycle["id"], phase="needs_review",
+                                               last_error="Remote authentication requires operator attention")
+                    return self._service("needs_review", "Network recovery requires authentication attention", cycle["id"])
+                cycle = self.autonomy.update_cycle(cycle["id"], phase=resume, resume_phase=None,
+                                                   next_retry_at=None, network_retry_delay=None, last_error=None)
             return self._advance(cycle)
 
         if not controller_results:
@@ -117,16 +154,9 @@ class Supervisor:
 
         self.tasks.recover_expired()
         cycles = self.autonomy.list_cycles()
-        already_dispatched = {item["task_id"] for item in cycles}
-        ready = [task for task in self.tasks.snapshot()["tasks"]
-                 if task["status"] == "ready" and task["id"] not in already_dispatched]
-        if ready:
-            # Store.snapshot already orders highest priority, oldest task first.
-            task = ready[0]
-            cycle = self.autonomy.create_cycle(task["id"], task["role"])
-            self.tasks.record_event("autonomy.cycle_created", "supervisor", "Scheduled " + task["title"],
-                                    task["id"], {"cycle_id": cycle["id"]})
-            return self._advance(cycle)
+        ready = self._ready_task()
+        if ready is not None:
+            return self._dispatch_task(ready)
         if controller_results:
             # Existing checks must not prevent admission of already-scoped
             # ready tasks, but they do suppress speculative audits/planning.
@@ -143,6 +173,18 @@ class Supervisor:
         needs_review = any(item["phase"] == "needs_review" for item in cycles)
         message = "Waiting for review of interrupted work" if needs_review else "Healthy; waiting for runnable work or the next planning interval"
         return self._service("waiting", message)
+
+    def _ready_task(self):
+        dispatched = {item["task_id"] for item in self.autonomy.list_cycles()}
+        # Store.snapshot orders highest priority, oldest task first.
+        return next((task for task in self.tasks.snapshot()["tasks"]
+                     if task["status"] == "ready" and task["id"] not in dispatched), None)
+
+    def _dispatch_task(self, task):
+        cycle = self.autonomy.create_cycle(task["id"], task["role"])
+        self.tasks.record_event("autonomy.cycle_created", "supervisor", "Scheduled " + task["title"],
+                                task["id"], {"cycle_id": cycle["id"]})
+        return self._advance(cycle)
 
     @staticmethod
     def _controller_stage(cycle):
@@ -178,6 +220,12 @@ class Supervisor:
     def _next_cycle(self):
         cycles = [item for item in self.autonomy.list_cycles()
                   if item["phase"] not in TERMINAL_PHASES and not self._controller_stage(item)]
+        # A persisted wait must not monopolize round-robin dispatch before
+        # its deadline. Keep a waiting cycle for status reporting only when
+        # every existing cycle is blocked; provider gating still lives in _job.
+        eligible = [item for item in cycles if item["phase"] != "waiting_network" or due(item)]
+        if eligible:
+            cycles = eligible
         # Existing public candidates get their independent review before new
         # authorship. Each head has bounded review retries, so this finite queue
         # drains without an unbounded review convoy. Within each group, durable
@@ -200,6 +248,9 @@ class Supervisor:
                                     cycle["task_id"], {"error_type": type(error).__name__})
             return self._service("needs_review", "Controller error: " + type(error).__name__)
         current = self.autonomy.get_cycle(cycle["id"])
+        if current["phase"] == "waiting_network":
+            return self._service("waiting_network", "Transient network outage; retry scheduled at %s" %
+                                 current.get("next_retry_at"), cycle["id"])
         if current["phase"] in TERMINAL_PHASES:
             status = "needs_review" if current["phase"] in {"needs_review", "blocked"} else "waiting"
             return self._service(status, "Cycle " + current["phase"], None)

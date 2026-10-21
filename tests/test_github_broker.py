@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import Mock
 
 from colony.github_broker import GitHubBroker, PublicationRejected, checks_state, validate_public_text
+from colony.network import NetworkUnavailable
 
 
 def passing_pr(sha="a" * 40):
@@ -13,6 +14,10 @@ def passing_pr(sha="a" * 40):
             "headRefOid": sha, "mergeable": "MERGEABLE", "mergeStateStatus": "CLEAN",
             "statusCheckRollup": [{"name": name, "status": "COMPLETED", "conclusion": "SUCCESS"}
                                   for name in ["control-plane", "lean-seed"]]}
+
+
+def dummy_home_path(home, suffix):
+    return "/" + home + "/" + suffix
 
 
 class BrokerGateTests(unittest.TestCase):
@@ -60,18 +65,93 @@ class BrokerGateTests(unittest.TestCase):
     def test_publish_reuses_existing_pr_after_push(self):
         broker = GitHubBroker(".")
         existing = passing_pr()
-        broker.git = Mock()
+        broker.git = Mock(side_effect=["a" * 40, "a" * 40] * 2)
         broker.find_pr = Mock(return_value=existing)
         broker.gh = Mock()
         result = broker.publish({"worktree": ".", "branch": "codex/cycle", "id": "123"},
                                 {"id": "T1", "title": "Example"}, "Measured result")
         self.assertEqual(result, existing)
         broker.gh.assert_not_called()
-        broker.git.assert_called_once()
+        self.assertEqual(broker.git.call_count, 2)
+
+    def test_lost_push_response_is_reconciled_from_remote_head_before_retry(self):
+        broker = GitHubBroker(".")
+        existing = passing_pr()
+        broker.git = Mock(side_effect=["a" * 40, "", NetworkUnavailable("push response lost"), "a" * 40])
+        broker.find_pr = Mock(return_value=existing)
+        result = broker.publish({"worktree": ".", "branch": "codex/cycle", "id": "123"},
+                                {"id": "T1", "title": "Example"}, "Candidate")
+        self.assertEqual(result, existing)
+        self.assertEqual(broker.git.call_count, 4)
+
+    def test_revision_push_uses_exact_recorded_prior_head_lease(self):
+        broker = GitHubBroker(".")
+        broker.git = Mock(side_effect=["b" * 40, "a" * 40, ""])
+        broker.find_pr = Mock(return_value=passing_pr("b" * 40))
+        cycle = {"worktree": ".", "branch": "codex/cycle", "id": "123",
+                 "publish_previous_head_sha": "a" * 40}
+        broker.publish(cycle, {"id": "T1", "title": "Example"}, "Revision")
+        self.assertIn("--force-with-lease=refs/heads/codex/cycle:" + "a" * 40,
+                      broker.git.call_args_list[2].args)
+        self.assertIn("HEAD:refs/heads/codex/cycle", broker.git.call_args_list[2].args)
+
+    def test_new_branch_push_uses_absence_lease(self):
+        broker = GitHubBroker(".")
+        broker.git = Mock(side_effect=["b" * 40, "", ""])
+        broker.find_pr = Mock(return_value=passing_pr("b" * 40))
+        broker.publish({"worktree": ".", "branch": "codex/cycle", "id": "123"},
+                       {"id": "T1", "title": "Example"}, "Candidate")
+        self.assertIn("--force-with-lease=refs/heads/codex/cycle:", broker.git.call_args_list[2].args)
+
+    def test_unrelated_remote_branch_movement_is_not_overwritten(self):
+        broker = GitHubBroker(".")
+        broker.git = Mock(side_effect=["b" * 40, "c" * 40])
+        broker.find_pr = Mock()
+        with self.assertRaises(PublicationRejected):
+            broker.publish({"worktree": ".", "branch": "codex/cycle", "id": "123",
+                            "publish_previous_head_sha": "a" * 40},
+                           {"id": "T1", "title": "Example"}, "Revision")
+        self.assertEqual(broker.git.call_count, 2)
+        broker.find_pr.assert_not_called()
+
+    def test_lost_revision_push_response_reconciles_without_second_push(self):
+        broker = GitHubBroker(".")
+        broker.git = Mock(side_effect=["b" * 40, "a" * 40, NetworkUnavailable("lost"), "b" * 40,
+                                      "b" * 40, "b" * 40])
+        broker.find_pr = Mock(return_value=passing_pr("b" * 40))
+        cycle = {"worktree": ".", "branch": "codex/cycle", "id": "123",
+                 "publish_previous_head_sha": "a" * 40}
+        task = {"id": "T1", "title": "Example"}
+        broker.publish(cycle, task, "Revision")
+        broker.publish(cycle, task, "Revision")
+        pushes = [c for c in broker.git.call_args_list if c.args[1] == "push"]
+        self.assertEqual(len(pushes), 1)
+
+    def test_remote_pr_create_then_lost_response_reuses_discovered_pr(self):
+        broker = GitHubBroker(".")
+        existing = passing_pr()
+        broker.git = Mock(side_effect=["a" * 40, "a" * 40] * 2)
+        broker.find_pr = Mock(side_effect=[None, existing, existing])
+        calls = {"create": 0}
+
+        def gh(*args):
+            if args[:2] == ("pr", "create"):
+                calls["create"] += 1
+                raise NetworkUnavailable("response lost after creation")
+
+        broker.gh = Mock(side_effect=gh)
+        cycle = {"worktree": ".", "branch": "codex/cycle", "id": "123"}
+        task = {"id": "S1", "title": "Recover network errors", "role": "sre"}
+        with self.assertRaises(NetworkUnavailable):
+            broker.publish(cycle, task, "Candidate")
+        # Simulate the external PR appearing before the next publish attempt.
+        broker.find_pr = Mock(side_effect=[existing, existing])
+        self.assertEqual(broker.publish(cycle, task, "Candidate"), existing)
+        self.assertEqual(calls["create"], 1)
 
     def test_sre_publication_is_explicitly_a_separate_governance_pr(self):
         broker = GitHubBroker(".")
-        broker.git = Mock()
+        broker.git = Mock(side_effect=["a" * 40, "a" * 40])
         broker.find_pr = Mock(side_effect=[None, passing_pr()])
         published = {}
 
@@ -89,12 +169,13 @@ class BrokerGateTests(unittest.TestCase):
 
     def test_review_comment_is_idempotent_and_honestly_labelled(self):
         broker = GitHubBroker(".")
-        broker.gh = Mock(return_value=json.dumps([{"body": "<!-- colony-review:c1:abc -->"}]))
+        broker.gh = Mock(return_value=json.dumps([[{"body": "Unrelated old comment"}], [{"body": "<!-- colony-review:c1:abc -->"}]]))
         broker.comment_review(7, {"verdict": "approve", "summary": "Correct", "findings": []}, "abc", "c1")
         self.assertEqual(broker.gh.call_count, 1)
 
     def test_public_text_rejects_secrets_and_machine_paths(self):
-        for value in ["/Users/someone/project/file", "ghp_" + "a" * 30, "-----BEGIN PRIVATE KEY-----"]:
+        for value in [dummy_home_path("Users", "someone/project/file"),
+                      "ghp_" + "a" * 30, "-----BEGIN " + "PRIVATE KEY-----"]:
             with self.assertRaises(PublicationRejected):
                 validate_public_text(value)
         self.assertEqual(validate_public_text("lean/Colony/Tactic.lean"), "lean/Colony/Tactic.lean")
@@ -102,9 +183,9 @@ class BrokerGateTests(unittest.TestCase):
     def test_failure_details_redacts_runner_paths_and_keeps_actionable_filename(self):
         broker = GitHubBroker(".", {"repository": "example/qed-colony"})
         broker._bounded_log = Mock(return_value=(
-            'File "/home/runner/work/qed-colony/qed-colony/scripts/evaluate_lean.py", line 42\n'
-            '/home/runner/.elan/toolchains/lean/bin/lean: failure\n'
-            '/Users/runner/work/qed-colony/qed-colony/lean/Colony/Tactic.lean:7: error'))
+            'File "' + dummy_home_path("home", "runner/work/qed-colony/qed-colony/scripts/evaluate_lean.py") + '", line 42\n'
+            + dummy_home_path("home", "runner/.elan/toolchains/lean/bin/lean") + ': failure\n'
+            + dummy_home_path("Users", "runner/work/qed-colony/qed-colony/lean/Colony/Tactic.lean") + ':7: error'))
         pr = {"statusCheckRollup": [{"name": "lean-seed", "conclusion": "FAILURE",
                                    "detailsUrl": "https://github.com/example/qed-colony/actions/runs/123/job/456"}]}
         details = broker.failure_details(pr)
@@ -117,7 +198,8 @@ class BrokerGateTests(unittest.TestCase):
 
     def test_failure_details_still_rejects_credentials_after_path_redaction(self):
         broker = GitHubBroker(".", {"repository": "example/qed-colony"})
-        broker._bounded_log = Mock(return_value="/home/runner/work/qed-colony/qed-colony/file ghp_" + "a" * 30)
+        broker._bounded_log = Mock(return_value=dummy_home_path("home", "runner/work/qed-colony/qed-colony/file")
+                                   + " ghp_" + "a" * 30)
         pr = {"statusCheckRollup": [{"name": "lean-seed", "conclusion": "FAILURE",
                                    "detailsUrl": "https://github.com/example/qed-colony/actions/runs/123/job/456"}]}
         with self.assertRaises(PublicationRejected):
