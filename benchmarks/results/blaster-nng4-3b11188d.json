@@ -1,0 +1,1406 @@
+{
+  "schema": "colony.live_benchmark.v1",
+  "run_id": "1715d2e3ed6d45a698cc9c036c346599",
+  "source_revision": "3b11188d52ad5ff8c1f1885508b44c1d6e584f66",
+  "started_at": "2026-10-21T15:16:22.551364+00:00",
+  "completed_at": "2026-10-21T15:17:17.846164+00:00",
+  "suite": {
+    "id": "blaster-nng4-prefix-v1",
+    "scope": "First 12 named NNG4 theorems in source order; exploratory rehost, not the full upstream benchmark.",
+    "selection": {
+      "kind": "first_named_theorems",
+      "count": 12,
+      "remaining_named_theorems": 96,
+      "excluded_unnamed_examples": 9,
+      "policy": "Source order only; no theorem-name, proof-success or difficulty selection."
+    },
+    "case_count": 12,
+    "suite_sha256": "b66186766d42b7a0011efe21c1a435634e9bcc9988758488ca35e1f3d41b76c2",
+    "manifest_sha256": "6feede4f577665a9db818a8fb51ecee86424c4122cb09fcf1515ccd8b9369859",
+    "lock_sha256": "7bebc6d54162ab2ac5bd61401769763f6632ec14ce76cd37aab23d5c9c62202b"
+  },
+  "protocol": {
+    "imports": [
+      "Colony.Tactic"
+    ],
+    "proof_bodies": {
+      "colony": "by colony",
+      "simp": "by simp_all",
+      "omega": "by intros; omega",
+      "grind": "by intros; grind"
+    },
+    "timeout_seconds": 20,
+    "max_heartbeats": 200000,
+    "run_timeout_seconds": 600,
+    "fresh_process_per_case": true,
+    "manual_steps": false,
+    "extra_helpers": false
+  },
+  "source_sha256": {
+    "lean/Challenge.lean": "bf7842b9e937ff1ca75e6c518d1ca6abb1c60cabc4fe5e2e244ec1588c4e3ecf",
+    "lean/Colony/Examples/AccumulatorLength.lean": "554ab22df0c7f032334f071c402b726dcdfe9ba0f016272603efe5944f6068d0",
+    "lean/Colony/Examples/BoolStateTransition.lean": "829bff3bc9b2d0f2d195b46226280885ba4f992ca357adeab7b8361001b79cd6",
+    "lean/Colony/Examples/BooleanBranching.lean": "98523ebd094b67d935d3a38799c758be76cb2a5b28bb0ef4610e8a9663df5c4a",
+    "lean/Colony/Examples/FuelStateInvariant.lean": "9fc24a779ab10254ffadb77c80c5fb08b08682a1f7a8070ba84367d7cfdff3dd",
+    "lean/Colony/Examples/IndependentStateComponents.lean": "655a049cc9020344c938fd49fc55f529b6df0b0d33c362765dcccca299636403",
+    "lean/Colony/Examples/KeyedStateInvariant.lean": "77ff0c80d0f888c4a4b1fe6470ba1baca121767a83fd7978afe44790f88075e8",
+    "lean/Colony/Examples/ListStateInvariant.lean": "10746c7bc8ee2ce9ba403c269c994b4baa47fe45cccae61bf64715a52b9762e8",
+    "lean/Colony/Examples/ModularCounterInvariant.lean": "277f0cd90732dc1b974a2978713a45be6198dcd8296f8970d70cd6e0c92df2d6",
+    "lean/Colony/Examples/NestedResultTransition.lean": "7b23291312d774591614fde7e7bc689dbe4b6e206cb78e67775d46005cdf3cd9",
+    "lean/Colony/Examples/OptionBranching.lean": "faee719665bb2d908a58dc4969fa8d56a9208041bc77873525d1eb71828754fa",
+    "lean/Colony/Examples/ResultFlow.lean": "ef804614cf5cfda22ecf2f8d781003ba03c65434b38641f36b921dd142a8065c",
+    "lean/Colony/Examples/TwoAccumulatorInvariant.lean": "4fe3341e9932daf681b0ed3cb39089464036f8af856907520905ac5b4d455008",
+    "lean/Colony/Procedures/ListState.lean": "b27d18d31fb9ca2be92077841edabab5c9863eb2e068dac7afeed5f61c35bfb0",
+    "lean/Colony/Seeds.lean": "742bb22fbd5bd39ed99b6e692b3620f0711ce981f741cf187e1c41aaec73787e",
+    "lean/Colony/Tactic.lean": "2f7ae369aac21ccd88c7a08473c5d9061e10015aa2ea5ef4eb6616716dc5e88d",
+    "lean/Colony.lean": "d864f94152003032acd9a560f54ff96794021d2ff358a83d45c7c3e7689abe29",
+    "lean/Pilot.lean": "99fe41c4a2c2eb8762ff1ac5f8d865a461eceb4536866ea5abe3830d41352bbb",
+    "lean/SeedProofs.lean": "2f89057fee6cc851d1173b3d365c7726330e0f6cca0cd5e2491725e4855246a5",
+    "lean/lake-manifest.json": "335d69eec4f3540d21b744266e6176ef6ad395e8dbad271647ec35408f528dd5",
+    "lean/lakefile.toml": "bbf3548897b674a979d6a8d529e4944888141b057baa820a378815204b78f77d",
+    "lean/lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c"
+  },
+  "runtime_source_sha256": {
+    "benchmarks/blaster-nng4-v1.json": "6feede4f577665a9db818a8fb51ecee86424c4122cb09fcf1515ccd8b9369859",
+    "benchmarks/blaster-nng4-v1.lock.json": "7bebc6d54162ab2ac5bd61401769763f6632ec14ce76cd37aab23d5c9c62202b",
+    "benchmarks/upstream/blaster-b7cc5304/LICENSE": "50e6751797c50dedd75ef1b8a0d9e42f5f8472e9fbce91f34718e9f97b0c780a",
+    "benchmarks/upstream/blaster-b7cc5304/NNG4.lean": "93d6755ade248473aff71ae5832f30aaf2ff205a5e2619955c8f9585631328cf",
+    "benchmarks/upstream/blaster-b7cc5304/lean-toolchain": "42779d67b81608af8a12aa4328d2ab47ca201925b3b2bd68369587b5340bb434",
+    "colony/benchmark_service.py": "f81d11922d1c0f7cce64198bf677c334d509f6087d000605551b4ea9f21f176b",
+    "scripts/extract_blaster_nng4.py": "4c1c8cc40bbdc607407d0359f83b4abee0b3dbbef7f5f2b4f966f6fb78448183",
+    "scripts/run_live_benchmarks.py": "5e399fae7ce82399e86741916ce1a88a867196ba7baf9555dbfd382f8c8dfc21"
+  },
+  "toolchain": {
+    "pin": "leanprover/lean4:v4.35.0",
+    "version_output": "Lean (version 4.35.0, arm64-apple-darwin24.6.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)"
+  },
+  "commands": [
+    [
+      "lake",
+      "env",
+      "lean",
+      "--version"
+    ],
+    [
+      "lake",
+      "build",
+      "Colony.Tactic"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "-DmaxHeartbeats=200000",
+      ".colony-live-cases/ImportAudit.lean"
+    ]
+  ],
+  "candidate_profile": {
+    "modules": [
+      "Colony.Procedures.ListState",
+      "Colony.Tactic"
+    ],
+    "import_audit_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nrun_meta do\n  let env ← Lean.getEnv\n  let candidateModules : List Lean.Name := [`Colony.Procedures.ListState, `Colony.Tactic]\n  for (name, info) in env.constants.toList do\n    if let some idx := env.getModuleIdxFor? name then\n      if candidateModules.contains env.header.moduleNames[idx.toNat]! then\n        match info with\n        | .defnInfo _ | .opaqueInfo _ =>\n          if ← Lean.Meta.isProp info.type then\n            throwError \"Imported proof-valued helper is prohibited: {name}\"\n        | _ => pure ()\n",
+    "import_audit_sha256": "6aff87938698cafa77c49b51c71617d5b6c17373c45c21cd9918b9b3b79efc8a",
+    "restriction": "No explicit local theorem/example/helper proofs or proof-valued defs; compiler-generated data declarations allowed"
+  },
+  "assurance": {
+    "label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+    "independent_replay": false,
+    "allowed_axioms": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "security_boundary": "Trusted pinned evaluator/configuration, reviewed main and compiler; no adversarial sandbox"
+  },
+  "valid": true,
+  "summary": {
+    "colony": {
+      "proved": 12,
+      "valid": true,
+      "accepted_unvalidated": null,
+      "total": 12,
+      "proof_failed": 0,
+      "timeouts": 0,
+      "errors": 0,
+      "wall_seconds": 9.472392
+    },
+    "simp": {
+      "proved": 7,
+      "valid": true,
+      "accepted_unvalidated": null,
+      "total": 12,
+      "proof_failed": 5,
+      "timeouts": 0,
+      "errors": 0,
+      "wall_seconds": 9.661976
+    },
+    "omega": {
+      "proved": 1,
+      "valid": true,
+      "accepted_unvalidated": null,
+      "total": 12,
+      "proof_failed": 11,
+      "timeouts": 0,
+      "errors": 0,
+      "wall_seconds": 9.313157
+    },
+    "grind": {
+      "proved": 11,
+      "valid": true,
+      "accepted_unvalidated": null,
+      "total": 12,
+      "proof_failed": 1,
+      "timeouts": 0,
+      "errors": 0,
+      "wall_seconds": 9.598978
+    }
+  },
+  "cases": [
+    {
+      "id": "nng4.zero_add",
+      "source_name": "zero_add",
+      "source_line": 7,
+      "header": "  theorem zero_add : ∀ (n : ℕ), 0 + n = n :=",
+      "kind": "positive",
+      "statement_sha256": "9fe3a58a0d34bffe3b84b75283b4153232cf5b5abe2b90fc28730a5bd7bf56f0",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L7",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.796685,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem zero_add : ∀ (n : ℕ), 0 + n = n := by colony\n#print axioms BlasterBenchmarks.NNG4.zero_add\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "b71e0d8d4f4541fabb8e2fab7c695c46d5f727ae153c5040b37a9107584b1c15",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "a7b0d22d715f920a6366ef80285bbf1ff0c6980477ece4f2c3cd2e1625a3b4f5"
+        },
+        "simp": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.792583,
+          "returncode": 0,
+          "axioms": [
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem zero_add : ∀ (n : ℕ), 0 + n = n := by simp_all\n#print axioms BlasterBenchmarks.NNG4.zero_add\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "0f10ba4fa9964d81870484bece365c34947d95793505392f31bd6a418dd6c512",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "e6c4967dbb5dda6930e69e12162787496421ef04d52ac89811d7be29e1a61436"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.837415,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem zero_add : ∀ (n : ℕ), 0 + n = n := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.zero_add\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "bee6ce701dfe47936719bf89bbf34fce2849f81c0de5d8cf27835696f360ffdc",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "cbc3c0440d5b14ccb15d24d08fb1fdfd5d009014855e27411349f3a06ff12c71"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.828253,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem zero_add : ∀ (n : ℕ), 0 + n = n := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.zero_add\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "d28bc679303f4f0e7b9208291001f4f454ba4fde028fb61e05b9d4529f46e9b6",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "9f43ad2507e2bd45d353c663e9ba98adffdf93a15ae1b2b8a922e85645092be2"
+        }
+      }
+    },
+    {
+      "id": "nng4.succ_add",
+      "source_name": "succ_add",
+      "source_line": 8,
+      "header": "  theorem succ_add (a b : ℕ) : succ a + b = succ (a + b)  :=",
+      "kind": "positive",
+      "statement_sha256": "13a0380e3b9f2f7235b08edbd31419a1ace0b9b9d8f9244f2d75bcc4463e24fd",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L8",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.938405,
+          "returncode": 0,
+          "axioms": [
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem succ_add (a b : ℕ) : succ a + b = succ (a + b)  := by colony\n#print axioms BlasterBenchmarks.NNG4.succ_add\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "7760f29bfd021976f09c34b73c0f6dabfa2b65667b4f75024a652b23440e5ea0",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "9b59a6f8ec335f893bed5047e1cf707585449fdc493ee316cd3abec2de31d508"
+        },
+        "simp": {
+          "status": "proof_failed",
+          "wall_seconds": 0.924117,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem succ_add (a b : ℕ) : succ a + b = succ (a + b)  := by simp_all\n#print axioms BlasterBenchmarks.NNG4.succ_add\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "b5b7c443542d420b7785a1515357a6d3e68805dae7550cc0132f5a7438a7006f",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "d97cac444789f3ba2421c2e2066b884598ac6bfda36f8b0564f37fd404a37c46"
+        },
+        "omega": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.760609,
+          "returncode": 0,
+          "axioms": [
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem succ_add (a b : ℕ) : succ a + b = succ (a + b)  := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.succ_add\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "f9f18c92679b0f19253f23a3ee587d48013ec8d6434bbfc4c09d175c7ed5f8c8",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "9b59a6f8ec335f893bed5047e1cf707585449fdc493ee316cd3abec2de31d508"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.801514,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem succ_add (a b : ℕ) : succ a + b = succ (a + b)  := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.succ_add\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "3c12dbb6638ab6b554dd9bbe353fa52eba54230a434b1fcdd1417f32fe2a9db2",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "e05f61cc61f2e5ed6b322997d481fc44247c1aaf9bcd306df40b13928a145bae"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_comm",
+      "source_name": "add_comm",
+      "source_line": 9,
+      "header": "  theorem add_comm (a b : ℕ) : a + b = b + a :=",
+      "kind": "positive",
+      "statement_sha256": "54cd687281c66c2a8a9e1185260a8ee23b3e1bf08a573e0f80c3698d8280e011",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L9",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.708492,
+          "returncode": 0,
+          "axioms": [
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_comm (a b : ℕ) : a + b = b + a := by colony\n#print axioms BlasterBenchmarks.NNG4.add_comm\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "ba4b34605ce7fb6d89897b2ec039d7fa70764e1d3530fb1d6233c6a7ee1a3628",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "a9cc5f1034a21dc5cec146acf8ce57a7dfe772e5dedd04368f163faf6ef9aa55"
+        },
+        "simp": {
+          "status": "proof_failed",
+          "wall_seconds": 0.725886,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_comm (a b : ℕ) : a + b = b + a := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_comm\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "7b9a0a89fed7e8bf64ef35baa9f336005b14cacbefd588a0d01af19e2808b160",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "0eaabeb5f29a64a8d12d3bb3c4100550ea02e16e9230f514f3d1a012c57f04b5"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.778883,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_comm (a b : ℕ) : a + b = b + a := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_comm\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "a06e29915f604e2d6e64481efc809b0ae00fdd76ea204b99e91b92dfc10cf24a",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "547356932d764abba11a15c2ce6c73d6cf208a87259fe56853519dbd4a555cdf"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.735785,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_comm (a b : ℕ) : a + b = b + a := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_comm\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "c4980fd8f0abf176c11a85b1d4769c3084a6bb82c41c76ab1a4cd3ee98f87b1f",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "6d98016517723b8555cf7693e6dd197a4aff3513327e32a8924e5510bfe96720"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_assoc",
+      "source_name": "add_assoc",
+      "source_line": 10,
+      "header": "  theorem add_assoc (a b c : ℕ) : a + b + c = a + (b + c) :=",
+      "kind": "positive",
+      "statement_sha256": "012912338cb536050a53f1cfe386760a9c3a93c96c936535dba5ffef85f67686",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L10",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.775434,
+          "returncode": 0,
+          "axioms": [
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_assoc (a b c : ℕ) : a + b + c = a + (b + c) := by colony\n#print axioms BlasterBenchmarks.NNG4.add_assoc\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "19e2dc2b03c637670ec745f43e983c872d912967db5a0e59a543efc0dc083ed3",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "3e42c1583a44da6908ed14fbd17317f89450c028f7315c03260b9ec07a063143"
+        },
+        "simp": {
+          "status": "proof_failed",
+          "wall_seconds": 0.882751,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_assoc (a b c : ℕ) : a + b + c = a + (b + c) := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_assoc\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "2a52e417d63dd8cdce94fae01f0a9adb255836fa615c52f4b9657600bff15348",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "97c5574b3a00f8196842466042ae1cd7e0c9873a728742165a9465786985517c"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.807856,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_assoc (a b c : ℕ) : a + b + c = a + (b + c) := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_assoc\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "f8571f73ca10a077df2488b21f8866bcd40c10403949d0411443e446bd306f2c",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "753692f435ac914fcbbb5b80cabba64ce425de5fabaf6c58af484811750f9c72"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.865407,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_assoc (a b c : ℕ) : a + b + c = a + (b + c) := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_assoc\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "6de863b029d5871ddb0eda0a5f5579770bbbe43f7572cf2f9b1cdaabf13a9d0e",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "2fb85e00818dd5bfaaf13d797927590471f9a624df91129eb82d8dedf97d3526"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_right_comm",
+      "source_name": "add_right_comm",
+      "source_line": 11,
+      "header": "  theorem add_right_comm (a b c : ℕ) : a + b + c = a + c + b :=",
+      "kind": "positive",
+      "statement_sha256": "b9202d29a99e2b6b3d8d9f4a4dad9ebf828e7f7479f5adececcd7f6175babd33",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L11",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.789696,
+          "returncode": 0,
+          "axioms": [
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_right_comm (a b c : ℕ) : a + b + c = a + c + b := by colony\n#print axioms BlasterBenchmarks.NNG4.add_right_comm\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "0cb8a4681b78be18c4577e4b4bcb19924459b7b56197f7d6821dcdfdc991831c",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "8d9e786ec62bdc0731b590aff2b75cfd10ea574b5b19c5339e613b7e9eded882"
+        },
+        "simp": {
+          "status": "proof_failed",
+          "wall_seconds": 0.72569,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_right_comm (a b c : ℕ) : a + b + c = a + c + b := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_right_comm\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "6a3fff2b254858827711124916d692ce45ca1f4c9edb7b45dec8505ced28fb4f",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "b849deb15c72b56e941146c8451879c289d8c297641cff200a8059139596dc73"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.766395,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_right_comm (a b c : ℕ) : a + b + c = a + c + b := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_right_comm\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "bc4466caa3e8724ec5997cee64cdad09de96e0e0df2fb3420dc09d11a94e1b32",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "efe5489e23a4a0acd0882edd27c13c9155f96781140146b9178fd1ee0f034a57"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.740605,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection Addition\nopen Nat\n  theorem add_right_comm (a b c : ℕ) : a + b + c = a + c + b := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_right_comm\nend Addition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "61cc6cd4f262437c6a62727c21df757f36bee2fcbe7f7e485eec2d324d00fd4e",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "abbd886f7a5c361cfb56c167fc6267f007b2ba9514002bece6437752a60e6ca1"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_right_cancel",
+      "source_name": "add_right_cancel",
+      "source_line": 15,
+      "header": "  theorem add_right_cancel (a b n : ℕ) : a + n = b + n → a = b :=",
+      "kind": "positive",
+      "statement_sha256": "a7dce20e660b6ce6afe2aff1e71fb30fa9015a1076c858aeae82125d9290bdce",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L15",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.736874,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_cancel (a b n : ℕ) : a + n = b + n → a = b := by colony\n#print axioms BlasterBenchmarks.NNG4.add_right_cancel\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "094901d9a1efb60e0aa2429b925f986fdaed83f93949b4166990e9895f441b5a",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "f259b2350f32cb0168c0efe4dd18311d5260c831377c19d70e1c708930bbd0a9"
+        },
+        "simp": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.770801,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_cancel (a b n : ℕ) : a + n = b + n → a = b := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_right_cancel\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "e705d29323d25c0cafcb1f80f8c055d56234f72953a2e4afb234e7f2c1cb367e",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "f259b2350f32cb0168c0efe4dd18311d5260c831377c19d70e1c708930bbd0a9"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.715292,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_cancel (a b n : ℕ) : a + n = b + n → a = b := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_right_cancel\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "72a10e3622556a00424647ce1ffb5c43ba03be05483929b33253289377ff3424",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "bc5da2db8e430bb33c0e79ddbdcf755bb8454809f661acb0c6f0ea5deb2d7f43"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.749958,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_cancel (a b n : ℕ) : a + n = b + n → a = b := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_right_cancel\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "3544408a7f0259aaa8e211261338c783907bc8a5565181a766ff11ad7e5e79b7",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "ec96e9eb863db0309190cc0556de8625e406f105b0680958985c7548ccf7b446"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_left_cancel",
+      "source_name": "add_left_cancel",
+      "source_line": 16,
+      "header": "  theorem add_left_cancel (a b n : ℕ) : n + a = n + b → a = b :=",
+      "kind": "positive",
+      "statement_sha256": "c1e873e3bca8a1bd3593f8cdd9b3a302440e0b978d9296ceacd6c397f7df0fdf",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L16",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.767476,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_cancel (a b n : ℕ) : n + a = n + b → a = b := by colony\n#print axioms BlasterBenchmarks.NNG4.add_left_cancel\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "53c27fb6786e84c796130a3f0db28f1ab5ccf37caf298280cddfd8b238bba801",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "10c060e9bbdef8da1f4d1d95968cff9c06a22b7329a3257291142abdf3e16d1c"
+        },
+        "simp": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.765725,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_cancel (a b n : ℕ) : n + a = n + b → a = b := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_left_cancel\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "cbfe590380d504d6801d32f28984e3cf0e42f460bddf72a17a313d6b81d7d2cd",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "10c060e9bbdef8da1f4d1d95968cff9c06a22b7329a3257291142abdf3e16d1c"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.833734,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_cancel (a b n : ℕ) : n + a = n + b → a = b := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_left_cancel\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "a7f01a518e2ac9d24b7de0c55793fc1f82cc939e81e6cd747b38bc08affcfc43",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "fce7a7fc0e502fe5f3c6c55dbd34070d429bb0787ae51a59d833e7c96b2e9b68"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.762672,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_cancel (a b n : ℕ) : n + a = n + b → a = b := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_left_cancel\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "e75168dc3d708de1572ad6c641f08352cc571b2ae259031d8fc632ea08ebb907",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "1a5a3fc94fdcf7638d3b54d9fd5b927c23cc7b6b056f651cc06b5f5bdc67d34f"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_left_eq_self",
+      "source_name": "add_left_eq_self",
+      "source_line": 17,
+      "header": "  theorem add_left_eq_self (x y : ℕ) : x + y = y → x = 0 :=",
+      "kind": "positive",
+      "statement_sha256": "346ecc34722d415b91fe5222ed0f1881d03e02b6dc4ad4e5449340efbe6a624f",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L17",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.729044,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_eq_self (x y : ℕ) : x + y = y → x = 0 := by colony\n#print axioms BlasterBenchmarks.NNG4.add_left_eq_self\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "507532a75a6aab0bc204ca24f69315de9a81b498de66c5d732236397b9d7cb59",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "31bdaa8039ccc07750a730c65e242282035958ed8718edcd8b14dfd17e8f8832"
+        },
+        "simp": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.748493,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_eq_self (x y : ℕ) : x + y = y → x = 0 := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_left_eq_self\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "1e3ae8046efbd8b36f39482b65429d548187f633641bef06a3058b3118649b1a",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "31bdaa8039ccc07750a730c65e242282035958ed8718edcd8b14dfd17e8f8832"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.735125,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_eq_self (x y : ℕ) : x + y = y → x = 0 := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_left_eq_self\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "d36dc17b71a61ddd8808bcaadf67da30a9ec105b0d0062732ba9fba5f77986bb",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "e3d33a315c61c9568bf2df9751af383b901e00756553457a92734e1925f277f2"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.925228,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_eq_self (x y : ℕ) : x + y = y → x = 0 := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_left_eq_self\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "c3265ed8ca742b5ec562c6a40facc00a13c77ab5d8fb858ab4324546385037aa",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "31bdaa8039ccc07750a730c65e242282035958ed8718edcd8b14dfd17e8f8832"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_right_eq_self",
+      "source_name": "add_right_eq_self",
+      "source_line": 18,
+      "header": "  theorem add_right_eq_self (x y : ℕ) : x + y = x → y = 0 :=",
+      "kind": "positive",
+      "statement_sha256": "c1669afda8d3ca3bc0ad345160fbbf820d9566f2cb49a461b20eb6e8cab84beb",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L18",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.780257,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_eq_self (x y : ℕ) : x + y = x → y = 0 := by colony\n#print axioms BlasterBenchmarks.NNG4.add_right_eq_self\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "faac2afec62baaf79db7ec4efbbe4d7d6802f5cd9a81e7a80ce6b42b097001b0",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "4dbb25bd0f7398854e08022c0b9a672b21d884f9d44d1e7c371ddd13f86c43e7"
+        },
+        "simp": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.967513,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_eq_self (x y : ℕ) : x + y = x → y = 0 := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_right_eq_self\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "214c25b98a343ce2ec6e93cb87f9f2521055e9fd73b3f15c7d0ecad6a5b8ca3a",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "4dbb25bd0f7398854e08022c0b9a672b21d884f9d44d1e7c371ddd13f86c43e7"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.846104,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_eq_self (x y : ℕ) : x + y = x → y = 0 := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_right_eq_self\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "7e9f2a2f259e50184b82c872915b773ff1997cf65a8082980dea25e5a61b5045",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "a9ce60c5e80b6855dc7b09e2aed73b99ddaf89b6f135a1eb932ef8f5f51bef5f"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.744912,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_eq_self (x y : ℕ) : x + y = x → y = 0 := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_right_eq_self\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "3f9dd01ee5438c3bfd1d7dbd9228673294aee07a2c9d6b865dd0dd032a2fae76",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "4dbb25bd0f7398854e08022c0b9a672b21d884f9d44d1e7c371ddd13f86c43e7"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_right_eq_zero",
+      "source_name": "add_right_eq_zero",
+      "source_line": 19,
+      "header": "  theorem add_right_eq_zero (a b : ℕ) : a + b = 0 → a = 0 :=",
+      "kind": "positive",
+      "statement_sha256": "14bac239c7a6a34fead986dee631370ddb5426f634e01ab60ac31cf4eed74f4c",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L19",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.778982,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_eq_zero (a b : ℕ) : a + b = 0 → a = 0 := by colony\n#print axioms BlasterBenchmarks.NNG4.add_right_eq_zero\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "68452618867a8ae61fc459874c95cfd081d5d5550e44f432c6be73350af584f6",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "c84e18c562352596fb1de5e1447b20ccfc9d2fa511df2a38895230d26b8d1e7a"
+        },
+        "simp": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.803943,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_eq_zero (a b : ℕ) : a + b = 0 → a = 0 := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_right_eq_zero\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "95b79bbab7b2925b1ca595cac80bd4f67a21791a4a3abfe66f358e6dd5a62f15",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "c84e18c562352596fb1de5e1447b20ccfc9d2fa511df2a38895230d26b8d1e7a"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.771191,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_eq_zero (a b : ℕ) : a + b = 0 → a = 0 := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_right_eq_zero\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "eb81052a145d0a0780e0b81b33c679b0a98b7826c7dcbcb5373f90dc6d791de3",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "b824ac90e680b8e7778e414ca3371e6883591a2f5f4b719bee5b965e1ab418e8"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.886985,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_right_eq_zero (a b : ℕ) : a + b = 0 → a = 0 := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_right_eq_zero\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "3a427c64503fddff98539c7223e5158a6b1ca3d344aa1eb38d3292b3f4c53017",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "7cb9ad60a15df44ce73f21ffae03a0e45af2d4c1dac275f90c47824638c2608b"
+        }
+      }
+    },
+    {
+      "id": "nng4.add_left_eq_zero",
+      "source_name": "add_left_eq_zero",
+      "source_line": 20,
+      "header": "  theorem add_left_eq_zero (a b : ℕ) : a + b = 0 → b = 0 :=",
+      "kind": "positive",
+      "statement_sha256": "34c6ca631750dade9051a0b435a828158182fd1452a21552598289cc00668394",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L20",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.77986,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_eq_zero (a b : ℕ) : a + b = 0 → b = 0 := by colony\n#print axioms BlasterBenchmarks.NNG4.add_left_eq_zero\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "9d509385e39cecac6e8bbf4ccf4500519514934a46dfd9f78b4b3040021ef989",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "dc5967de9c4fe828fe36244eb67f0dd05a2aab0f1bc6e4521fad2cb09cc98b55"
+        },
+        "simp": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.787857,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_eq_zero (a b : ℕ) : a + b = 0 → b = 0 := by simp_all\n#print axioms BlasterBenchmarks.NNG4.add_left_eq_zero\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "17e564056cadaf7327b694377c336c9603d1674c6dc81773bbef10cc5a81ef24",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "dc5967de9c4fe828fe36244eb67f0dd05a2aab0f1bc6e4521fad2cb09cc98b55"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.710319,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_eq_zero (a b : ℕ) : a + b = 0 → b = 0 := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.add_left_eq_zero\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "d0bdf8d51d6c8f67688db728b664405c124693a0d256e1a7498123b471561ce8",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "91f49c08ef739112452c0ec7f8050369be98a1cadfd33e5bf525f2fe440173b9"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.730662,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvAddition\n  theorem add_left_eq_zero (a b : ℕ) : a + b = 0 → b = 0 := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.add_left_eq_zero\nend AdvAddition\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "eb87d0150fdd8ad5ade0f7f8229a554170e88b34b897a803ce65b353e75009bd",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "34a90cef4eefd658ef864eff62e181d057a750484012da86b081400ccf3ab490"
+        }
+      }
+    },
+    {
+      "id": "nng4.mul_le_mul_right",
+      "source_name": "mul_le_mul_right",
+      "source_line": 25,
+      "header": "  theorem mul_le_mul_right (a b t : ℕ) (h : a ≤ b) : a * t ≤ b * t :=",
+      "kind": "positive",
+      "statement_sha256": "867fe0c1710bc59adad0c0a9e6064c1031e55839fa6d1016222a9fbfa571c198",
+      "source_url": "https://github.com/input-output-hk/Blaster-benchmarking/blob/b7cc5304bde87c269bb3ba57e560304ffd9f2189/BlasterBenchmarks/NNG4/NNG4.lean#L25",
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.891187,
+          "returncode": 0,
+          "axioms": [],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvMultiplication\nopen Nat\n  theorem mul_le_mul_right (a b t : ℕ) (h : a ≤ b) : a * t ≤ b * t := by colony\n#print axioms BlasterBenchmarks.NNG4.mul_le_mul_right\nend AdvMultiplication\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "a96355a41e69dddbbf34506048491c78bdeabf6a3aec1d8ac868acbf6ecf65a0",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "a294472c501803f052f0c91094466fba79a8df3de7f0aca9cd15947d4a69b4fe"
+        },
+        "simp": {
+          "status": "proof_failed",
+          "wall_seconds": 0.766617,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvMultiplication\nopen Nat\n  theorem mul_le_mul_right (a b t : ℕ) (h : a ≤ b) : a * t ≤ b * t := by simp_all\n#print axioms BlasterBenchmarks.NNG4.mul_le_mul_right\nend AdvMultiplication\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "95e325585bdbd4aa1f30673989b297208920ba4bad5b1fa42b458a38019d8dc9",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "f947e6f5379c2d68949b6d9dc8779f33053a1798d62ca4c96c631f9efcbe0572"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.750234,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvMultiplication\nopen Nat\n  theorem mul_le_mul_right (a b t : ℕ) (h : a ≤ b) : a * t ≤ b * t := by intros; omega\n#print axioms BlasterBenchmarks.NNG4.mul_le_mul_right\nend AdvMultiplication\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "f6783bf93c61f14c4eb75fa538fd5b8c70a6943cb8f52b76a6012b6e0950dc34",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "64d6bcf9cb0c8bdd3ecb33fced90c47ece9b21779419cf7fe22511f224cd4f6b"
+        },
+        "grind": {
+          "status": "proof_failed",
+          "wall_seconds": 0.826997,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace BlasterBenchmarks.NNG4\nabbrev ℕ := Nat\nsection AdvMultiplication\nopen Nat\n  theorem mul_le_mul_right (a b t : ℕ) (h : a ≤ b) : a * t ≤ b * t := by intros; grind\n#print axioms BlasterBenchmarks.NNG4.mul_le_mul_right\nend AdvMultiplication\nend BlasterBenchmarks.NNG4\n",
+          "generated_source_sha256": "267ed61cd77c284701b5b2cbbc6b06fcff81793135b0c8de286a9d2206bfdcdd",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "5631000a9d1d8f581b65378d3061f67a0669aee75bf5c9b640821dafb2ced623"
+        }
+      }
+    }
+  ],
+  "controls": [
+    {
+      "id": "control.witness",
+      "source_name": "witness",
+      "source_line": null,
+      "header": "theorem witness : (0 : Nat) + 1 ≠ 0 :=",
+      "kind": "nonvacuity",
+      "statement_sha256": "e0414541d9c695157a094ebdaef52baaf208c5e419c496702039ac33ff28ecb9",
+      "source_url": null,
+      "results": {
+        "colony": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.716499,
+          "returncode": 0,
+          "axioms": [
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace ColonyNNG4Controls\ntheorem witness : (0 : Nat) + 1 ≠ 0 := by colony\n#print axioms ColonyNNG4Controls.witness\nend ColonyNNG4Controls\n",
+          "generated_source_sha256": "3e194221842056273dde91587ecd8580bd0367ec5b37f0eba05dfca59a49a347",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "e67d7fc6bcc59a21efd65af9d401d953493cd3cd6cba4ce63720bec171a1121a"
+        },
+        "simp": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.819435,
+          "returncode": 0,
+          "axioms": [
+            "propext"
+          ],
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace ColonyNNG4Controls\ntheorem witness : (0 : Nat) + 1 ≠ 0 := by simp_all\n#print axioms ColonyNNG4Controls.witness\nend ColonyNNG4Controls\n",
+          "generated_source_sha256": "be1f9741839ee76881379c5f132186a7880df9af6db0570814378ced562ad022",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "0040235b3144cfb33c1947676e03b7d4a8256a34abd95bbeae032db54243fdc5"
+        },
+        "omega": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.770536,
+          "returncode": 0,
+          "axioms": [
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace ColonyNNG4Controls\ntheorem witness : (0 : Nat) + 1 ≠ 0 := by intros; omega\n#print axioms ColonyNNG4Controls.witness\nend ColonyNNG4Controls\n",
+          "generated_source_sha256": "2203c834773338b212fa6a263bc46f815632797407919175beffc9a742e1e90b",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "e67d7fc6bcc59a21efd65af9d401d953493cd3cd6cba4ce63720bec171a1121a"
+        },
+        "grind": {
+          "status": "kernel_accepted",
+          "wall_seconds": 0.756034,
+          "returncode": 0,
+          "axioms": [
+            "Classical.choice",
+            "Quot.sound",
+            "propext"
+          ],
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace ColonyNNG4Controls\ntheorem witness : (0 : Nat) + 1 ≠ 0 := by intros; grind\n#print axioms ColonyNNG4Controls.witness\nend ColonyNNG4Controls\n",
+          "generated_source_sha256": "3d6da4996c91cc111edceac17fb0132a516a3ce2d1ddc1b6383bbb36cf67cee9",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "06d6c966e3039aedd98a30620a9e229454ebc0a03ba8049aa7bb956013f28598"
+        }
+      }
+    },
+    {
+      "id": "control.impossible",
+      "source_name": "impossible",
+      "source_line": null,
+      "header": "theorem impossible : ∀ n : Nat, n + 1 = n :=",
+      "kind": "negative",
+      "statement_sha256": "be3c51e09cdb9db3305376855dc199bbcc3d4b8468026f74e119f10871c246b1",
+      "source_url": null,
+      "results": {
+        "colony": {
+          "status": "proof_failed",
+          "wall_seconds": 0.928744,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by colony",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace ColonyNNG4Controls\ntheorem impossible : ∀ n : Nat, n + 1 = n := by colony\n#print axioms ColonyNNG4Controls.impossible\nend ColonyNNG4Controls\n",
+          "generated_source_sha256": "4470be9bed753c03477d09e2e68525b2594195e0ba0f35d9353fe646a56ce999",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "1b5864aba2fdbbe4c7295e983adf338c7bdfb109b0ab4374e584622550f5213e"
+        },
+        "simp": {
+          "status": "proof_failed",
+          "wall_seconds": 0.731179,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by simp_all",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace ColonyNNG4Controls\ntheorem impossible : ∀ n : Nat, n + 1 = n := by simp_all\n#print axioms ColonyNNG4Controls.impossible\nend ColonyNNG4Controls\n",
+          "generated_source_sha256": "a6fa87e09d76720299d47f0e1880e2f11ca30a1c967f440904b29ccd6a544e75",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "eaa104712d4b0d8b8132dbdf2f6328b643b41125583ca32407724f4d5770a540"
+        },
+        "omega": {
+          "status": "proof_failed",
+          "wall_seconds": 0.751066,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; omega",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace ColonyNNG4Controls\ntheorem impossible : ∀ n : Nat, n + 1 = n := by intros; omega\n#print axioms ColonyNNG4Controls.impossible\nend ColonyNNG4Controls\n",
+          "generated_source_sha256": "6e4a33f27736294fdd06505bf7a49e73796c45c92ac2c56b65f3595d4a8b70d1",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "34067f7f64b405924c15535347f435a9d54b2ec59d73b4eee69e21fdf5c94209"
+        },
+        "grind": {
+          "status": "proof_failed",
+          "wall_seconds": 0.816486,
+          "returncode": 1,
+          "axioms": null,
+          "proof_body": "by intros; grind",
+          "generated_source": "import Colony.Tactic\nset_option maxHeartbeats 200000\nnamespace ColonyNNG4Controls\ntheorem impossible : ∀ n : Nat, n + 1 = n := by intros; grind\n#print axioms ColonyNNG4Controls.impossible\nend ColonyNNG4Controls\n",
+          "generated_source_sha256": "4240d6d30bb49287c0f98c88d10b0f24d9c55a79bcd0802aedd636d1f7969869",
+          "command": [
+            "lake",
+            "env",
+            "lean",
+            "-DmaxHeartbeats=200000",
+            ".colony-live-cases/StrictCase.lean"
+          ],
+          "output_sha256": "05cf6c1e9908d7e06a24f08ca3dc432d983115ab71e62ddee81a279215e752e2"
+        }
+      }
+    }
+  ],
+  "control_summary": {
+    "colony": {
+      "nonvacuity_accepted": true,
+      "invalid_rejected": true,
+      "sanity_pass": true
+    },
+    "simp": {
+      "nonvacuity_accepted": true,
+      "invalid_rejected": true,
+      "sanity_pass": true
+    },
+    "omega": {
+      "nonvacuity_accepted": true,
+      "invalid_rejected": true,
+      "sanity_pass": true
+    },
+    "grind": {
+      "nonvacuity_accepted": true,
+      "invalid_rejected": true,
+      "sanity_pass": true
+    }
+  },
+  "baseline_comparability": {
+    "blaster": {
+      "state": "unavailable",
+      "reason": "Upstream Lean 4.24.0 versus local 4.35.0; no matched runnable comparison or superiority claim"
+    }
+  },
+  "timing_note": "Fresh Lean process per row, identical limits; wall time includes startup/imports; no statistical speed claim"
+}
