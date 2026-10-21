@@ -32,7 +32,7 @@ def run (commands : List Command) (state : State) : State :=
 
 theorem step_balance_monotone (state : State) (command : Command) :
     state.balance ≤ (step state command).balance := by
-  cases command <;> simp [step] <;> omega
+  cases command <;> simp only [step] <;> colony
 
 /-- Any bounded command sequence preserves the lower bound on `balance`.
 The bound controls sequence length; no restriction is placed on command amounts.
@@ -56,20 +56,49 @@ example : Bounded 2 [.addBalance 1, .addRecorded 2] := by
 example : (run [.addBalance 1, .addRecorded 2] ⟨3, 3⟩).balance = 4 := by
   rfl
 
-/-- `colony` does not currently synthesize the structural induction for this
-user-defined state and run wrapper. This guards the observed limitation.
--/
-example (bound : Nat) (commands : List Command) (state : State)
+/-- A nonempty bounded run actually updates both independent components. -/
+theorem mixed_updates_witness :
+    Bounded 2 [.addBalance 1, .addRecorded 2] ∧
+    run [.addBalance 1, .addRecorded 2] ⟨3, 3⟩ = ⟨4, 5⟩ := by
+  constructor
+  · simp [Bounded]
+  · rfl
+
+/-- The existing portfolio does not close this generic `run` goal directly.
+This check does not identify which proof-search step prevents closure. -/
+example (bound : Nat) (commands : List Command) (_state : State)
     (_hbound : Bounded bound commands) : True := by
   fail_if_success
-    (have : state.balance ≤ (run commands state).balance := by colony)
+    (have : _state.balance ≤ (run commands _state).balance := by colony)
   trivial
 
 /-- The tempting preservation claim that `recorded` never changes is false. -/
+example : True := by
+  fail_if_success
+    (have : ∀ state : State, ∀ commands : List Command,
+        (run commands state).recorded = state.recorded := by colony)
+  trivial
+
 example : ¬ (∀ state : State, ∀ commands : List Command,
     (run commands state).recorded = state.recorded) := by
   intro h
   have hbad := h ⟨0, 0⟩ [.addRecorded 1]
+  simp [run, step] at hbad
+
+/-- Bounding sequence length does not make exact preservation of `recorded`
+true: one permitted command is already a counterexample. -/
+example : True := by
+  fail_if_success
+    (have : ∀ (bound : Nat) (commands : List Command) (state : State),
+        Bounded bound commands → (run commands state).recorded = state.recorded := by
+      colony)
+  trivial
+
+theorem bounded_recorded_preservation_false :
+    ¬ (∀ (bound : Nat) (commands : List Command) (state : State),
+      Bounded bound commands → (run commands state).recorded = state.recorded) := by
+  intro h
+  have hbad := h 1 [.addRecorded 1] ⟨0, 0⟩ (by simp [Bounded])
   simp [run, step] at hbad
 
 end Colony.Examples.IndependentStateComponents
