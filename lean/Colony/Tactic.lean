@@ -45,6 +45,12 @@ elab "colony" : tactic => do
     return false
   if booleanSolved then
     return
+  try
+    let bridge := mkIdent (.str (.mkSimple "Colony") "reverseAcc_bridge")
+    evalTactic (← `(tactic| solve |
+      simp only [$bridge:ident, List.append_nil, List.reverse_reverse]))
+    return
+  catch _ => initial.restore
   withMainContext do
     let context ← getLCtx
     for decl in context do
