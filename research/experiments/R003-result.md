@@ -9,10 +9,16 @@ search or specification changes.
 
 ## Source identity and implementation
 
-Base/HEAD: `0e48a058b97fd4288d7562029d790009561d3d37`.
+Base revision: `0e48a058b97fd4288d7562029d790009561d3d37`.
+The controller first published the tested Lean sources in candidate revision
+`e311fc8540840fb8e01d28d3fc3367922955c4f1`. The recorded checks ran before
+that commit, against the uncommitted source snapshot described below. The two
+edited Lean file hashes in that snapshot match the files in this published
+candidate exactly. This provenance correction changes only this research note;
+the current PR head is recorded by GitHub rather than embedded in its own file.
 The two Lean edits were already present, uncommitted, when this continuation
 started. They were retained and checked, not attributed to new work in this
-continuation. No commit or publication was performed. The exact tested source
+continuation. The worker performed no commit or publication. The exact tested source
 snapshot is identified by `source_sha256` in [the complete evaluator report](R003-evaluator.json),
 including hashes of both edited Lean files and all protected/evaluator inputs.
 Edited source SHA-256 values:
