@@ -32,34 +32,68 @@ The example wraps a `by colony` proof of that false proposition in
 Using the project toolchain pinned in `lean/lean-toolchain`:
 `leanprover/lean4:v4.35.0`.
 
-From the `lean/` project directory, the build command was:
+From the `lean/` project directory, compile the example directly:
 
 ```sh
-lake build Colony
+lake env lean Colony/Examples/TwoAccumulatorInvariant.lean
 ```
 
-It exited 0. Relevant output:
+It exited 0. The only output was three unused-variable warnings at line 18
+for `xs`, `left`, and `right` in the negative-control wrapper. Those variables
+occur in a `fail_if_success` block, which the linter does not count as explicit
+references. The successful compile elaborated the unchanged theorem proof and
+required the false proof attempt to fail.
+
+The direct Lake target command was also run:
+
+```sh
+lake build Colony.Examples.TwoAccumulatorInvariant
+```
+
+It exited 0 and replayed the cached target:
 
 ```text
-✔ [9/11] Built Colony.Examples.TwoAccumulatorInvariant (4.2s)
-✔ [10/11] Built Colony (4.0s)
-Build completed successfully (11 jobs).
+⚠ [4/4] Replayed Colony.Examples.TwoAccumulatorInvariant
+Build completed successfully (4 jobs).
 ```
 
-There were existing warnings in other examples and unused-variable warnings
-for parameters only used implicitly by the negative-control tactic block.
-The first attempt without `[simp]` on `copyIntoBoth` exited 1 because
-`colony` could not close the theorem; adding the simplification attribute
-allowed the unchanged theorem to close.
+The failed experiment without `[simp]` was reproduced without editing the
+source:
 
-The source is imported from `Colony.lean` so this `lake build Colony` checks
-the example. The negative control is elaborated as part of that same successful
-build; failure of `colony` is required by `fail_if_success`.
+```sh
+sed '/^@\[simp\]$/d' Colony/Examples/TwoAccumulatorInvariant.lean | lake env lean --stdin
+```
+
+It exited 1 with `<stdin>:15:2: error: colony: the initial proof portfolio
+could not close this goal`, plus the same unused-variable warnings. Thus the
+current tactic needs the recursive equations available to simplification to
+close this unchanged theorem.
+
+`Colony.lean` does not import this example. Both commands above check the
+example directly. The negative control is elaborated as part of the successful
+compile; failure of `colony` is required by `fail_if_success`.
+
+The same false statement was also attempted directly from `lean/`:
+
+```sh
+lake env lean --stdin <<'LEAN'
+import Colony.Examples.TwoAccumulatorInvariant
+open Colony.Examples
+example (xs left right : List Nat) :
+    (copyIntoBoth xs left right).1.length = xs.length + left.length + 1 := by
+  colony
+LEAN
+```
+
+It exited 1 with `<stdin>:5:2: error: colony: the initial proof portfolio
+could not close this goal`. This confirms the false variant is not proved by
+`colony` on its own.
 
 ## Assurance and limits
 
-The positive proof and negative control were accepted by Lean's elaborator and
-kernel. Assurance is **elaborator kernel acceptance only**. No exported replay,
+The positive theorem and the wrapper around the negative control were accepted
+by Lean's elaborator and kernel. Assurance is **elaborator kernel acceptance
+only**. No exported replay,
 independent-kernel acceptance, or correspondence to Cardano execution is
 claimed. This is a small synthetic example, not a benchmark or performance
 claim.
