@@ -4,6 +4,7 @@ import threading
 import unittest
 
 from colony.autonomy_store import AutonomyStore, BudgetExceeded
+from colony.network import NetworkUnavailable
 from colony.store import Store
 from colony.supervisor import Supervisor, SupervisorAlreadyRunning
 
@@ -14,6 +15,12 @@ class FakePipeline:
         self.advanced = []
         self.plans = 0
         self.error = None
+        self.probe_error = None
+
+    def probe_connectivity(self):
+        if self.probe_error:
+            raise self.probe_error
+        return True
 
     def advance(self, cycle):
         self.advanced.append(cycle["id"])
@@ -123,6 +130,38 @@ class SupervisorTests(unittest.TestCase):
         result = self.supervisor.tick()
         self.assertEqual(result["status"], "budget_limited")
         self.assertEqual(self.autonomy.next_cycle()["phase"], "queued")
+
+    def test_restart_waits_for_persisted_network_retry_then_resumes_same_cycle(self):
+        self.seed()
+        self.supervisor.tick()
+        cycle = self.autonomy.next_cycle()
+        waiting = self.autonomy.update_cycle(cycle["id"], phase="waiting_network",
+                                             resume_phase="ci", network_retry_count=2,
+                                             next_retry_at=9999999999, head_sha="a" * 40,
+                                             branch="codex/test")
+        self.supervisor.release_lock()
+        restarted = self.make_supervisor()
+        self.assertEqual(restarted.tick()["status"], "waiting_network")
+        self.assertEqual(self.pipeline.advanced, [cycle["id"]])
+        self.autonomy.update_cycle(waiting["id"], next_retry_at=0)
+        restarted.tick()
+        self.assertEqual(self.pipeline.advanced, [cycle["id"], cycle["id"]])
+        self.assertEqual(self.autonomy.get_cycle(cycle["id"])["phase"], "done")
+
+    def test_reconnection_probe_failure_reschedules_without_advancing(self):
+        self.seed()
+        self.supervisor.tick()
+        cycle = self.autonomy.next_cycle()
+        self.autonomy.update_cycle(cycle["id"], phase="waiting_network", resume_phase="authoring",
+                                  next_retry_at=0, network_retry_count=1)
+        self.pipeline.probe_error = NetworkUnavailable("still offline")
+        result = self.supervisor.tick()
+        waiting = self.autonomy.get_cycle(cycle["id"])
+        self.assertEqual(result["status"], "waiting_network")
+        self.assertEqual(waiting["phase"], "waiting_network")
+        self.assertEqual(waiting["resume_phase"], "authoring")
+        self.assertEqual(waiting["network_retry_count"], 2)
+        self.assertEqual(self.pipeline.advanced, [cycle["id"]])
 
     def test_forever_stops_early_and_releases_singleton(self):
         stop = threading.Event()

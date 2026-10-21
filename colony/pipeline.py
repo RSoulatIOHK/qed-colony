@@ -10,6 +10,8 @@ import uuid
 from .autonomy_store import BudgetExceeded, DuplicateAttempt
 from .github_broker import GitHubBroker, PublicationRejected, SRE_FILES, checks_state, safe_slug, validate_public_text
 from .model_policy import choose_model
+from .network import AuthenticationFailure, NetworkUnavailable
+from .network_recovery import schedule_retry
 from .operations import OPS_SCHEMA, enqueue_followups, parse_operations_output, render_operations_report
 from .worker import execute_job
 
@@ -44,6 +46,10 @@ class Pipeline:
         self.tasks, self.autonomy, self.policy = task_store, autonomy, dict(policy)
         self.broker = broker or GitHubBroker(root, policy)
         self.executor = executor or execute_job
+
+    def probe_connectivity(self):
+        probe = getattr(self.broker, "probe_connectivity", None)
+        return True if probe is None else probe()
 
     def _update(self, cycle, phase=None, **data):
         return self.autonomy.update_cycle(cycle["id"], phase=phase, **data)
@@ -180,6 +186,16 @@ class Pipeline:
             raise
         except DuplicateAttempt:
             return self._terminal(cycle, "needs_review", "A completed or interrupted stage cannot run twice")
+        except NetworkUnavailable:
+            # The stage may have durably advanced before a response was lost
+            # (for example, CI -> merging). Resume that latest phase so its
+            # first action reconciles remote state before issuing anything.
+            current = self.autonomy.get_cycle(cycle["id"])
+            return schedule_retry(current, self._update,
+                                  base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                                  max_seconds=self.policy.get("network_backoff_max_seconds", 900))
+        except AuthenticationFailure as exc:
+            return self._terminal(cycle, "needs_review", "Remote authentication requires operator attention: " + str(exc))
         except PublicationRejected as exc:
             return self._terminal(cycle, "needs_review", str(exc))
         except (ValueError, KeyError, TypeError) as exc:

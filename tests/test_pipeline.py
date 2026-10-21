@@ -6,6 +6,7 @@ import unittest
 from colony.autonomy_store import AutonomyStore, BudgetExceeded
 from colony.pipeline import PLAN_SCHEMA, Pipeline
 from colony.github_broker import PublicationRejected
+from colony.network import NetworkUnavailable
 from colony.operations import OPS_SCHEMA
 from colony.store import Store
 
@@ -107,6 +108,45 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(self.cycle["phase"], "ci")
         self.assertEqual(self.broker.merges, [])
         self.assertEqual(len(self.jobs), 2)
+
+    def test_ci_network_outage_waits_without_revision_and_recovers_same_head(self):
+        self.to_ci()
+        original_get = self.broker.get_pr
+        calls = {"n": 0}
+
+        def unavailable_once(number):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise NetworkUnavailable("offline")
+            return original_get(number)
+
+        self.broker.get_pr = unavailable_once
+        self.step()
+        self.assertEqual(self.cycle["phase"], "waiting_network")
+        self.assertEqual(self.cycle["resume_phase"], "ci")
+        self.assertEqual(self.cycle["revision"], 0)
+        self.assertEqual(len(self.jobs), 2)
+        self.cycle = self.auto.update_cycle(self.cycle["id"], phase="ci", resume_phase=None)
+        self.step()
+        self.assertEqual(self.cycle["phase"], "done")
+        self.assertEqual(self.broker.merges, [self.cycle["reviewed_sha"]])
+
+    def test_remote_merge_then_local_timeout_is_reconciled_without_second_merge(self):
+        self.to_ci()
+        original_merge = self.broker.merge
+
+        def merged_then_timeout(number, sha):
+            original_merge(number, sha)
+            raise NetworkUnavailable("response lost after remote success")
+
+        self.broker.merge = merged_then_timeout
+        self.step()
+        self.assertEqual(self.cycle["phase"], "waiting_network")
+        self.assertEqual(self.cycle["resume_phase"], "merging")
+        self.cycle = self.auto.update_cycle(self.cycle["id"], phase="merging", resume_phase=None)
+        self.step()
+        self.assertEqual(self.cycle["phase"], "done")
+        self.assertEqual(len(self.broker.merges), 1)
 
     def test_external_head_change_and_merge_never_claims_checked_success(self):
         self.to_ci()

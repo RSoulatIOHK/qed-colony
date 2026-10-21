@@ -11,6 +11,9 @@ import threading
 
 from .autonomy_store import AutonomyStore, BudgetExceeded, TERMINAL_PHASES
 from .store import Store
+from .network_recovery import due
+from .network import AuthenticationFailure, NetworkUnavailable
+from .network_recovery import schedule_retry
 
 
 class SupervisorAlreadyRunning(RuntimeError):
@@ -92,6 +95,36 @@ class Supervisor:
         # without spending model budget. The pipeline reserves each model call.
         cycle = self.autonomy.next_cycle()
         if cycle is not None:
+            if cycle["phase"] == "waiting_network":
+                if not due(cycle):
+                    retry_at = cycle.get("next_retry_at")
+                    return self._service("waiting_network", "Network unavailable; retry scheduled at %s" % retry_at,
+                                         cycle["id"])
+                resume = cycle.get("resume_phase")
+                if not resume:
+                    self.autonomy.update_cycle(cycle["id"], phase="needs_review",
+                                               last_error="Network wait has no saved resume phase")
+                    return self._service("needs_review", "Network recovery state is incomplete", cycle["id"])
+                try:
+                    probe = getattr(self.pipeline, "probe_connectivity", None)
+                    if probe is not None:
+                        probe()
+                except NetworkUnavailable:
+                    current = self.autonomy.get_cycle(cycle["id"])
+                    schedule_retry(current,
+                                   lambda saved, phase, **data: self.autonomy.update_cycle(saved["id"], phase, **data),
+                                   base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                                   max_seconds=self.policy.get("network_backoff_max_seconds", 900))
+                    return self._service("waiting_network", "Connectivity probe failed; retry rescheduled",
+                                         cycle["id"])
+                except AuthenticationFailure:
+                    self.autonomy.update_cycle(cycle["id"], phase="needs_review",
+                                               last_error="Remote authentication requires operator attention")
+                    return self._service("needs_review", "Network recovery requires authentication attention",
+                                         cycle["id"])
+                cycle = self.autonomy.update_cycle(cycle["id"], phase=resume, resume_phase=None,
+                                                   next_retry_at=None, network_retry_delay=None,
+                                                   last_error=None)
             return self._advance(cycle)
 
         from .operations import maybe_enqueue_audit
@@ -133,6 +166,9 @@ class Supervisor:
         except BudgetExceeded as error:
             return self._service("budget_limited", str(error), cycle["id"])
         current = self.autonomy.get_cycle(cycle["id"])
+        if current["phase"] == "waiting_network":
+            return self._service("waiting_network", "Transient network outage; retry scheduled at %s" %
+                                 current.get("next_retry_at"), cycle["id"])
         if current["phase"] in TERMINAL_PHASES:
             status = "needs_review" if current["phase"] in {"needs_review", "blocked"} else "waiting"
             return self._service(status, "Cycle " + current["phase"], None)

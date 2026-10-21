@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 import time
 
+from .network import classify_connectivity_error
+
 
 class PublicationRejected(RuntimeError):
     pass
@@ -88,8 +90,14 @@ class GitHubBroker:
         self.runner = runner or subprocess.run
 
     def _run(self, args, cwd=None, binary=False):
-        result = self.runner(args, cwd=str(cwd or self.root), check=True,
-                             capture_output=True, text=not binary, timeout=120)
+        try:
+            result = self.runner(args, cwd=str(cwd or self.root), check=True,
+                                 capture_output=True, text=not binary, timeout=120)
+        except Exception as error:
+            classified = classify_connectivity_error(error)
+            if classified is not None:
+                raise classified from error
+            raise
         return result.stdout if binary else result.stdout.strip()
 
     def git(self, cwd, *args, binary=False):
@@ -97,6 +105,11 @@ class GitHubBroker:
 
     def gh(self, *args):
         return self._run(["gh", *args] if args[0] == "api" else ["gh", *args, "--repo", self.repository])
+
+    def probe_connectivity(self):
+        """Read-only probe used before resuming any work after a known outage."""
+        self.gh("api", "rate_limit")
+        return True
 
     def prepare_worktree(self, cycle):
         branch = "codex/colony-%s-%s" % (safe_slug(cycle["task_id"]), cycle["id"][:12])
