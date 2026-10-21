@@ -135,6 +135,8 @@ class SupervisorTests(unittest.TestCase):
 
     def test_restart_waits_for_persisted_network_retry_then_resumes_same_cycle(self):
         self.seed()
+        # Isolate the waiting cycle; ready-task admission has its own regression.
+        self.tasks.transition("low", "blocked", "controller", summary="Outside the reconnect fixture")
         self.supervisor.tick()
         cycle = self.autonomy.next_cycle()
         waiting = self.autonomy.update_cycle(cycle["id"], phase="waiting_network",
@@ -161,6 +163,43 @@ class SupervisorTests(unittest.TestCase):
         self.assertEqual(self.autonomy.get_cycle(waiting["id"])["phase"], "waiting_network")
         self.assertEqual(self.supervisor.tick()["status"], "waiting_network")
         self.assertEqual(self.pipeline.advanced, [author["id"]])
+
+    def test_not_due_wait_admits_actual_ready_store_task_without_speculative_work(self):
+        waiting = self.autonomy.create_cycle("github-wait", "engineer")
+        self.autonomy.update_cycle(waiting["id"], phase="waiting_network", resume_phase="ci",
+                                   next_retry_at=9999999999)
+        self.seed()
+        self.supervisor.tick()
+        admitted = next(c for c in self.autonomy.list_cycles() if c["task_id"] == "high")
+        self.assertEqual(self.pipeline.advanced, [admitted["id"]])
+        self.assertEqual(self.pipeline.plans, 0)
+        self.assertIsNone(self.tasks.get_task("OPS001"))
+        self.assertEqual(self.autonomy.get_cycle(waiting["id"])["phase"], "waiting_network")
+
+    def test_not_due_wait_ready_admission_obeys_daily_budget(self):
+        waiting = self.autonomy.create_cycle("github-wait", "engineer")
+        self.autonomy.update_cycle(waiting["id"], phase="waiting_network", resume_phase="ci",
+                                   next_retry_at=9999999999)
+        self.seed()
+        self.supervisor.policy["max_daily_attempts"] = 0
+        self.assertEqual(self.supervisor.tick()["status"], "budget_limited")
+        self.assertEqual(len(self.autonomy.list_cycles()), 1)
+        self.assertEqual(self.pipeline.advanced, [])
+        self.assertEqual(self.tasks.get_task("high")["status"], "ready")
+        self.assertEqual(self.pipeline.plans, 0)
+        self.assertIsNone(self.tasks.get_task("OPS001"))
+
+    def test_all_not_due_waits_without_ready_work_do_not_schedule_audit_or_planner(self):
+        for number in range(3):
+            finished = self.autonomy.create_cycle("completed-%s" % number, "engineer")
+            self.autonomy.update_cycle(finished["id"], phase="done")
+        waiting = self.autonomy.create_cycle("github-wait", "engineer")
+        self.autonomy.update_cycle(waiting["id"], phase="waiting_network", resume_phase="ci",
+                                   next_retry_at=9999999999)
+        self.assertEqual(self.supervisor.tick()["status"], "waiting_network")
+        self.assertEqual(self.pipeline.advanced, [])
+        self.assertEqual(self.pipeline.plans, 0)
+        self.assertIsNone(self.tasks.get_task("OPS001"))
 
     def test_reconnection_probe_failure_reschedules_without_advancing(self):
         self.seed()

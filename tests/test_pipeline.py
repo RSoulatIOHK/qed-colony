@@ -315,6 +315,27 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(self.jobs, [])
         self.provider_probe.assert_not_called()
 
+    def test_ready_task_admission_cannot_launch_through_known_provider_outage(self):
+        from colony.supervisor import Supervisor
+        self.step()
+        self.auto.update_cycle(self.cycle["id"], phase="waiting_network", resume_phase="authoring",
+                               next_retry_at=9999999999, provider_network_offline=True,
+                               provider_next_retry_at=9999999999)
+        self.store.seed([{"id": "T2", "title": "Another scoped task", "role": "engineer",
+                         "description": "Implement another scoped case", "acceptance": ["Verified result"]}])
+        policy = dict(self.pipeline.policy, enabled=True)
+        supervisor = Supervisor(self.root, self.store.path, policy,
+                                pipeline=self.pipeline, task_store=self.store)
+        self.addCleanup(supervisor.release_lock)
+        supervisor.tick()
+        second = next(c for c in self.auto.list_cycles() if c["task_id"] == "T2")
+        self.assertEqual(second["phase"], "authoring")
+        self.assertEqual(supervisor.tick()["status"], "waiting_network")
+        self.assertEqual(self.auto.get_cycle(second["id"])["phase"], "waiting_network")
+        self.assertEqual(self.auto.get_budget(policy)["attempts"], 0)
+        self.assertEqual(self.jobs, [])
+        self.provider_probe.assert_not_called()
+
     def test_actual_triage_outage_reconnects_after_restart_and_replays_completed_handoff(self):
         import sys
         from colony.recovery import scan_recoveries

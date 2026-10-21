@@ -109,6 +109,15 @@ class Supervisor:
         if cycle is not None:
             if cycle["phase"] == "waiting_network":
                 if not due(cycle):
+                    # Already-scoped Store work can still enter the queue; a
+                    # future network deadline suppresses only speculative work.
+                    self.tasks.recover_expired()
+                    ready = self._ready_task()
+                    if ready is not None:
+                        budget = self.autonomy.get_budget(self.policy)
+                        if budget["exhausted"]:
+                            return self._service("budget_limited", "Daily model budget exhausted; resumes after " + budget["resets_at"])
+                        return self._dispatch_task(ready)
                     return self._service("waiting_network", "Network unavailable; retry scheduled at %s" %
                                          cycle.get("next_retry_at"), cycle["id"])
                 resume = cycle.get("resume_phase")
@@ -145,16 +154,9 @@ class Supervisor:
 
         self.tasks.recover_expired()
         cycles = self.autonomy.list_cycles()
-        already_dispatched = {item["task_id"] for item in cycles}
-        ready = [task for task in self.tasks.snapshot()["tasks"]
-                 if task["status"] == "ready" and task["id"] not in already_dispatched]
-        if ready:
-            # Store.snapshot already orders highest priority, oldest task first.
-            task = ready[0]
-            cycle = self.autonomy.create_cycle(task["id"], task["role"])
-            self.tasks.record_event("autonomy.cycle_created", "supervisor", "Scheduled " + task["title"],
-                                    task["id"], {"cycle_id": cycle["id"]})
-            return self._advance(cycle)
+        ready = self._ready_task()
+        if ready is not None:
+            return self._dispatch_task(ready)
         if controller_results:
             # Existing checks must not prevent admission of already-scoped
             # ready tasks, but they do suppress speculative audits/planning.
@@ -171,6 +173,18 @@ class Supervisor:
         needs_review = any(item["phase"] == "needs_review" for item in cycles)
         message = "Waiting for review of interrupted work" if needs_review else "Healthy; waiting for runnable work or the next planning interval"
         return self._service("waiting", message)
+
+    def _ready_task(self):
+        dispatched = {item["task_id"] for item in self.autonomy.list_cycles()}
+        # Store.snapshot orders highest priority, oldest task first.
+        return next((task for task in self.tasks.snapshot()["tasks"]
+                     if task["status"] == "ready" and task["id"] not in dispatched), None)
+
+    def _dispatch_task(self, task):
+        cycle = self.autonomy.create_cycle(task["id"], task["role"])
+        self.tasks.record_event("autonomy.cycle_created", "supervisor", "Scheduled " + task["title"],
+                                task["id"], {"cycle_id": cycle["id"]})
+        return self._advance(cycle)
 
     @staticmethod
     def _controller_stage(cycle):
