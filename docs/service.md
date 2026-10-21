@@ -1,5 +1,25 @@
 # The persistent local service
 
+## Owner hold after the initial allowance
+
+On 2026-10-21 the owner requested that automatic model work be held after the
+day's existing allowance until a continuation decision. The reviewed default
+therefore sets `autonomy.enabled` to `false`. The 12-hour / 324-attempt daily
+limits remain unchanged; a date rollover does not re-enable autonomy.
+
+Scope: change the admission policy only. Acceptance: finish the existing bounded
+calls under the current allowance, activate the disabled policy without resetting
+the database or usage ledger, verify zero active calls, and keep the live
+Observatory available. A source merge alone does not change a pinned runtime.
+
+The controller deploys this policy at the drained allowance boundary. With the
+disabled runtime installed, service restarts and login still serve the
+Observatory but do not advance autonomous model or publication stages. Resuming
+requires a new explicit owner instruction, a reviewed policy change, and
+controller activation. Queue entries, PRs, proofs and recorded usage are retained.
+
+## Service operation
+
 The controller and the live Observatory run together as a macOS user LaunchAgent.
 Launchd owns the process, so ending a chat or closing a terminal does not stop it.
 `KeepAlive` restarts the controller after an unexpected exit, with a 30 second
