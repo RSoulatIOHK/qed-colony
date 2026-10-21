@@ -11,8 +11,11 @@ theorem marker_bounded {n : Nat} (i : Fin (Nat.succ n)) :
     marker i ≤ i.val + 1 := by
   colony
 
-example (n : Nat) : marker (⟨0, by omega⟩ : Fin (Nat.succ n)) = 0 := by
+example : marker (⟨0, by omega⟩ : Fin 2) = 0 := by
   simp [marker]
+
+example : marker (⟨1, by omega⟩ : Fin 2) = 1 := by
+  decide
 
 /-- Colony must reject the adjacent false claim at a successor index. -/
 example {n : Nat} (i : Fin (Nat.succ n)) : True := by
