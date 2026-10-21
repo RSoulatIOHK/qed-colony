@@ -1,0 +1,764 @@
+{
+  "schema": "colony.benchmark_run.v1",
+  "benchmark_id": "colony-seed-v1",
+  "recorded_at": "2026-10-21T14:08:14.940862+00:00",
+  "scope": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+  "trust": {
+    "label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+    "independent_replay": false,
+    "kernel_axiom_allowlist": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "security_boundary": "None: this local pilot trusts its evaluator, manifest and compiler installation."
+  },
+  "toolchain": {
+    "pin": "leanprover/lean4:v4.35.0",
+    "version_output": "Lean (version 4.35.0, arm64-apple-darwin24.6.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)"
+  },
+  "manifest_sha256": "31c6251d0eb612fe4d79c7a30a7c6c96fc32180e75a6c08a2e92a8de7a4884ce",
+  "challenge_lock": {
+    "lock_sha256": "a49b945f1cbba4d5067712cd010cb517433c8c0934275d618bfa68e164659469",
+    "schema": "colony.challenge_lock.v1",
+    "manifest_sha256": "31c6251d0eb612fe4d79c7a30a7c6c96fc32180e75a6c08a2e92a8de7a4884ce",
+    "protected_source_sha256": {
+      "lean/Colony/Seeds.lean": "742bb22fbd5bd39ed99b6e692b3620f0711ce981f741cf187e1c41aaec73787e"
+    }
+  },
+  "strategies": {
+    "colony": "colony",
+    "simp": "simp_all",
+    "omega": "intros; omega",
+    "grind": "intros; grind"
+  },
+  "protected_source_sha256": {
+    "lean/Colony/Seeds.lean": "742bb22fbd5bd39ed99b6e692b3620f0711ce981f741cf187e1c41aaec73787e"
+  },
+  "source_sha256": {
+    "lean/Challenge.lean": "bf7842b9e937ff1ca75e6c518d1ca6abb1c60cabc4fe5e2e244ec1588c4e3ecf",
+    "lean/Colony.lean": "9a0b2cdeae4445542f4dc480c5994f35f760e81277a7c42648eb4db77f5355c0",
+    "lean/Colony/Examples/AccumulatorLength.lean": "554ab22df0c7f032334f071c402b726dcdfe9ba0f016272603efe5944f6068d0",
+    "lean/Colony/Examples/BoolStateTransition.lean": "829bff3bc9b2d0f2d195b46226280885ba4f992ca357adeab7b8361001b79cd6",
+    "lean/Colony/Examples/BooleanBranching.lean": "98523ebd094b67d935d3a38799c758be76cb2a5b28bb0ef4610e8a9663df5c4a",
+    "lean/Colony/Examples/ListStateInvariant.lean": "10746c7bc8ee2ce9ba403c269c994b4baa47fe45cccae61bf64715a52b9762e8",
+    "lean/Colony/Examples/OptionBranching.lean": "faee719665bb2d908a58dc4969fa8d56a9208041bc77873525d1eb71828754fa",
+    "lean/Colony/Procedures/ListState.lean": "b27d18d31fb9ca2be92077841edabab5c9863eb2e068dac7afeed5f61c35bfb0",
+    "lean/Colony/Seeds.lean": "742bb22fbd5bd39ed99b6e692b3620f0711ce981f741cf187e1c41aaec73787e",
+    "lean/Colony/Tactic.lean": "2865f270c73f08c27abbc4f79dabd2ff5e312d8bb4aa6660e835af0fc10be5b6",
+    "lean/Pilot.lean": "99fe41c4a2c2eb8762ff1ac5f8d865a461eceb4536866ea5abe3830d41352bbb",
+    "lean/SeedProofs.lean": "2f89057fee6cc851d1173b3d365c7726330e0f6cca0cd5e2491725e4855246a5",
+    "lean/lake-manifest.json": "335d69eec4f3540d21b744266e6176ef6ad395e8dbad271647ec35408f528dd5",
+    "lean/lakefile.toml": "bbf3548897b674a979d6a8d529e4944888141b057baa820a378815204b78f77d",
+    "lean/lean-toolchain": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c",
+    "scripts/evaluate_lean.py": "888cc34564b8c99b6f4d40ee2bfdaf84639941c5bc84308db3b7757a57a3ed2d"
+  },
+  "results": [
+    {
+      "id": "arithmetic_monotonicity",
+      "family": "arithmetic",
+      "kind": "positive",
+      "strategy": "colony",
+      "declaration": "benchmark_arithmetic_monotonicity",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "d81a6b7b6265c2072e13d49c6ac6dcc8ec52d492179d34ca62de17f44c4abfeb",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.601122,
+      "output": "'benchmark_arithmetic_monotonicity' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "reverse_accumulator_length",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "declaration": "benchmark_reverse_accumulator_length",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "a1cb74447b464dac9aedf58886c30fdcb024eb02401ca470042bdfd34ec7d5e3",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.818277,
+      "output": "'benchmark_reverse_accumulator_length' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "count_accumulator_invariant",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "declaration": "benchmark_count_accumulator_invariant",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "662d7503533ad7ff375a87ef82d16d19b1e715e7633bf00c537f91935b2d6de0",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.613338,
+      "output": "'benchmark_count_accumulator_invariant' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "recursive_program_nonvacuity",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "declaration": "benchmark_recursive_program_nonvacuity",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "cacd2b848c7230e3c9ad9c12b6bf107e214a08c5c7bfa1ecbdfb413ca629e4a4",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.863386,
+      "output": "'benchmark_recursive_program_nonvacuity' depends on axioms: [propext]\n"
+    },
+    {
+      "id": "account_state_invariant",
+      "family": "state_transition",
+      "kind": "positive",
+      "strategy": "colony",
+      "declaration": "benchmark_account_state_invariant",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "78326f46aeaae486684e848af92d58617ce357d613a0dc9e28973295683bd2d3",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 4.639369,
+      "output": "'benchmark_account_state_invariant' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "allocated_payments_cover_sales",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "declaration": "benchmark_allocated_payments_cover_sales",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "b57bea967232a045961780684952dba149e161982165617e4362a4bec5d5db9f",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 6.10681,
+      "output": "'benchmark_allocated_payments_cover_sales' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "allocated_payments_nonvacuity",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "declaration": "benchmark_allocated_payments_nonvacuity",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "79960ebc5a3f0568ebc467448cfb94427f782f5d8ca6eb5f6497dcda6c7331d2",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.486616,
+      "output": "'benchmark_allocated_payments_nonvacuity' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "shared_payment_attack_witness",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "declaration": "benchmark_shared_payment_attack_witness",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "cfccf9163550877a2d8f4365fe51bbc3d31adab14e90ed229df495c983e0ab54",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.891121,
+      "output": "'benchmark_shared_payment_attack_witness' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "false_shared_payment_safety",
+      "family": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "colony",
+      "declaration": "benchmark_false_shared_payment_safety",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "568009eb0bf221f8dba2df7ab79fa9a8ea7db39f861616a3f14c4b4ac5b7e5f4",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.784292,
+      "output": "Challenge.lean:5:2: error: colony: the initial proof portfolio could not close this goal\n'benchmark_false_shared_payment_safety' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "reverse_involution_frontier",
+      "family": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "colony",
+      "declaration": "benchmark_reverse_involution_frontier",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "11c7380c6992ff4bb053189eb48d3fe8d907225a662fb5a3af953c8f47ceabc6",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.660254,
+      "output": "'benchmark_reverse_involution_frontier' depends on axioms: [propext]\n"
+    },
+    {
+      "id": "arithmetic_monotonicity",
+      "family": "arithmetic",
+      "kind": "positive",
+      "strategy": "simp",
+      "declaration": "benchmark_arithmetic_monotonicity",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "49ab0e71cc395bf914e4a56dbeedde27acfacf1a1f1b6250efe17554bd6e8577",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.834917,
+      "output": "'benchmark_arithmetic_monotonicity' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "reverse_accumulator_length",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "declaration": "benchmark_reverse_accumulator_length",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "6c48842fb77dac2bcf1f9f00827f4e15f555b64febc115a92d9ff94cb00241af",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 4.986846,
+      "output": "Challenge.lean:5:2: error: simp_all made no progress\n'benchmark_reverse_accumulator_length' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "count_accumulator_invariant",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "declaration": "benchmark_count_accumulator_invariant",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "2f4ba9b34ed148fd7527811862b2aac6d794213ed13fb023bf08aec9d95ba445",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.861136,
+      "output": "Challenge.lean:5:2: error: simp_all made no progress\n'benchmark_count_accumulator_invariant' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "recursive_program_nonvacuity",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "declaration": "benchmark_recursive_program_nonvacuity",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "0845d33857e8cb24e5b0a5014bd91d50aba516fbef1e31b9cb05e3ab9801ddae",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 4.173781,
+      "output": "'benchmark_recursive_program_nonvacuity' depends on axioms: [propext]\n"
+    },
+    {
+      "id": "account_state_invariant",
+      "family": "state_transition",
+      "kind": "positive",
+      "strategy": "simp",
+      "declaration": "benchmark_account_state_invariant",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "5cc80877d090c7c7025921187616c7d6d0a7bb0607ef0aa237637a84f5520143",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 4.606694,
+      "output": "Challenge.lean:4:189: error: unsolved goals\n\u22a2 \u2200 (s : Account) (reserve amount : Nat),\n    s.balance = s.received + reserve \u2192 s.received + reserve + amount = s.received + amount + reserve\n'benchmark_account_state_invariant' depends on axioms: [propext, sorryAx, Quot.sound]\n"
+    },
+    {
+      "id": "allocated_payments_cover_sales",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "declaration": "benchmark_allocated_payments_cover_sales",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "f1ef02fc238af11b9697361f96341a8dc0d6e75b6b0b8bba8651d43b3563193b",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 4.455299,
+      "output": "Challenge.lean:4:166: error: unsolved goals\n\u22a2 \u2200 (priceA priceB paidA paidB : Nat), priceA \u2264 paidA \u2192 priceB \u2264 paidB \u2192 priceA + priceB \u2264 paidA + paidB\n'benchmark_allocated_payments_cover_sales' depends on axioms: [propext, sorryAx, Quot.sound]\n"
+    },
+    {
+      "id": "allocated_payments_nonvacuity",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "declaration": "benchmark_allocated_payments_nonvacuity",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "1d5407e22d6d3bf9148044f1600bc2278e4ff1f555968c27e5c4f53db2a10b68",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 12.562224,
+      "output": "'benchmark_allocated_payments_nonvacuity' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "shared_payment_attack_witness",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "declaration": "benchmark_shared_payment_attack_witness",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "3093453e05d61b6d715c8dafe5c82f406d4b4dff72a5d6de98269546c4733779",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 4.423825,
+      "output": "'benchmark_shared_payment_attack_witness' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "false_shared_payment_safety",
+      "family": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "simp",
+      "declaration": "benchmark_false_shared_payment_safety",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "d666b3192ead5f9ea543acedb2961d97171bc42248e318f425645f6cf6cafdee",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 4.395431,
+      "output": "Challenge.lean:4:144: error: unsolved goals\n\u22a2 \u2200 (priceA priceB paid : Nat), priceA \u2264 paid \u2192 priceB \u2264 paid \u2192 priceA + priceB \u2264 paid\n'benchmark_false_shared_payment_safety' depends on axioms: [propext, sorryAx, Quot.sound]\n"
+    },
+    {
+      "id": "reverse_involution_frontier",
+      "family": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "simp",
+      "declaration": "benchmark_reverse_involution_frontier",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "edf690c34177bcb00445f7b508838b9f7a6f8033a337ba8bd32bdf7168d80f9e",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 4.034642,
+      "output": "Challenge.lean:5:2: error: simp_all made no progress\n'benchmark_reverse_involution_frontier' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "arithmetic_monotonicity",
+      "family": "arithmetic",
+      "kind": "positive",
+      "strategy": "omega",
+      "declaration": "benchmark_arithmetic_monotonicity",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "17a202f00fc7016d70c065dedf0d0d98034c02de5aba1653055629cd61bebaec",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.486905,
+      "output": "'benchmark_arithmetic_monotonicity' depends on axioms: [propext, Quot.sound]\n"
+    },
+    {
+      "id": "reverse_accumulator_length",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "declaration": "benchmark_reverse_accumulator_length",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "046b473c5bf80c9330b5634a93d09ac9a31192afec79bb20eff52403ad305525",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 4.173812,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\na possible counterexample may satisfy the constraints\n  c \u2265 0\n  b \u2265 0\n  a \u2265 0\n  a + b - c \u2265 1\nwhere\n a := \u2191xs\u271d.length\n b := \u2191acc\u271d.length\n c := \u2191(reverseAcc xs\u271d acc\u271d).length\n'benchmark_reverse_accumulator_length' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "count_accumulator_invariant",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "declaration": "benchmark_count_accumulator_invariant",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "ea442afc91da9753a7b7836426dba6a0fdc2e39dc2399e0e3a040baa48a35b97",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.782054,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\na possible counterexample may satisfy the constraints\n  c \u2265 0\n  b \u2265 0\n  a \u2265 0\n  a + b - c \u2265 1\nwhere\n a := \u2191xs\u271d.length\n b := \u2191n\u271d\n c := \u2191(countAcc xs\u271d n\u271d)\n'benchmark_count_accumulator_invariant' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "recursive_program_nonvacuity",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "declaration": "benchmark_recursive_program_nonvacuity",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "33b61e46f012599aae1b928c6d77269ed245ee2cb9a2c8b62b9de1ec5ad443ef",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.782864,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\nNo usable constraints found. You may need to unfold definitions so `omega` can see linear arithmetic facts about `Nat` and `Int`, which may also involve multiplication, division, and modular remainder by constants.\n'benchmark_recursive_program_nonvacuity' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "account_state_invariant",
+      "family": "state_transition",
+      "kind": "positive",
+      "strategy": "omega",
+      "declaration": "benchmark_account_state_invariant",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "cae20b53142ec7f7036e80079543daf5f40cda1b1556ceb994a8820966a6e207",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.942385,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\na possible counterexample may satisfy the constraints\n  d \u2265 0\n  c \u2265 0\n  b \u2265 0\n  b + c - d \u2265 1\n  a \u2265 0\n  a + b \u2265 0\nwhere\n a := \u2191s\u271d.received\n b := \u2191reserve\u271d\n c := \u2191(deposit s\u271d amount\u271d).received\n d := \u2191(deposit s\u271d amount\u271d).balance\n'benchmark_account_state_invariant' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "allocated_payments_cover_sales",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "declaration": "benchmark_allocated_payments_cover_sales",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "e90dae78bf7bab834d9d63196df62142427c26d6842b9a4f0a7d631accd1c123",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.944769,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\na possible counterexample may satisfy the constraints\n  d \u2265 0\n  c \u2265 0\n  b \u2265 0\n  a \u2265 0\n  a + b - c - d \u2265 1\nwhere\n a := \u2191priceA\u271d\n b := \u2191priceB\u271d\n c := \u2191paidA\u271d\n d := \u2191paidB\u271d\n'benchmark_allocated_payments_cover_sales' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "allocated_payments_nonvacuity",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "declaration": "benchmark_allocated_payments_nonvacuity",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "4806b3fe773139e94d9f87cb9081a717869a37f4f0e8d62f0e4cbed73d169ee0",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.494573,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\nNo usable constraints found. You may need to unfold definitions so `omega` can see linear arithmetic facts about `Nat` and `Int`, which may also involve multiplication, division, and modular remainder by constants.\n'benchmark_allocated_payments_nonvacuity' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]\n"
+    },
+    {
+      "id": "shared_payment_attack_witness",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "declaration": "benchmark_shared_payment_attack_witness",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "c763d92f76c3300255f3ecc2561a5f60e0f38d4db032be572391ff48c4384f23",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.490954,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\nNo usable constraints found. You may need to unfold definitions so `omega` can see linear arithmetic facts about `Nat` and `Int`, which may also involve multiplication, division, and modular remainder by constants.\n'benchmark_shared_payment_attack_witness' depends on axioms: [propext, sorryAx, Classical.choice, Quot.sound]\n"
+    },
+    {
+      "id": "false_shared_payment_safety",
+      "family": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "omega",
+      "declaration": "benchmark_false_shared_payment_safety",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "e1956262ecc71480de0506184069a2b2e65760ff4dffe813ce03ec90fe5df633",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.622946,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\na possible counterexample may satisfy the constraints\n  c \u2265 0\n  b \u2265 0\n  a \u2265 0\n  a + b - c \u2265 1\nwhere\n a := \u2191priceA\u271d\n b := \u2191priceB\u271d\n c := \u2191paid\u271d\n'benchmark_false_shared_payment_safety' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "reverse_involution_frontier",
+      "family": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "omega",
+      "declaration": "benchmark_reverse_involution_frontier",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "bb9a184e4cfa52a754b12f9b6fdc112aad153e0837d57ee65da68192ef1fa184",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.2607,
+      "output": "Challenge.lean:5:10: error: omega could not prove the goal:\nNo usable constraints found. You may need to unfold definitions so `omega` can see linear arithmetic facts about `Nat` and `Int`, which may also involve multiplication, division, and modular remainder by constants.\n'benchmark_reverse_involution_frontier' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "arithmetic_monotonicity",
+      "family": "arithmetic",
+      "kind": "positive",
+      "strategy": "grind",
+      "declaration": "benchmark_arithmetic_monotonicity",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "124d1917728f2a447b45710dab1b4ecb5f0d79d01bd8c7389d558d28fbb33a57",
+      "timeout_seconds": 15.0,
+      "axioms": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "returncode": 0,
+      "status": "certified",
+      "wall_seconds": 3.376106,
+      "output": "'benchmark_arithmetic_monotonicity' depends on axioms: [propext, Classical.choice, Quot.sound]\n"
+    },
+    {
+      "id": "reverse_accumulator_length",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "declaration": "benchmark_reverse_accumulator_length",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "0ca00ec8a3d48ebbf99549eb6c2257abae9e536d2af96327d7f331cf8f550e82",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.677922,
+      "output": "Challenge.lean:5:10: error: `grind` failed\ncase grind\nxs acc : List Nat\nh : \u00ac(reverseAcc xs acc).length = xs.length + acc.length\n\u22a2 False\n[grind] Goal diagnostics\n  [facts] Asserted facts\n    [prop] \u00ac(reverseAcc xs acc).length = xs.length + acc.length\n  [eqc] False propositions\n    [prop] (reverseAcc xs acc).length = xs.length + acc.length\n  [ematch] E-matching patterns\n    [thm] List.eq_nil_of_length_eq_zero: [@List.length #2 #1]\n  [cutsat] Assignment satisfying linear constraints\n    [assign] xs.length := 0\n    [assign] acc.length := 0\n    [assign] (reverseAcc xs acc).length := 1\n'benchmark_reverse_accumulator_length' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "count_accumulator_invariant",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "declaration": "benchmark_count_accumulator_invariant",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "c0cc566367839f65416a18f186a1e57f7ab1675accef59fbe102e6b1f2527997",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.884123,
+      "output": "Challenge.lean:5:10: error: `grind` failed\ncase grind\nxs : List Nat\nn : Nat\nh : \u00accountAcc xs n = n + xs.length\n\u22a2 False\n[grind] Goal diagnostics\n  [facts] Asserted facts\n    [prop] \u00accountAcc xs n = n + xs.length\n  [eqc] False propositions\n    [prop] countAcc xs n = n + xs.length\n  [ematch] E-matching patterns\n    [thm] List.eq_nil_of_length_eq_zero: [@List.length #2 #1]\n  [cutsat] Assignment satisfying linear constraints\n    [assign] n := 0\n    [assign] countAcc xs n := 1\n    [assign] xs.length := 0\n'benchmark_count_accumulator_invariant' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "recursive_program_nonvacuity",
+      "family": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "declaration": "benchmark_recursive_program_nonvacuity",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "7b01273bf277e55fe279a28e2bb1245e57a45864ad1c108d4bfb555294f7f640",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.391831,
+      "output": "Challenge.lean:5:10: error: `grind` failed\ncase grind.1\nh_1 : \u00acreverseAcc [1, 2, 3] [] = [3, 2, 1]\n\u22a2 False\n[grind] Goal diagnostics\n  [facts] Asserted facts\n    [prop] \u00acreverseAcc [1, 2, 3] [] = [3, 2, 1] \u2228 \u00accountAcc [1, 2, 3] 4 = 7\n    [prop] \u00acreverseAcc [1, 2, 3] [] = [3, 2, 1]\n  [eqc] True propositions\n    [prop] \u00acreverseAcc [1, 2, 3] [] = [3, 2, 1]\n    [prop] \u00acreverseAcc [1, 2, 3] [] = [3, 2, 1] \u2228 \u00accountAcc [1, 2, 3] 4 = 7\n  [eqc] False propositions\n    [prop] reverseAcc [1, 2, 3] [] = [3, 2, 1]\n  [cases] Case analyses\n    [cases] [1/2]: \u00acreverseAcc [1, 2, 3] [] = [3, 2, 1] \u2228 \u00accountAcc [1, 2, 3] 4 = 7\n      [cases] source: Initial goal\n  [cutsat] Assignment satisfying linear constraints\n    [assign] countAcc [1, 2, 3] 4 := 5\n'benchmark_recursive_program_nonvacuity' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "account_state_invariant",
+      "family": "state_transition",
+      "kind": "positive",
+      "strategy": "grind",
+      "declaration": "benchmark_account_state_invariant",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "801eaca3d87bb2caf726839079916eb38b476581599b606b5697653dde5d585c",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.576912,
+      "output": "Challenge.lean:5:10: error: `grind` failed\ncase grind\ns : Account\nreserve amount : Nat\nh : s.balance = s.received + reserve\nh_1 : \u00ac(deposit s amount).balance = reserve + (deposit s amount).received\n\u22a2 False\n[grind] Goal diagnostics\n  [facts] Asserted facts\n    [prop] s.balance = reserve + s.received\n    [prop] \u00ac(deposit s amount).balance = reserve + (deposit s amount).received\n  [eqc] False propositions\n    [prop] (deposit s amount).balance = reserve + (deposit s amount).received\n  [eqc] Equivalence classes\n    [eqc] {s.balance, reserve + s.received}\n  [cutsat] Assignment satisfying linear constraints\n    [assign] reserve := 0\n    [assign] amount := 1\n    [assign] s.balance := 0\n    [assign] (deposit s amount).balance := 2\n    [assign] s.received := 0\n    [assign] (deposit s amount).received := 0\n'benchmark_account_state_invariant' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "allocated_payments_cover_sales",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "declaration": "benchmark_allocated_payments_cover_sales",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "7cfacc9807aab9ce2c8f53ed3a8230a97560b9ee2d8f96d78e8400bb66204e53",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.55422,
+      "output": "Challenge.lean:5:10: error: `grind` failed\ncase grind\npriceA priceB paidA paidB : Nat\nh : allocatedSales priceA priceB paidA paidB\nh_1 : paidA + paidB + 1 \u2264 priceA + priceB\n\u22a2 False\n[grind] Goal diagnostics\n  [facts] Asserted facts\n    [prop] allocatedSales priceA priceB paidA paidB\n    [prop] paidA + paidB + 1 \u2264 priceA + priceB\n  [eqc] True propositions\n    [prop] allocatedSales priceA priceB paidA paidB\n    [prop] paidA + paidB + 1 \u2264 priceA + priceB\n  [cutsat] Assignment satisfying linear constraints\n    [assign] priceA := 0\n    [assign] priceB := 1\n    [assign] paidA := 0\n    [assign] paidB := 0\n'benchmark_allocated_payments_cover_sales' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "allocated_payments_nonvacuity",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "declaration": "benchmark_allocated_payments_nonvacuity",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "9bb1eedb647327d10b812330e9f323b0c1bb9c8245d085fe702be2e24f464217",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.596925,
+      "output": "Challenge.lean:5:10: error: `grind` failed\ncase grind\nh : \u00acallocatedSales 10 15 10 15\n\u22a2 False\n[grind] Goal diagnostics\n  [facts] Asserted facts\n    [prop] \u00acallocatedSales 10 15 10 15\n  [eqc] False propositions\n    [prop] allocatedSales 10 15 10 15\n'benchmark_allocated_payments_nonvacuity' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "shared_payment_attack_witness",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "declaration": "benchmark_shared_payment_attack_witness",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "23a35f68049b945e152131b0e2155a493628269daaed603d29ad825d4c4f2e27",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 3.447282,
+      "output": "Challenge.lean:5:10: error: `grind` failed\ncase grind\nh : \u00acsharedPaymentSales 10 10 10\n\u22a2 False\n[grind] Goal diagnostics\n  [facts] Asserted facts\n    [prop] \u00acsharedPaymentSales 10 10 10\n  [eqc] False propositions\n    [prop] sharedPaymentSales 10 10 10\n'benchmark_shared_payment_attack_witness' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "false_shared_payment_safety",
+      "family": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "grind",
+      "declaration": "benchmark_false_shared_payment_safety",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "0ea03809935ad396fe655a656b5eef1c2b16ede3d9590b86aca6de9a0697907b",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "returncode": 1,
+      "status": "proof_failed",
+      "wall_seconds": 4.944895,
+      "output": "Challenge.lean:5:10: error: `grind` failed\ncase grind\npriceA priceB paid : Nat\nh : sharedPaymentSales priceA priceB paid\nh_1 : paid + 1 \u2264 priceA + priceB\n\u22a2 False\n[grind] Goal diagnostics\n  [facts] Asserted facts\n    [prop] sharedPaymentSales priceA priceB paid\n    [prop] paid + 1 \u2264 priceA + priceB\n  [eqc] True propositions\n    [prop] sharedPaymentSales priceA priceB paid\n    [prop] paid + 1 \u2264 priceA + priceB\n  [cutsat] Assignment satisfying linear constraints\n    [assign] priceA := 0\n    [assign] priceB := 1\n    [assign] paid := 0\n'benchmark_false_shared_payment_safety' depends on axioms: [sorryAx]\n"
+    },
+    {
+      "id": "reverse_involution_frontier",
+      "family": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "grind",
+      "declaration": "benchmark_reverse_involution_frontier",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "5ee2e1a7a9c37de0cd07f2c23df584efd682906dd14c4b4664f584666178fd10",
+      "timeout_seconds": 15.0,
+      "axioms": null,
+      "status": "timeout",
+      "returncode": null,
+      "wall_seconds": 15.018515,
+      "output": ""
+    }
+  ],
+  "summary": {
+    "colony": {
+      "positive_certified": 8,
+      "positive_total": 8,
+      "negative_checks": [
+        {
+          "id": "false_shared_payment_safety",
+          "rejected": true,
+          "positive_witnesses_certified": true,
+          "sanity_pass": true
+        }
+      ],
+      "unsupported_certified": 1,
+      "timeouts": 0,
+      "evidence_errors": 0
+    },
+    "grind": {
+      "positive_certified": 1,
+      "positive_total": 8,
+      "negative_checks": [
+        {
+          "id": "false_shared_payment_safety",
+          "rejected": true,
+          "positive_witnesses_certified": false,
+          "sanity_pass": false
+        }
+      ],
+      "unsupported_certified": 0,
+      "timeouts": 1,
+      "evidence_errors": 0
+    },
+    "omega": {
+      "positive_certified": 1,
+      "positive_total": 8,
+      "negative_checks": [
+        {
+          "id": "false_shared_payment_safety",
+          "rejected": true,
+          "positive_witnesses_certified": false,
+          "sanity_pass": false
+        }
+      ],
+      "unsupported_certified": 0,
+      "timeouts": 0,
+      "evidence_errors": 0
+    },
+    "simp": {
+      "positive_certified": 4,
+      "positive_total": 8,
+      "negative_checks": [
+        {
+          "id": "false_shared_payment_safety",
+          "rejected": true,
+          "positive_witnesses_certified": true,
+          "sanity_pass": true
+        }
+      ],
+      "unsupported_certified": 0,
+      "timeouts": 0,
+      "evidence_errors": 0
+    }
+  },
+  "timing_note": "Fresh Lean subprocess per row; wall time includes lake startup and imports; no statistical speed claims."
+}
