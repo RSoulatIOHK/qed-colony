@@ -32,7 +32,7 @@ elab "colony" : tactic => do
     arithmeticPortfolio
     return
   catch _ => initial.restore
-  withMainContext do
+  let booleanSolved ← withMainContext do
     let context ← getLCtx
     for decl in context do
       unless decl.isImplementationDetail do
@@ -40,8 +40,11 @@ elab "colony" : tactic => do
           let candidateState ← saveState
           try
             booleanPortfolio (mkIdent decl.userName)
-            return
+            return true
           catch _ => candidateState.restore
+    return false
+  if booleanSolved then
+    return
   withMainContext do
     let context ← getLCtx
     for decl in context do
