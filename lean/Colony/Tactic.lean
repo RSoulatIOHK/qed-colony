@@ -6,10 +6,43 @@ open Lean Elab Tactic Meta
 
 namespace Colony
 
+/-- A fixed, ordered collection of ordinary natural-order rules. No rule is
+selected by the name or definition of a benchmark. -/
+private def orderRules : Array Name :=
+  #[``Nat.mul_le_mul, ``Nat.add_le_add, ``Nat.le_trans]
+
+/-- At most four rule applications per branch, with assumption leaves.
+All rules have two premises, so an accepted tree has at most 31 nodes.
+Each failed candidate restores its full state before the next is tried. -/
+private def boundedOrderSearch : Nat → TacticM Unit
+  | 0 => do evalTactic (← `(tactic| assumption))
+  | fuel + 1 => do
+    let start ← saveState
+    try
+      evalTactic (← `(tactic| assumption))
+      return
+    catch _ => start.restore
+    for rule in orderRules do
+      try
+        let subgoals ← (← getMainGoal).apply (← mkConstWithFreshMVarLevels rule)
+        for subgoal in subgoals do
+          unless (← subgoal.isAssigned) do
+            setGoals [subgoal]
+            boundedOrderSearch fuel
+        setGoals []
+        return
+      catch _ => start.restore
+    throwError "colony: bounded order search found no chain"
+
 private def arithmeticPortfolio : TacticM Unit := do
+  let start ← saveState
+  try
+    boundedOrderSearch 4
+    unless (← getGoals).isEmpty do
+      throwError "colony: bounded order search left goals"
+    return
+  catch _ => start.restore
   evalTactic (← `(tactic| first
-    | (solve | apply le_trans <;> (assumption <;> apply le_trans <;> assumption))
-    | (solve | assumption <;> (apply le_trans <;> assumption))
     | (solve | omega)
     | (solve | simp_all <;> omega)
     | (solve | decide)))
