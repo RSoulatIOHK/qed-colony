@@ -123,7 +123,9 @@ print(json.dumps({'type': 'turn.completed', 'usage': {'input_tokens': 4, 'output
         finally:
             try:
                 os.killpg(process.pid, signal.SIGKILL)
-            except ProcessLookupError:
+            except (ProcessLookupError, PermissionError):
+                # Darwin may retain an unsignalable group of reparented zombie
+                # descendants. The assertions above already require pipe EOF.
                 pass
             process.wait(timeout=5)
             process.stdout.close()

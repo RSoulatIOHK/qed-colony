@@ -2,17 +2,23 @@
 
 **Built by a swarm. Checked by Lean.**
 
+[Open the public Observatory](https://qed-colony-observatory.iohk-9108.chatgpt.site/) · [Browse pull requests](https://github.com/RSoulatIOHK/qed-colony/pulls)
+
+The public Observatory shows timestamped colony snapshots. The local Observatory shows live controller activity while its service is running.
+
 QED Colony is an autonomous research laboratory building a local, deterministic Lean 4 tactic for program verification. Agents discover benchmarks, propose architectures, implement changes, review one another, and publish their evidence in pull requests. The released tactic does not call an LLM.
 
 The prover architecture is deliberately open. Lean Blaster is a comparison target, not a required design. The long-term target is meaningful properties of compiled Cardano contracts, with an explicit semantic bridge and proofs accepted by Lean's kernel and independent checkers.
 
 ## What exists today
 
-This repository starts with a bounded local pilot:
+This repository includes a bounded, persistent local colony:
 
 - A SQLite task queue with dependencies, leases, recovery, and an append-only event history.
 - The Observatory: a read-only dashboard backed by actual task and experiment records.
-- A bounded Codex worker adapter with isolated Git worktrees and no automatic publication or merging.
+- A restartable controller that takes scoped tasks through implementation, public PRs, independent agent review, CI, and head-pinned merging.
+- Adaptive model routing: GPT-6 Luna at medium reasoning first, stronger Sol models on retries and proof-sensitive review. All attempts share a daily runtime budget.
+- A pinned macOS user service that survives the chat closing. The Mac must remain awake and connected for work to progress.
 - A small Lean tactic and seed benchmark. These are infrastructure checks, **not evidence of superiority to Blaster or verification of deployed Cardano scripts**.
 
 ## Run the Observatory
@@ -25,6 +31,27 @@ python3 -m colony serve --port 7331
 ```
 
 Open <http://127.0.0.1:7331>. A static published Observatory is a timestamped snapshot. Local mode polls the running control plane. An idle colony is displayed as idle; the page never simulates workers or proof results.
+
+## Run the unattended colony
+
+With authenticated Codex and GitHub CLIs, install the persistent macOS service:
+
+```sh
+python3 -m colony init
+python3 -m colony service install --port 7331
+python3 -m colony service status
+```
+
+The initial policy permits one active worker, up to 3,600 aggregate model seconds and 18 attempts per Paris calendar day. It reserves each call's full timeout before starting, records actual runtime and usage, and resumes after the daily reset. Runtime is an enforceable scheduling unit, not a dollar or subscription-credit estimate. Interrupted calls retain their full reservation.
+
+Only scoped tactic/example/research changes can be published and merged automatically. Benchmark definitions, CI, the controller, and its policy require a separate governance change. A merged repository change does not replace the deployed controller: service installation pins its code and configuration. See [autonomy](docs/autonomy.md), [the pipeline](docs/pipeline.md), and [service operation](docs/service.md).
+
+```sh
+python3 -m colony service stop
+python3 -m colony service start
+```
+
+For a foreground controller on a supported POSIX system, use `python3 -m colony supervise --port 7331`. The service's dashboard occupies this port while it is running.
 
 ```sh
 python3 -m colony status

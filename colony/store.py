@@ -210,7 +210,7 @@ class Store:
         with self._connection(write=True) as conn:
             return self._recover_expired(conn, time.time())
 
-    def claim(self, agent_id, role=None, lease_seconds=300):
+    def claim(self, agent_id, role=None, lease_seconds=300, task_id=None):
         """Atomically claim the highest priority ready task. One active task per agent."""
         if not isinstance(lease_seconds, (int, float)) or not 0 < lease_seconds <= 86400:
             raise ValueError("lease_seconds must be between 0 and 86400")
@@ -228,6 +228,9 @@ class Store:
             if role is not None:
                 query += " AND role=?"
                 args.append(role)
+            if task_id is not None:
+                query += " AND id=?"
+                args.append(task_id)
             query += " ORDER BY priority DESC,created_at,id LIMIT 1"
             row = conn.execute(query, args).fetchone()
             conn.execute("UPDATE agents SET last_seen=? WHERE id=?", (now, agent_id))
@@ -290,6 +293,27 @@ class Store:
         with self._connection() as conn:
             return self._agent(conn.execute("SELECT * FROM agents WHERE id=?", (agent_id,)).fetchone())
 
+    def set_agent_state(self, agent_id, status, task_id=None):
+        """Record an actual planner/reviewer process without claiming its task."""
+        if status not in {"working", "idle"}:
+            raise ValueError("Agent status must be working or idle")
+        with self._connection(write=True) as conn:
+            cursor = conn.execute("UPDATE agents SET status=?,task_id=?,last_seen=? WHERE id=?",
+                                  (status, task_id if status == "working" else None, time.time(), agent_id))
+            if not cursor.rowcount:
+                raise KeyError(agent_id)
+
+    def set_task_artifacts(self, task_id, branch=None, pr_url=None, actor="controller"):
+        if pr_url is not None and not pr_url.startswith("https://"):
+            raise ValueError("pr_url must be an HTTPS URL")
+        with self._connection(write=True) as conn:
+            cursor = conn.execute("UPDATE tasks SET branch=COALESCE(?,branch),pr_url=COALESCE(?,pr_url),updated_at=? WHERE id=?",
+                                  (branch, pr_url, time.time(), task_id))
+            if not cursor.rowcount:
+                raise KeyError(task_id)
+            self._event(conn, "task.artifacts", actor, "Linked review artifacts", task_id,
+                        {"branch": branch, "pr_url": pr_url})
+
     def record_event(self, kind, actor, message, task_id=None, data=None):
         with self._connection(write=True) as conn:
             return self._event(conn, kind, actor, message, task_id, data)
@@ -332,10 +356,32 @@ class Store:
                 records[table] = [dict(json.loads(row["data"]), id=row["id"], at=timestamp(row["at"]))
                                   for row in conn.execute("SELECT * FROM " + table + " ORDER BY id")]
             conn.commit()
-        return {
+        result = {
             "schema_version": 1,
             "project": project or {"name": "QED Colony", "repo_url": "https://github.com/RSoulatIOHK/qed-colony",
                                    "mission": "Build a local, reproducible Lean tactic for complex program verification, with kernel-checked proofs."},
             "generated_at": timestamp(), "mode": "live", "agents": agents, "tasks": tasks,
             "events": events, "benchmarks": records["benchmarks"], "reviews": records["reviews"],
         }
+        policy = getattr(self, "autonomy_policy", None)
+        if policy is not None:
+            from .autonomy_store import AutonomyStore
+            autonomy = AutonomyStore(self.path).initialize()
+            # Local process logs and checkout paths are never part of the public API.
+            keys = {"id", "task_id", "role", "phase", "created_at", "updated_at", "branch", "pr_url",
+                    "head_sha", "reviewed_sha", "revision", "review", "checks", "summary", "model",
+                    "reasoning_effort", "model_reason", "author_model", "review_model", "last_error",
+                    "ci_status", "ci_checks", "review_attempt"}
+            cycles = [{key: value for key, value in cycle.items() if key in keys}
+                      for cycle in autonomy.list_cycles()]
+            result["autonomy"] = {"service": autonomy.service_snapshot(),
+                                  "budget": autonomy.get_budget(policy), "cycles": cycles}
+            from .model_policy import DEFAULT_TIERS
+            tiers = policy.get("model_tiers", list(DEFAULT_TIERS))
+            result["autonomy"]["model_policy"] = {
+                "tiers": tiers, "default_model": tiers[0]["model"],
+                "default_reasoning_effort": tiers[0]["reasoning_effort"],
+                "escalation": "Failed attempts and proof-sensitive reviews",
+                "max_concurrency": policy.get("max_concurrency", 1),
+            }
+        return result

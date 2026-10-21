@@ -44,10 +44,18 @@
           <button type="button" role="tab" id="tab-frontier" aria-selected="false" aria-controls="view-frontier" data-view="frontier" tabindex="-1">Proof frontier</button>
           <button type="button" role="tab" id="tab-activity" aria-selected="false" aria-controls="view-activity" data-view="activity" tabindex="-1">Activity</button>
         </nav>
-        <div class="phase"><span class="phase-indicator"></span><span id="phase-label">Bootstrapping</span></div>
+        <div class="phase"><span id="phase-indicator" class="phase-indicator unknown"></span><span id="phase-label">Controller unconfirmed</span></div>
       </div>
 
       <section id="view-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+        <section class="panel autonomy-panel" aria-labelledby="autonomy-title">
+          <div class="autonomy-overview">
+            <div class="controller-status"><span class="section-index">THE AUTONOMOUS LOOP</span><h2 id="autonomy-title"><span id="controller-dot" class="controller-dot unknown" aria-hidden="true"></span><span id="controller-label">Controller not reported</span></h2><p id="controller-message">Waiting for a recorded controller heartbeat.</p><span id="controller-heartbeat" class="subtle-label">No heartbeat recorded</span><p id="controller-model-policy" class="controller-policy" hidden></p></div>
+            <div class="runtime-budget"><div class="budget-heading"><span class="section-index">DAILY AGENT RUNTIME</span><span id="budget-date" class="subtle-label">No limit reported</span></div><div class="budget-value"><strong id="budget-remaining">—</strong><span id="budget-limit">remaining</span></div><div id="budget-meter" class="budget-meter" role="progressbar" aria-label="Daily agent runtime consumed or reserved" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="budget-fill"></span></div><p id="budget-detail">Aggregate worker time, including implementation, planning, and review.</p></div>
+          </div>
+          <div class="autonomy-cycle-heading"><span class="section-index">IMPLEMENT → REVIEW → CI → MERGE</span><span id="cycle-count" class="subtle-label">No cycles recorded</span></div>
+          <div id="autonomy-cycles" class="autonomy-cycles"><p class="cycle-empty">Public PRs and their recorded review and CI results will appear here.</p></div>
+        </section>
         <div class="overview-grid">
           <section class="map-panel panel" aria-labelledby="map-title">
             <div class="panel-heading"><div><span class="section-index">01 / THE COLONY</span><h2 id="map-title">An organization in motion</h2></div><span id="map-count" class="subtle-label">Awaiting first agents</span></div>

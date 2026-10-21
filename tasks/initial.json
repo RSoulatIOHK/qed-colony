@@ -8,7 +8,12 @@
       "status": "ready",
       "depends_on": [],
       "description": "Write an experiment proposal comparing certified symbolic execution, compositional weakest-precondition generation, and a certificate-producing solver portfolio. Architecture is unconstrained. Use current repository facts; distinguish hypotheses from measured results. Do not edit code or publish externally.",
-      "acceptance": ["Three candidate approaches with a concrete falsifiable experiment each", "Original-theorem proof path and expected bottleneck for each", "A bounded first experiment with a stop condition", "No invented benchmark measurements or claims of Cardano correspondence"]
+      "acceptance": [
+        "Three candidate approaches with a concrete falsifiable experiment each",
+        "Original-theorem proof path and expected bottleneck for each",
+        "A bounded first experiment with a stop condition",
+        "No invented benchmark measurements or claims of Cardano correspondence"
+      ]
     },
     {
       "id": "R002",
@@ -18,7 +23,12 @@
       "status": "ready",
       "depends_on": [],
       "description": "Propose an audit of CardanoLedgerApiBlaster and PlutusCoreBlaster: source provenance, decoding, preprocessing correctness, evaluation bounds, builtins, cryptographic assumptions, and conformance. This is an audit plan, not a claim of completed correspondence.",
-      "acceptance": ["Enumerate semantic bridges and required proof obligations", "Separate fuel exhaustion, failure, and success", "Include a non-vacuity strategy", "Identify a reproducible initial contract target"]
+      "acceptance": [
+        "Enumerate semantic bridges and required proof obligations",
+        "Separate fuel exhaustion, failure, and success",
+        "Include a non-vacuity strategy",
+        "Identify a reproducible initial contract target"
+      ]
     },
     {
       "id": "B001",
@@ -28,7 +38,12 @@
       "status": "ready",
       "depends_on": [],
       "description": "Select and pin external program-verification cases, including Blaster-compatible cases and new contract families. Record licenses and source hashes; keep solver success separate from certified proof success.",
-      "acceptance": ["Pinned sources with license and extraction provenance", "Family-balanced cases and full-contract scoring", "Same-toolchain comparison or explicit incompatibility", "No benchmark-name special casing"]
+      "acceptance": [
+        "Pinned sources with license and extraction provenance",
+        "Family-balanced cases and full-contract scoring",
+        "Same-toolchain comparison or explicit incompatibility",
+        "No benchmark-name special casing"
+      ]
     },
     {
       "id": "P001",
@@ -36,9 +51,17 @@
       "role": "engineer",
       "priority": 70,
       "status": "ready",
-      "depends_on": ["R001", "B001"],
+      "depends_on": [
+        "R001",
+        "B001"
+      ],
       "description": "Implement the selected experiment after independent review of its research proposal and frozen challenge set. The pilot tactic is disposable; do not preserve its architecture for its own sake.",
-      "acceptance": ["Reconstruct original theorem proofs", "Report all failures and complete timings", "Independent review of semantic changes", "Public implementation PR with reproduction evidence"]
+      "acceptance": [
+        "Reconstruct original theorem proofs",
+        "Report all failures and complete timings",
+        "Independent review of semantic changes",
+        "Public implementation PR with reproduction evidence"
+      ]
     },
     {
       "id": "I001",
@@ -48,7 +71,12 @@
       "status": "ready",
       "depends_on": [],
       "description": "Port to a suitable modern pinned Lean and evaluate lake comparator/check with external kernels. Keep trusted challenge/configuration outside worker authority. Add VM/container isolation and a narrow publication broker.",
-      "acceptance": ["Reject changed theorem statements and nonstandard axioms", "Replay exports in a fresh trusted process", "Verify independent kernels on representative proofs", "Document remaining trusted components and platform requirements"]
+      "acceptance": [
+        "Reject changed theorem statements and nonstandard axioms",
+        "Replay exports in a fresh trusted process",
+        "Verify independent kernels on representative proofs",
+        "Document remaining trusted components and platform requirements"
+      ]
     },
     {
       "id": "C001",
@@ -56,9 +84,31 @@
       "role": "contracts",
       "priority": 60,
       "status": "ready",
-      "depends_on": ["R002"],
+      "depends_on": [
+        "R002"
+      ],
       "description": "Specify payment allocation, unique obligations, cancellation, assets, and malformed inputs for an exact compiled marketplace script. Include vulnerable variants and successful witness transactions.",
-      "acceptance": ["Compiled-script hash and language version", "Explicit semantic correspondence scope and bounds", "Valid-transaction witnesses", "Replayable multi-satisfaction counterexample for a vulnerable variant"]
+      "acceptance": [
+        "Compiled-script hash and language version",
+        "Explicit semantic correspondence scope and bounds",
+        "Valid-transaction witnesses",
+        "Replayable multi-satisfaction counterexample for a vulnerable variant"
+      ]
+    },
+    {
+      "id": "E001",
+      "title": "Add bounded Boolean case splitting to the proof portfolio",
+      "role": "engineer",
+      "priority": 110,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Implement a generic deterministic fallback for one Boolean parameter after the arithmetic portfolio fails and before structural induction. Split that parameter into false/true and attempt the existing simplification/arithmetic portfolio on every branch. Backtrack fully if either branch remains open. Keep all original theorem statements, seeds, comparator, evaluator, toolchain and CI unchanged. Add a small Lean module under Colony/Examples with positive checks for Boolean branching (for example a natural-valued conditional whose result must equal one of two branches), an ordinary arithmetic regression, and a deliberately invalid goal that the tactic must fail to close. Import the example module from Colony.lean so lake build checks it. No model calls at tactic runtime, names special-casing, new axioms, native_decide, sorry, or admit. Record exact local checks in a concise research note.",
+      "acceptance": [
+        "Generic bounded Boolean fallback with complete backtracking and ordinary proof terms",
+        "New example module is imported and checked by lake build, including positive and invalid-goal regression checks",
+        "Existing seed statements and all protected acceptance files remain unchanged",
+        "Actual Lean checks and limitations are recorded; no benchmark superiority or Cardano verification claim"
+      ]
     }
   ]
 }

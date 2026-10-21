@@ -15,8 +15,45 @@
     "max_timeout_seconds": 180,
     "lease_seconds": 300,
     "sandbox": "read-only",
-    "allowed_sandboxes": ["read-only"],
+    "allowed_sandboxes": [
+      "read-only"
+    ],
     "automatic_merge": false,
     "automatic_publication": false
+  },
+  "autonomy": {
+    "enabled": true,
+    "repository": "RSoulatIOHK/qed-colony",
+    "base_branch": "main",
+    "max_daily_seconds": 3600,
+    "max_daily_attempts": 18,
+    "timezone": "Europe/Paris",
+    "max_concurrency": 1,
+    "poll_seconds": 15,
+    "author_timeout_seconds": 480,
+    "review_timeout_seconds": 240,
+    "planner_timeout_seconds": 180,
+    "max_revisions": 2,
+    "allow_implementation": true,
+    "automatic_publication": true,
+    "automatic_merge": true,
+    "required_checks": [
+      "control-plane",
+      "lean-seed"
+    ],
+    "model_tiers": [
+      {
+        "model": "gpt-6-luna",
+        "reasoning_effort": "medium"
+      },
+      {
+        "model": "gpt-6-sol",
+        "reasoning_effort": "high"
+      },
+      {
+        "model": "gpt-6.1-sol",
+        "reasoning_effort": "high"
+      }
+    ]
   }
 }
