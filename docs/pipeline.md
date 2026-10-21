@@ -42,7 +42,8 @@ controller does not automatically resolve conflicts with a moving base branch.
 
 Engineering workers can propose changes only to `lean/Colony/Tactic.lean`,
 `lean/Colony.lean`, `lean/Colony/Procedures/`, `lean/Colony/Examples/`, and
-`research/`. Other roles produce research artifacts under `research/colony/`.
+`research/`. Read-only researchers and operations workers produce artifacts
+under `research/colony/`.
 Research evidence cannot be deleted automatically. The model reviewer must
 check the original task's acceptance criteria, including whether implementation
 is required; writing a proposal does not satisfy an implementation requirement.
@@ -56,6 +57,21 @@ unsupported file modes, oversized content, credential patterns, and machine
 paths before staging a publication commit. Git hooks are disabled for broker
 commands. Candidate code is executed by GitHub CI, not by the privileged
 publication broker.
+
+The SRE role can implement reliability fixes in a fixed set of controller,
+test, and runbook files declared by `SRE_FILES` in the broker. It publishes a
+separate governance PR. Exact-head independent approval and successful CI lead
+to `governance_status=awaiting_controller_integration`; the task remains in
+review and the routine pipeline never merges or deploys that candidate.
+Service installation, CI, credentials, authority configuration, and proof
+acceptance files remain outside its scope.
+
+The operations steward runs read-only audits after batches of three completed
+or parked work cycles, with one pending audit at a time. It can propose role
+charters and at most three scoped follow-up jobs. Only a reviewed, CI-passed,
+merged audit schedules those jobs, using deterministic IDs and a bounded
+backlog. Role proposals grant no permissions. The empty-queue planner cannot
+create extra operations audits. See [roles and handoffs](roles.md).
 
 These checks are operational guardrails for cooperative agents. A local Codex
 workspace sandbox and Git worktree do not isolate the user's credential stores

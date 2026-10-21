@@ -13,3 +13,7 @@
 .phase-indicator.unknown{background:var(--quiet)}.phase-indicator.stale,.phase-indicator.stopped{background:var(--red)}.phase-indicator.waiting,.phase-indicator.snapshot{background:var(--amber)}.cycle-card>.cycle-error{color:var(--amber)}
 
 .controller-status>.controller-policy,.cycle-card>.cycle-model-reason{font-family:var(--mono);font-size:8px;line-height:1.8;color:var(--quiet);margin:10px 0 0}
+
+.roster-heading{display:flex;flex-direction:column;gap:5px;min-width:0}.roster-phase{font-family:var(--mono);font-size:9px;font-weight:400;line-height:1.8;color:var(--muted);overflow-wrap:anywhere}.roster-explanation{font-size:11px;color:var(--muted);line-height:1.9;padding:0 25px 17px;margin:0;max-width:850px}.roster-session-time{margin-top:11px;color:var(--quiet)}.roster-panel>summary>#roster-count{flex-shrink:0;max-width:none;text-align:right}@media(max-width:570px){.roster-panel>summary{gap:12px;flex-wrap:wrap}.roster-heading{flex:1 1 170px}.roster-phase{font-size:8px}.roster-panel>summary>#roster-count{font-size:8px;flex:1 1 auto;margin-left:0;text-align:left}.roster-explanation{font-size:10px;padding:0 18px 16px}}
+
+.status-integration{color:var(--mint);border-color:#3b5e4d;background:#82c7b008;white-space:normal;text-align:center}.cycle-card>.cycle-integration-note{color:var(--mint)}

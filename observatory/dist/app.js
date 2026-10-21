@@ -38,6 +38,7 @@
   }
 
   function badge(value) { return el('span', `status-badge status-${status(value)}`, pretty(value)); }
+  function roleLabel(value) { return ({ sre: 'SRE', operations: 'Operations steward' })[status(value)] || pretty(value); }
   function taskButton(task) {
     const button = el('button', 'task-title-button', task.title || task.id || 'Untitled task');
     button.type = 'button';
@@ -112,7 +113,8 @@
       render();
     } else {
       state.source = 'offline';
-      if (!state.data) { state.data = initial; render(); }
+      if (!state.data) state.data = initial;
+      render();
       $('load-error').textContent = 'No live endpoint or saved snapshot could be read. The view contains no new operational data. Check the connection, then refresh.';
       $('load-error').hidden = false;
     }
@@ -167,7 +169,7 @@
     if (['stopped', 'disabled', 'not_started'].includes(recorded)) return { label: 'Controller stopped', tone: 'stopped', fresh: false, phase: 'Stopped' };
     if (!heartbeat) return { label: 'Controller not reported', tone: 'unknown', fresh: false, phase: 'Unconfirmed' };
     if (!fresh) return { label: 'Controller heartbeat stale', tone: 'stale', fresh: false, phase: 'Heartbeat stale' };
-    if (['budget_limited', 'waiting_budget', 'budget_exhausted'].includes(recorded) || autonomy.budget?.exhausted) return { label: 'Daily runtime limit reached', tone: 'waiting', fresh: true, phase: 'Waiting for daily reset' };
+    if (['budget_limited', 'waiting_budget', 'budget_exhausted'].includes(recorded)) return { label: 'Daily runtime limit reached', tone: 'waiting', fresh: true, phase: 'Waiting for daily reset' };
     if (['error', 'failed', 'blocked', 'needs_review'].includes(recorded)) return { label: 'Controller needs attention', tone: 'stale', fresh: true, phase: 'Needs attention' };
     if (['waiting', 'idle', 'waiting_ci', 'waiting_for_checks'].includes(recorded)) return { label: 'Controller waiting', tone: 'waiting', fresh: true, phase: service.active_cycle ? 'Waiting on a cycle' : 'Waiting for work' };
     return { label: 'Controller active', tone: 'active', fresh: true, phase: 'Autonomous loop active' };
@@ -224,8 +226,10 @@
       const top = el('div', 'cycle-top');
       const task = state.data.tasks.find((item) => string(item.id) === string(cycle.task_id));
       if (task) top.append(taskButton(task)); else top.append(el('strong', '', cycle.task_id || cycle.id || 'Recorded cycle'));
-      top.append(badge(cycle.phase));
+      const integrationHold = cycle.governance_required === true && cycle.governance_status === 'awaiting_controller_integration' && cycle.ci_status === 'passed';
+      top.append(integrationHold ? el('span', 'status-badge status-integration', 'Awaiting controller integration') : badge(cycle.phase));
       card.append(top, el('span', 'task-meta', `${cycle.id || 'Cycle'} · updated ${dateTime(cycle.updated_at || cycle.created_at)}`));
+      if (integrationHold) card.append(el('p', 'cycle-integration-note', 'The reviewed governance PR passed CI and is ready for a controller integration decision.'));
       if (cycle.summary || cycle.message) card.append(el('p', '', printable(cycle.summary || cycle.message)));
       const evidence = el('div', 'cycle-evidence');
       const pr = link('Pull request ↗', cycle.pr_url);
@@ -330,23 +334,68 @@
 
   function renderRoster() {
     const agents = state.data.agents;
+    const workers = workerActivity();
+    const controller = controllerState();
     $('agent-roster-panel').hidden = !agents.length;
-    $('roster-count').textContent = `${agents.length} recorded / expand to inspect every agent`;
+    $('roster-count').textContent = state.source.startsWith('snapshot')
+      ? `${workers.recorded.length} running in snapshot · ${agents.length} recorded`
+      : state.source !== 'live' ? `Current count unconfirmed · ${agents.length} recorded`
+        : `${workers.active.length ? `${workers.active.length} running` : '0 model workers'} · ${agents.length} recorded`;
+    $('roster-phase').textContent = rosterPhase(controller, workers.active.length);
+    $('roster-explanation').textContent = `Workers start on demand; idle entries are past worker sessions. Publishing and CI can run with no model worker.${workers.unconfirmed.length && state.source === 'live' ? ` ${workers.unconfirmed.length} older working record${workers.unconfirmed.length === 1 ? ' has' : 's have'} no recent worker heartbeat.` : ''}`;
     const roster = $('agent-roster');
     roster.replaceChildren();
-    agents.forEach((agent) => {
+    const activeIDs = new Set(workers.active.map((agent) => agent.id));
+    [...agents].sort((a, b) => Number(activeIDs.has(b.id)) - Number(activeIDs.has(a.id)) || string(b.last_seen).localeCompare(string(a.last_seen))).forEach((agent) => {
       const card = el('div', 'roster-agent');
       const heading = el('div', 'roster-agent-heading');
       const button = el('button', 'task-title-button', agent.name || agent.id || 'Unnamed agent');
       button.type = 'button';
       button.dataset.agent = string(agent.id);
       heading.append(button, badge(agent.status));
-      card.append(heading, el('span', 'task-meta', pretty(agent.role || 'Role unspecified')));
+      card.append(heading, el('span', 'task-meta', roleLabel(agent.role || 'Role unspecified')));
       const task = state.data.tasks.find((entry) => entry.id === agent.task_id);
       if (task) { const assignment = taskButton(task); assignment.classList.add('roster-assignment'); card.append(assignment); }
       else card.append(el('span', 'task-meta', agent.task_id ? `Task: ${string(agent.task_id)}` : 'No recorded assignment'));
+      card.append(el('span', 'task-meta roster-session-time', `${activeIDs.has(agent.id) ? 'Worker heartbeat' : 'Last recorded'} ${agent.last_seen ? dateTime(agent.last_seen) : 'time unavailable'}`));
       roster.append(card);
     });
+  }
+
+  function workerActivity() {
+    const recorded = state.data.agents.filter((agent) => runningStatuses.has(status(agent.status)));
+    const active = state.source === 'live' ? recorded.filter((agent) => {
+      const at = validDate(agent.last_seen);
+      const age = at ? (Date.now() - at.getTime()) / 1000 : Infinity;
+      return age >= -30 && age <= 120;
+    }) : [];
+    const activeIDs = new Set(active.map((agent) => agent.id));
+    return { recorded, active, unconfirmed: recorded.filter((agent) => !activeIDs.has(agent.id)) };
+  }
+
+  function rosterPhase(controller, activeWorkers) {
+    if (state.source.startsWith('snapshot')) return 'Saved snapshot · current workers unconfirmed';
+    if (state.source !== 'live') return 'Offline · current workers and controller unconfirmed';
+    if (!controller.fresh) return controller.label;
+    const autonomy = state.data.autonomy || {};
+    const service = autonomy.service || {};
+    if (['budget_limited', 'waiting_budget', 'budget_exhausted'].includes(status(service.status))) return 'Controller waiting for the daily runtime reset';
+    const cycle = (Array.isArray(autonomy.cycles) ? autonomy.cycles : []).find((item) => item.id === service.active_cycle);
+    if (!cycle) return controller.phase;
+    const task = state.data.tasks.find((item) => item.id === cycle.task_id);
+    const phases = {
+      queued: 'Controller selecting work',
+      authoring: activeWorkers ? 'Implementation underway' : 'Controller handing off to implementation',
+      publishing: 'Controller publishing a PR',
+      reviewing: activeWorkers ? 'Independent review underway' : 'Controller handing off to review',
+      review_publication: 'Controller publishing the review',
+      ci: 'Controller waiting for CI',
+      merging: 'Controller merging reviewed work',
+      done: 'Controller completed a cycle',
+      needs_review: 'Controller needs attention',
+      failed: 'Controller recorded a failed cycle'
+    };
+    return `${phases[status(cycle.phase)] || `Controller phase: ${pretty(cycle.phase)}`}${task ? ` · ${task.id}: ${task.title}` : cycle.task_id ? ` · ${cycle.task_id}` : ''}`;
   }
 
   function ownerFor(task) {
@@ -372,7 +421,7 @@
     tasks.slice(0, 3).forEach((task) => {
       const row = el('div', 'mini-task');
       const title = el('div');
-      title.append(taskButton(task), el('span', 'task-meta', `${task.id || 'Task'} / ${pretty(task.role || 'Role unassigned')}`));
+      title.append(taskButton(task), el('span', 'task-meta', `${task.id || 'Task'} / ${roleLabel(task.role || 'Role unassigned')}`));
       row.append(title, badge(task.status));
       overview.append(row);
     });
@@ -394,7 +443,7 @@
       const row = el('div', 'queue-row');
       const title = el('div');
       title.append(taskButton(task), el('span', 'task-meta', `${task.id || 'Task'}${task.priority !== undefined && task.priority !== null ? ` / priority ${pretty(task.priority)}` : ''}`));
-      const owner = el('div', 'owner-label', pretty(task.role || 'Unspecified role'));
+      const owner = el('div', 'owner-label', roleLabel(task.role || 'Unspecified role'));
       owner.append(el('span', 'task-meta', ownerFor(task)));
       row.append(title, owner, badge(task.status), link('View PR ↗', task.pr_url) || el('span', 'no-artifact', '—'));
       list.append(row);
@@ -593,7 +642,7 @@
     content.replaceChildren(badge(item.status));
     if (item.description) content.append(el('p', 'detail-description', printable(item.description)));
     const properties = el('dl', 'detail-properties');
-    const values = kind === 'task' ? [['Task ID', item.id], ['Role', pretty(item.role)], ['Owner', ownerFor(item)], ['Priority', pretty(item.priority)], ['Updated', dateTime(item.updated_at)], ['Lease until', item.lease_until ? dateTime(item.lease_until) : 'No active lease']] : [['Agent ID', item.id], ['Role', pretty(item.role)], ['Last seen', dateTime(item.last_seen)], ['Task', item.task_id || 'Unassigned']];
+    const values = kind === 'task' ? [['Task ID', item.id], ['Role', roleLabel(item.role)], ['Owner', ownerFor(item)], ['Priority', pretty(item.priority)], ['Updated', dateTime(item.updated_at)], ['Lease until', item.lease_until ? dateTime(item.lease_until) : 'No active lease']] : [['Agent ID', item.id], ['Role', roleLabel(item.role)], ['Last seen', dateTime(item.last_seen)], ['Task', item.task_id || 'Unassigned']];
     values.forEach(([key, value]) => {
       const pair = el('div');
       pair.append(el('dt', '', key), el('dd', '', printable(value)));

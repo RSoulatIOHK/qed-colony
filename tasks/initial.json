@@ -109,6 +109,39 @@
         "Existing seed statements and all protected acceptance files remain unchanged",
         "Actual Lean checks and limitations are recorded; no benchmark superiority or Cardano verification claim"
       ]
+    },
+    {
+      "id": "SRE001",
+      "title": "Resume colony work safely after network outages",
+      "role": "sre",
+      "priority": 140,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Implement network-aware waiting and recovery in the colony controller. Treat transient connectivity failures separately from invalid candidates, authentication errors, exhausted budgets, and uncertain live model processes. Preserve the cycle, current artifacts, branch, head SHA, PR and review. Persist an offline/waiting state, resume phase, bounded exponential backoff and next retry time; automatically resume after reconnection. Reconcile remote PR/push/merge outcomes before retrying so an operation that succeeded remotely is never duplicated. Do not spend author revisions or escalate model tiers solely because connectivity is absent; all actual running model time still counts toward the existing daily cap. Do not relaunch an active or uncertain model process. Add fault-injection regression tests and a concise runbook. Publish a dedicated SRE/governance implementation PR with real test evidence. The independently reviewed controller integrates and deploys it separately; the worker must not merge, deploy, modify its own authority, alter required CI checks or acceptance policy, or change Lean benchmarks. Public tracking issue: https://github.com/RSoulatIOHK/qed-colony/issues/7.",
+      "acceptance": [
+        "A transient outage becomes a persisted waiting_network state with bounded backoff and resumes the same cycle automatically when connectivity returns, including after controller restart",
+        "Publication, review and CI polling reconcile the current remote head and operation outcome before retry; remote success followed by local timeout cannot create duplicate PRs or merges",
+        "Connectivity failures alone do not consume author revisions or force model escalation; runtime/attempt quotas remain enforced and no model call is launched while known offline",
+        "Live or uncertain model processes are never duplicated; authentication, invalid-candidate and governance failures remain explicit attention states",
+        "Fault-injection tests cover offline-to-online recovery, restart during backoff, remote-success/local-timeout, CI polling, budget exhaustion and non-network failures",
+        "A separate implementation PR includes passing checks and an operator runbook; merging and deploying controller changes requires independent controller integration"
+      ]
+    },
+    {
+      "id": "OPS001",
+      "title": "Audit swarm bottlenecks and propose missing roles and concrete follow-up work",
+      "role": "operations",
+      "priority": 125,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Act as the swarm operations steward. Inspect the reviewed repository history and the public operational evidence provided by the controller. Diagnose failed or repeated work, role/sandbox mismatches, long handoffs, reviewer bottlenecks, queue starvation and wasted model runtime. Recent evidence includes a 38-second author/publication/reviewer handoff, I001 implementation work being routed read-only, R002 failing its output-event bound, and the new SRE001 reliability job. Propose actionable process improvements and missing-role charters with purpose, responsibilities and an existing execution profile. Produce the required structured operations report and at most three narrowly scoped follow-up jobs using existing engineer/researcher/sre roles. Role charters are proposals: permission or controller changes require a separate SRE governance PR, independent review, CI and controller integration. Do not run candidate code, change files or budgets, alter evaluation requirements, contact people, or claim improvements have already been deployed. Recovery-job tracking: https://github.com/RSoulatIOHK/qed-colony/issues/7.",
+      "acceptance": [
+        "Diagnose concrete bottlenecks with evidence from actual task, PR, review and timing records; distinguish observed facts from hypotheses",
+        "Propose missing-role charters with clear ownership, responsibilities, execution profile and handoff boundaries",
+        "Return at most three independently actionable follow-up jobs with explicit acceptance criteria, using only existing allowed roles and respecting the shared budget",
+        "Role and permission changes remain proposals in a reviewed public artifact; no self-granted authority or automatic controller deployment",
+        "The controller creates bounded follow-up jobs only after the operations report has passed independent review, exact-head CI and merge"
+      ]
     }
   ]
 }

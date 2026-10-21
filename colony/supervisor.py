@@ -94,6 +94,9 @@ class Supervisor:
         if cycle is not None:
             return self._advance(cycle)
 
+        from .operations import maybe_enqueue_audit
+        maybe_enqueue_audit(self.tasks, self.autonomy, self.policy)
+
         budget = self.autonomy.get_budget(self.policy)
         if budget["exhausted"]:
             return self._service("budget_limited", "Daily model budget exhausted; resumes after " + budget["resets_at"])

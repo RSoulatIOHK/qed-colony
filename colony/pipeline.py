@@ -3,12 +3,14 @@
 import json
 import os
 from pathlib import Path
+from collections import Counter
 import time
 import uuid
 
 from .autonomy_store import BudgetExceeded, DuplicateAttempt
-from .github_broker import GitHubBroker, PublicationRejected, checks_state, safe_slug, validate_public_text
+from .github_broker import GitHubBroker, PublicationRejected, SRE_FILES, checks_state, safe_slug, validate_public_text
 from .model_policy import choose_model
+from .operations import OPS_SCHEMA, enqueue_followups, parse_operations_output, render_operations_report
 from .worker import execute_job
 
 
@@ -27,7 +29,7 @@ PLAN_SCHEMA = {
         "type": "object", "additionalProperties": False,
         "required": ["title", "role", "description", "acceptance"],
         "properties": {
-            "title": {"type": "string"}, "role": {"type": "string", "enum": ["engineer", "researcher"]},
+            "title": {"type": "string"}, "role": {"type": "string", "enum": ["engineer", "researcher", "sre"]},
             "description": {"type": "string"},
             "acceptance": {"type": "array", "minItems": 1, "maxItems": 6, "items": {"type": "string"}},
         },
@@ -53,11 +55,12 @@ class Pipeline:
         attempt = self.autonomy.reserve_attempt(cycle["id"], stage, timeout, self.policy)
         revision = int(cycle.get("review_attempt", 0)) if stage.startswith("review:") else int(cycle.get("revision", 0))
         selection = choose_model(self.policy, cycle["role"], stage.split(":")[0], revision=revision,
-                                 trust_critical=stage.startswith("review:") and cycle["role"] == "engineer")
+                                 trust_critical=stage.startswith("review:") and cycle["role"] in {"engineer", "sre"})
         self._update(cycle, model=selection["model"], reasoning_effort=selection["reasoning_effort"],
                      model_reason=selection["reason"])
         self._event(cycle, "model.selected", selection["reason"], stage=stage, **selection)
-        policy = dict(self.policy, model=selection["model"], reasoning_effort=selection["reasoning_effort"], role=cycle["role"],
+        policy = dict(self.policy, model=selection["model"], reasoning_effort=selection["reasoning_effort"],
+                      role="reviewer" if stage.startswith("review:") else cycle["role"],
                       model_reason=selection["reason"], _database=str(self.tasks.path))
         started = time.monotonic()
         try:
@@ -101,6 +104,28 @@ class Pipeline:
         if budget["remaining_attempts"] < 1 or budget["remaining_seconds"] < timeout:
             raise BudgetExceeded("Daily model budget cannot reserve %s seconds; resets %s" % (timeout, budget["resets_at"]))
 
+    def _operations_context(self):
+        snapshot = self.tasks.snapshot()
+        cycles = self.autonomy.list_cycles()
+        context = {
+            "role_charters": {
+                "engineer": "Implement local Lean procedures and examples within the fixed engineering allowlist.",
+                "researcher": "Produce complete scoped research artifacts with falsifiable experiments and honest evidence.",
+                "sre": "Implement narrow controller reliability proposals as separate governance PRs; no automatic deployment or merge.",
+                "operations": "Audit bottlenecks and missing roles in read-only mode; propose bounded work and role charters without granting permissions.",
+                "reviewer": "Independently review the exact candidate head in a separate read-only model context.",
+                "planner": "Propose a bounded backlog within existing roles and publication scopes.",
+            },
+            "task_status_counts": dict(Counter(item["status"] for item in snapshot["tasks"])),
+            "task_role_counts": dict(Counter(item["role"] for item in snapshot["tasks"])),
+            "cycle_phase_counts": dict(Counter(item["phase"] for item in cycles)),
+            "tasks": [{key: item[key] for key in ("id", "title", "role", "status")}
+                      for item in snapshot["tasks"][:40]],
+            "recent_cycles": [{key: item[key] for key in ("task_id", "role", "phase", "revision", "ci_status") if key in item}
+                              for item in cycles[-20:]],
+        }
+        return validate_public_text(json.dumps(context, ensure_ascii=False))
+
     def _terminal(self, cycle, phase, message):
         task = self.tasks.get_task(cycle["task_id"])
         if task and task["status"] not in {"done", "failed", "blocked"}:
@@ -130,6 +155,8 @@ class Pipeline:
             phase = cycle["phase"]
             if phase == "queued":
                 context = self.broker.prepare_worktree(cycle)
+                if task["role"] == "sre":
+                    context.update(governance_required=True, governance_status="candidate")
                 return self._update(cycle, "authoring", revision=0, **context)
             if phase == "authoring":
                 return self._author(cycle, task)
@@ -168,7 +195,34 @@ class Pipeline:
             current = self.tasks.claim(agent_id, task_id=task["id"], lease_seconds=lease)
         if not current or current["status"] != "running" or current["lease_owner"] != agent_id:
             return self._terminal(cycle, "needs_review", "Author could not obtain its exact task lease")
-        engineer = task["role"] == "engineer"
+        implementation = task["role"] in {"engineer", "sre"}
+        if task["role"] == "operations":
+            mode = ("You are the READ ONLY operations steward. Audit actual swarm work, recurring failures, "
+                    "queue bottlenecks, missing roles, and whether existing role charters fit the mission. "
+                    "Do not edit code or configuration. Return the specified structured operations report, "
+                    "up to five proposed role charters as plain strings, and up to three follow-up tasks using "
+                    "only engineer, researcher, or sre. Role charters are proposals and grant no authority. "
+                    "Execution or permission changes require a separate SRE governance PR and controller integration. "
+                    "Follow-up tasks are considered only after this report's exact-head independent review, "
+                    "required CI, and public PR merge. Distinguish measured facts from hypotheses. "
+                    "Keep the total structured JSON under 20000 characters; keep fields and tool-output excerpts concise. "
+                    "Inspect relevant public source and research artifacts. Controller metrics and current role charters:\n" +
+                    self._operations_context())
+        elif task["role"] == "sre":
+            mode = ("You are an SRE implementation worker preparing a separate governance PR. "
+                    "You may edit ONLY these exact paths, plus research/: " + ", ".join(sorted(SRE_FILES)) + ". "
+                    "Implement and test the scoped reliability fix. After independent review and required CI, "
+                    "this candidate awaits separate controller integration. The pinned deployment is not changed "
+                    "by this worker. Do not edit service.py, __main__.py, colony.json, AGENTS.md, workflows, "
+                    "model policy, evaluators, challenge statements, or benchmarks. "
+                    "Do not read or modify secrets or host configuration.")
+        elif implementation:
+            mode = ("You may edit ONLY lean/Colony/Tactic.lean, lean/Colony.lean, lean/Colony/Procedures/, "
+                    "lean/Colony/Examples/, and research/. Run relevant Lean checks if time permits. "
+                    "Do not read or modify secrets or host configuration.")
+        else:
+            mode = ("This task is READ ONLY. Return a complete, narrowly scoped research artifact in your final answer. "
+                    "Distinguish plans, experiments, and measured results; do not assert proposed work is implemented.")
         prompt = """You are a bounded QED Colony implementation/research worker. Read AGENTS.md.
 Task {id}: {title}
 {description}
@@ -185,20 +239,20 @@ No machine-local paths, credentials, or private logs in the final response.
 Return a concise complete result with actual checks and remaining limitations.
 """.format(id=task["id"], title=task["title"], description=task.get("description", ""),
            criteria=json.dumps(task.get("acceptance", [])), base=cycle["base_sha"],
-           feedback=cycle.get("feedback", "None"), mode=(
-               "You may edit ONLY lean/Colony/Tactic.lean, lean/Colony.lean, lean/Colony/Procedures/, "
-               "lean/Colony/Examples/, and research/. Run relevant Lean checks if time permits. "
-               "Do not read or modify secrets or host configuration." if engineer else
-               "This task is READ ONLY. Return a complete, narrowly scoped research artifact in your final answer. "
-               "Distinguish plans, experiments, and measured results; do not assert proposed work is implemented."))
+           feedback=cycle.get("feedback", "None"), mode=mode)
         result = self._job(cycle, "author:%s" % cycle.get("revision", 0), prompt,
                            int(self.policy.get("author_timeout_seconds", 600)),
-                           "workspace-write" if engineer else "read-only")
+                           "workspace-write" if implementation else "read-only",
+                           OPS_SCHEMA if task["role"] == "operations" else None)
         if result.get("status") != "completed":
             self.tasks.transition(task["id"], "failed", agent_id, summary="Bounded author attempt failed")
             return self._revise(cycle, "Author attempt failed: " + str(result.get("summary", "unknown failure"))[:1500])
         output = validate_public_text(self._output(result, cycle))
-        if not engineer:
+        if task["role"] == "operations":
+            payload = parse_operations_output(output)
+            output = validate_public_text(render_operations_report(payload))
+            cycle = self._update(cycle, operations_report=payload)
+        if not implementation:
             path = Path(cycle["worktree"]) / "research" / "colony" / (safe_slug(task["id"]) + ".md")
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("# %s\n\nTask `%s`; base revision `%s`.\n\n%s\n" %
@@ -227,6 +281,11 @@ Return structured JSON. Approve only if acceptance is satisfied; otherwise give
 specific actionable findings. A successful author process is not evidence of proof.
 """.format(base=cycle["base_sha"], id=task["id"], title=task["title"], description=task.get("description", ""),
            acceptance=json.dumps(task.get("acceptance", [])), head=cycle["head_sha"])
+        if task["role"] == "operations":
+            prompt += ("\nThis is an operations report. Review its proposed follow-up tasks as executable queue "
+                       "proposals: they must stay within existing engineer/researcher/sre scopes. Proposed role "
+                       "charters grant no permissions. Any controller execution or authority change needs a "
+                       "separate SRE governance PR and controller integration. Approve only the actual public report.\n")
         result = self._job(cycle, "review:%s:%s" % (cycle["head_sha"], cycle.get("review_attempt", 0)), prompt,
                            int(self.policy.get("review_timeout_seconds", 240)), "read-only", REVIEW_SCHEMA)
         if result.get("status") != "completed":
@@ -270,12 +329,18 @@ specific actionable findings. A successful author process is not evidence of pro
                     or (cycle.get("ci_status") != "passed" and checks_state(pr, self.policy.get(
                         "required_checks", ["control-plane", "lean-seed"])) != "passed")):
                 return self._terminal(cycle, "needs_review", "External merge lacks the controller's exact-head review and CI evidence")
+            if task["role"] == "operations":
+                payload = parse_operations_output(cycle.get("operations_report"))
+                follow_up_ids = enqueue_followups(self.tasks, cycle, payload, self.policy)
+                cycle = self._update(cycle, follow_up_task_ids=follow_up_ids)
             self.tasks.transition(task["id"], "done", "controller", summary="Reviewed candidate merged with successful required CI",
                                   branch=cycle["branch"], pr_url=cycle["pr_url"])
             self._event(cycle, "pr.merged", "Reviewed candidate merged", pr_url=cycle["pr_url"], head_sha=cycle.get("reviewed_sha"))
             return self._update(cycle, "done", merged_at=pr.get("mergedAt"))
         if pr.get("state") != "OPEN" or pr.get("headRefOid") != cycle.get("reviewed_sha"):
             return self._terminal(cycle, "needs_review", "PR is closed or its head differs from the reviewed commit")
+        if cycle.get("review", {}).get("verdict") != "approve":
+            return self._terminal(cycle, "needs_review", "Candidate lacks an approving independent review")
         state = checks_state(pr, self.policy.get("required_checks", ["control-plane", "lean-seed"]))
         if state == "failed":
             return self._revise(cycle, "Required GitHub CI failed for head %s. Fix the cause; "
@@ -283,6 +348,11 @@ specific actionable findings. A successful author process is not evidence of pro
                                 (cycle["reviewed_sha"], self.broker.failure_details(pr)))
         if state != "passed":
             return self._update(cycle, "ci", ci_status="pending")
+        if task["role"] == "sre":
+            self._event(cycle, "governance.ready", "Reviewed SRE governance PR passed CI and awaits controller integration",
+                        pr_url=cycle["pr_url"], head_sha=cycle["reviewed_sha"])
+            return self._update(cycle, "needs_review", governance_required=True,
+                                governance_status="awaiting_controller_integration", ci_status="passed", last_error=None)
         if not self.policy.get("automatic_merge", False):
             return self._terminal(cycle, "needs_review", "Review and CI passed; automatic merge is disabled")
         if pr.get("mergeable") == "CONFLICTING":
@@ -316,12 +386,19 @@ lower theorem/specification/assurance requirements. Engineer edits are restricte
 to lean/Colony/Tactic.lean, lean/Colony.lean, lean/Colony/Procedures/,
 lean/Colony/Examples/, research/. Policy, CI, evaluator, benchmark and challenge
 changes require separate governance review and cannot be automated here.
+For a narrowly scoped controller reliability fix, use role sre. Its exact editable
+paths are: %s, plus research/. SRE proposals are separate governance PRs requiring
+independent review and CI before a controller-integration handoff; they never
+automatically merge or deploy. Do not create tasks changing other protected files.
+Read-only operations audits are scheduled separately by the periodic operations
+scheduler or controller, which enforces a single pending audit. Do not create
+operations tasks from this empty-queue planner.
 Tasks must fit one bounded model attempt, contain precise acceptance criteria,
 and require no user action or other tasks. Research tasks produce complete public
 artifacts; do not call implementation a research artifact. No edits, publication,
 spawning agents or contact. Return the specified JSON schema.
 Recent tasks: %s
-""" % json.dumps(recent)
+""" % (", ".join(sorted(SRE_FILES)), json.dumps(recent))
         result = self._job(cycle, "planner:0", prompt,
                            int(self.policy.get("planner_timeout_seconds", 180)), "read-only", PLAN_SCHEMA)
         if result.get("status") != "completed":
@@ -334,7 +411,7 @@ Recent tasks: %s
         prepared = []
         for item in tasks:
             if (not isinstance(item, dict) or set(item) != {"title", "role", "description", "acceptance"}
-                    or item["role"] not in {"engineer", "researcher"}
+                    or item["role"] not in {"engineer", "researcher", "sre"}
                     or not isinstance(item["title"], str) or not 5 <= len(item["title"]) <= 180
                     or not isinstance(item["description"], str) or not 20 <= len(item["description"]) <= 6000
                     or not isinstance(item["acceptance"], list) or not 1 <= len(item["acceptance"]) <= 6
