@@ -93,6 +93,42 @@ private def productPortfolio (subject : Ident) : TacticM Unit := do
     evalTactic (← `(tactic| solve | simp_all <;> omega))
   setGoals []
 
+/-- Try at most eight same-typed pairs of local terms, splitting each candidate
+with `by_cases`. Search depth is capped at two. Each candidate has a complete
+state snapshot, so an unsuccessful split leaves no branch or local hypothesis. -/
+private def equalitySplitSearch : Nat → TacticM Unit
+  | 0 => do evalTactic (← `(tactic| solve | simp_all <;> omega))
+  | depth + 1 => do
+    let locals ← withMainContext do
+      let mut found : Array LocalDecl := #[]
+      for decl in (← getLCtx) do
+        unless decl.isImplementationDetail do
+          unless (← isProp decl.type) do
+            found := found.push decl
+      return found
+    let mut attempts := 0
+    for i in [:locals.size] do
+      for j in [i+1:locals.size] do
+        if attempts < 8 then
+          let snapshot ← saveState
+          if ← isDefEq locals[i]!.type locals[j]!.type then
+            attempts := attempts + 1
+            try
+              let left := mkIdent locals[i]!.userName
+              let right := mkIdent locals[j]!.userName
+              evalTactic (← `(tactic| by_cases h : $left:ident = $right:ident))
+              let branches ← getGoals
+              for branch in branches do
+                setGoals [branch]
+                equalitySplitSearch depth
+              setGoals []
+              return
+            catch _ => snapshot.restore
+          else
+            snapshot.restore
+    throwError "colony: bounded equality split found no proof"
+
+
 private def listProcessInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
   evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
   let branches ← getGoals
@@ -102,23 +138,38 @@ private def listProcessInduction (subject : Ident) (generalized : Array Ident) :
       evalTactic (← `(tactic| solve |
         simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))
     catch _ =>
-      let command ← withMainContext do
-        let context ← getLCtx
-        let mut found : Option Ident := none
-        for decl in context do
-          unless decl.isImplementationDetail do
-            if (← whnf decl.type).isConstOf ``Colony.Procedure.ListCommand then
-              found := some (mkIdent decl.userName)
-        return found
-      match command with
-      | none => throwError "colony: induction branch lacks a command constructor"
-      | some command =>
-        evalTactic (← `(tactic| cases $command:ident))
-        let splitBranches ← getGoals
-        for splitBranch in splitBranches do
-          setGoals [splitBranch]
-          evalTactic (← `(tactic| solve |
-            simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))
+      let branchState ← saveState
+      try
+        equalitySplitSearch 2
+      catch _ =>
+        branchState.restore
+        let command ← withMainContext do
+          let mut found : Option Ident := none
+          for decl in (← getLCtx) do
+            unless decl.isImplementationDetail do
+              if (← whnf decl.type).isConstOf ``Colony.Procedure.ListCommand then
+                found := some (mkIdent decl.userName)
+          return found
+        match command with
+        | none => throwError "colony: induction branch has no eligible equality or command"
+        | some command =>
+          evalTactic (← `(tactic| cases $command:ident))
+          for splitBranch in (← getGoals) do
+            setGoals [splitBranch]
+            evalTactic (← `(tactic| solve |
+              simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))
+  setGoals []
+
+private def boundedStructuralInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
+  evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
+  for branch in (← getGoals) do
+    setGoals [branch]
+    let snapshot ← saveState
+    try
+      evalTactic (← `(tactic| solve | simp_all <;> omega))
+    catch _ =>
+      snapshot.restore
+      equalitySplitSearch 2
   setGoals []
 
 /--
@@ -262,13 +313,7 @@ elab "colony" : tactic => do
               unless (← isProp other.type) do
                 generalized := generalized.push (mkIdent other.userName)
           try
-            if generalized.isEmpty then
-              evalTactic (← `(tactic| solve |
-                induction $subject:ident <;> (simp_all <;> omega)))
-            else
-              evalTactic (← `(tactic| solve |
-                induction $subject:ident generalizing $[$generalized:ident]* <;>
-                  (simp_all <;> omega)))
+            boundedStructuralInduction subject generalized
             return
           catch _ => initial.restore
     throwError "colony: the initial proof portfolio could not close this goal"

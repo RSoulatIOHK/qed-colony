@@ -7,6 +7,7 @@ import Colony.Examples.ListStateInvariant
 import Colony.Examples.AccumulatorLength
 import Colony.Examples.FuelStateInvariant
 import Colony.Examples.KeyedStateInvariant
+import Colony.Examples.RecursiveKeyedInvariant
 import Colony.Examples.ProductStateTransition
 
 namespace Colony
