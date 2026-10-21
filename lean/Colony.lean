@@ -5,6 +5,7 @@ import Colony.Examples.OptionBranching
 import Colony.Examples.ResultFlow
 import Colony.Examples.ListStateInvariant
 import Colony.Examples.AccumulatorLength
+import Colony.Examples.FuelStateInvariant
 
 namespace Colony
 
