@@ -6,6 +6,8 @@ open Lean Elab Tactic Meta
 
 namespace Colony
 
+initialize registerTraceClass `Colony.listProcess
+
 private def arithmeticPortfolio : TacticM Unit := do
   evalTactic (← `(tactic| first
     | (solve | omega)
@@ -148,7 +150,7 @@ elab "colony" : tactic => do
     return false
   if commandSolved then
     return
-  let listInductionSolved ← withMainContext do
+  let (listInductionSolved, hasCommandList) ← withMainContext do
     let context ← getLCtx
     let mut candidates : Array LocalDecl := #[]
     for decl in context do
@@ -159,7 +161,10 @@ elab "colony" : tactic => do
           if args.size == 1 && args[0]!.isConstOf ``Colony.Procedure.ListCommand then
             candidates := candidates.push decl
     if candidates.size != 1 then
-      return false
+      if candidates.size > 1 then
+        trace[Colony.listProcess] "candidates={candidates.size}; attempts=0; ambiguous command lists"
+      return (false, decide (candidates.size > 0))
+    trace[Colony.listProcess] "candidates=1; attempts=1"
     let candidateState ← saveState
     let mut generalized : Array Ident := #[]
     for decl in context do
@@ -168,12 +173,16 @@ elab "colony" : tactic => do
           generalized := generalized.push (mkIdent decl.userName)
     try
       listProcessInduction (mkIdent candidates[0]!.userName) generalized
-      return true
-    catch _ =>
+      trace[Colony.listProcess] "attempt=1; result=success"
+      return (true, true)
+    catch ex =>
       candidateState.restore
-      return false
+      trace[Colony.listProcess] "attempt=1; result=failure; state=restored; reason={ex.toMessageData}"
+      return (false, true)
   if listInductionSolved then
     return
+  if hasCommandList then
+    throwError "colony: command-list fallback could not close this goal"
   try
     let bridge := mkIdent (.str (.mkSimple "Colony") "reverseAcc_bridge")
     evalTactic (← `(tactic| solve |
