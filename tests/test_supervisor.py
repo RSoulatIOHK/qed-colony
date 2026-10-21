@@ -49,16 +49,16 @@ class SupervisorTests(unittest.TestCase):
         self.tasks.seed([{"id": "low", "title": "Low", "role": "researcher", "priority": 1},
                          {"id": "high", "title": "High", "role": "engineer", "priority": 10}])
 
-    def test_ticks_resume_one_cycle_before_dispatching_next_task(self):
+    def test_ticks_finish_existing_ci_before_admitting_next_ready_task(self):
         self.seed()
         self.supervisor.tick()
         first = self.autonomy.list_cycles()[0]
         self.assertEqual(first["task_id"], "high")
         self.supervisor.tick()
-        self.assertEqual(self.pipeline.advanced, [first["id"], first["id"]])
-        self.assertEqual(len(self.autonomy.list_cycles()), 1)
-        self.supervisor.tick()
-        self.assertEqual(len(self.autonomy.list_cycles()), 2)
+        cycles = self.autonomy.list_cycles()
+        self.assertEqual([cycle["task_id"] for cycle in cycles], ["high", "low"])
+        self.assertEqual(self.pipeline.advanced, [first["id"], first["id"], cycles[1]["id"]])
+        self.assertEqual(cycles[0]["phase"], "done")
 
     def test_controller_lock_prevents_two_dispatchers(self):
         self.supervisor.startup()
@@ -74,8 +74,10 @@ class SupervisorTests(unittest.TestCase):
         original = self.autonomy.next_cycle()["id"]
         self.supervisor.release_lock()
         self.make_supervisor().tick()
-        self.assertEqual(self.pipeline.advanced, [original, original])
-        self.assertEqual(len(self.autonomy.list_cycles()), 1)
+        cycles = self.autonomy.list_cycles()
+        self.assertEqual([cycle["task_id"] for cycle in cycles], ["high", "low"])
+        self.assertEqual(self.pipeline.advanced, [original, original, cycles[1]["id"]])
+        self.assertEqual(sum(cycle["id"] == original for cycle in cycles), 1)
 
     def test_interrupted_model_is_not_blindly_repeated(self):
         self.tasks.seed([{"id": "T1", "title": "Task", "role": "engineer"}])

@@ -17,9 +17,22 @@ Each task has one cycle in SQLite. The stages are `queued`, `authoring`,
 `publishing`, `reviewing`, `review_publication`, `ci`, `merging`, and `done`.
 `failed`, `blocked`, and `needs_review` stop that cycle. The original task stays
 in review until the controller verifies the merge. A stopped cycle remains
-visible and does not prevent other scoped tasks from progressing. The supervisor
-advances active cycles in round-robin order, so a cycle waiting for CI does not
-monopolize the next step.
+visible and does not prevent other scoped tasks from progressing. Before another
+model call, the supervisor publishes completed artifacts and saved reviews,
+checks existing CI, and reconciles cached triage handoffs. A saved approving
+review can proceed through CI and merge in that pass. Each CI cycle is advanced
+at most once per pass; unconditional CI priority was rejected because pending
+checks would starve model work. Public candidates receive independent review
+before another author starts, with persistent round-robin order within reviews
+and within other model stages. Per-head review retries are bounded, so the finite
+pending review queue drains before authorship resumes. Pending CI also permits
+already-scoped ready tasks to acquire their first cycle, subject to the daily
+budget; it does not trigger speculative planning or another operations audit.
+
+The controller still runs one synchronous model call at a time. Publication and
+CI work wait for the current bounded call to return; they run before the next
+model call. These scheduling changes preserve the daily ledger and every
+publication, exact-head review, CI, and governance gate.
 
 The author and reviewer have separate ephemeral model contexts. Review comments
 explicitly identify themselves as model reviews published by the controller's

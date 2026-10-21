@@ -13,6 +13,9 @@ from .autonomy_store import AutonomyStore, BudgetExceeded, TERMINAL_PHASES
 from .store import Store
 
 
+CONTROLLER_PHASES = frozenset({"publishing", "review_publication", "ci", "merging"})
+
+
 class SupervisorAlreadyRunning(RuntimeError):
     """Another process owns this database's supervisor lock."""
 
@@ -96,14 +99,17 @@ class Supervisor:
             if root.get("recovery_status") == "repair_merged" and hasattr(self.pipeline, "reconcile_recovery"):
                 self.pipeline.reconcile_recovery(root["id"])
 
-        # Advancing an existing cycle can poll CI or reconcile a published PR
-        # without spending model budget. The pipeline reserves each model call.
+        # Finish recorded publication/review/CI work before another bounded
+        # model call can occupy this synchronous dispatcher for several minutes.
+        # A pending check is polled once per pass, so it cannot starve models.
+        controller_results = self._advance_controller_stages()
         cycle = self._next_cycle()
         if cycle is not None:
             return self._advance(cycle)
 
-        from .operations import maybe_enqueue_audit
-        maybe_enqueue_audit(self.tasks, self.autonomy, self.policy)
+        if not controller_results:
+            from .operations import maybe_enqueue_audit
+            maybe_enqueue_audit(self.tasks, self.autonomy, self.policy)
 
         budget = self.autonomy.get_budget(self.policy)
         if budget["exhausted"]:
@@ -121,6 +127,10 @@ class Supervisor:
             self.tasks.record_event("autonomy.cycle_created", "supervisor", "Scheduled " + task["title"],
                                     task["id"], {"cycle_id": cycle["id"]})
             return self._advance(cycle)
+        if controller_results:
+            # Existing checks must not prevent admission of already-scoped
+            # ready tasks, but they do suppress speculative audits/planning.
+            return controller_results[-1]
 
         # Planning itself is a bounded pipeline operation. No speculative task
         # or agent activity is recorded merely because this poll ran.
@@ -134,11 +144,45 @@ class Supervisor:
         message = "Waiting for review of interrupted work" if needs_review else "Healthy; waiting for runnable work or the next planning interval"
         return self._service("waiting", message)
 
+    @staticmethod
+    def _controller_stage(cycle):
+        # Triage dispatch is selected by kind before phase in Pipeline.advance;
+        # only its persisted handoff is guaranteed not to call a model.
+        if cycle.get("recovery_kind") == "triage":
+            return cycle["phase"] == "triage_handoff"
+        return cycle["phase"] in CONTROLLER_PHASES
+
+    @staticmethod
+    def _schedule_order(cycle):
+        return cycle.get("last_scheduled_order", 0), cycle["created_at"], cycle["id"]
+
+    def _advance_controller_stages(self):
+        results = []
+        candidates = sorted((item for item in self.autonomy.list_cycles() if self._controller_stage(item)),
+                            key=self._schedule_order)
+        for recorded in candidates:
+            cycle = self.autonomy.get_cycle(recorded["id"])
+            # At most a saved review publication followed by one CI/merge step.
+            # A phase that does not change is waiting for external state; it is
+            # never retried inside this pass. New cycles wait for the next pass.
+            for _ in range(2):
+                if not self._controller_stage(cycle):
+                    break
+                phase = cycle["phase"]
+                results.append(self._advance(cycle))
+                cycle = self.autonomy.get_cycle(cycle["id"])
+                if phase in {"ci", "merging"} or cycle["phase"] == phase:
+                    break
+        return results
+
     def _next_cycle(self):
-        # Persistent round-robin selection: a pending CI poll cannot monopolize
-        # the dispatcher while a recovery diagnosis or repair waits to run.
-        cycles = [item for item in self.autonomy.list_cycles() if item["phase"] not in TERMINAL_PHASES]
-        return min(cycles, key=lambda item: (item.get("last_scheduled_order", 0), item["created_at"], item["id"])) if cycles else None
+        cycles = [item for item in self.autonomy.list_cycles()
+                  if item["phase"] not in TERMINAL_PHASES and not self._controller_stage(item)]
+        # Existing public candidates get their independent review before new
+        # authorship. Each head has bounded review retries, so this finite queue
+        # drains without an unbounded review convoy. Within each group, durable
+        # round-robin order survives controller restarts.
+        return min(cycles, key=lambda item: (item["phase"] != "reviewing", self._schedule_order(item))) if cycles else None
 
     def _advance(self, cycle):
         order = 1 + max((item.get("last_scheduled_order", 0) for item in self.autonomy.list_cycles()), default=0)
