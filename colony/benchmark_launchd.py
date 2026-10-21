@@ -70,7 +70,9 @@ def install_service(root, source_root=None, interval=120, *, home=None,
         "WorkingDirectory": str(runtime),
         "EnvironmentVariables": {"PATH": environment_path, "PYTHONUNBUFFERED": "1"},
         "RunAtLoad": True, "KeepAlive": True, "ThrottleInterval": 60,
-        "ExitTimeOut": 30, "ProcessType": "Background",
+        # Wall-time comparisons need ordinary CLI scheduling, rather than
+        # launchd's Background throttling of the runner and its Lean children.
+        "ExitTimeOut": 30, "ProcessType": "Standard",
         "StandardOutPath": str(logs / "benchmark.stdout.log"),
         "StandardErrorPath": str(logs / "benchmark.stderr.log"),
     }

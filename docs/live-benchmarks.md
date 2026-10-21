@@ -75,6 +75,16 @@ measurement rules remain protected governance inputs.
 
 Timing includes process startup and imports on a shared development machine.
 It is diagnostic timing, not a statistically established performance ranking.
+The LaunchAgent uses `ProcessType=Standard`, so its Lean subprocesses receive
+ordinary scheduling like direct CLI runs. In the initial `Background` experiment,
+the import-closure audit exceeded its 20-second limit (20.024 seconds) after the
+tactic build had succeeded in 11.8 seconds; a direct run of the same frozen
+runtime completed. Lower-priority scheduling is unsuitable for this bounded
+wall-time comparison. A controlled rerun on revision
+`097a4117c7f7038f8d448217d7836a0d95d41bbe`, changing only the LaunchAgent process
+type to `Standard`, completed the audit in 4.853 seconds and all 56 measured rows
+with valid controls. The scheduling change preserves the frozen cases, proof
+bodies, 20-second per-case timeout and 200,000-heartbeat limit.
 Assurance is Lean elaborator/kernel acceptance with a standard axiom allowlist;
 exported replay and independent-kernel acceptance are separate checks.
 
