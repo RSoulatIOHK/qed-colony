@@ -103,7 +103,7 @@ def maybe_enqueue_audit(tasks, autonomy, policy):
            for task in snapshot["tasks"]):
         return None
     cycles = autonomy.list_cycles()
-    completed = [cycle for cycle in cycles if cycle["role"] not in {"planner", "operations"}
+    completed = [cycle for cycle in cycles if cycle["role"] not in {"planner", "operations", "triage"}
                  and cycle["phase"] in TERMINAL_PHASES]
     batch = len(completed) // every
     if not batch:

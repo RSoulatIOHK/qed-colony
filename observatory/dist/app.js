@@ -38,7 +38,7 @@
   }
 
   function badge(value) { return el('span', `status-badge status-${status(value)}`, pretty(value)); }
-  function roleLabel(value) { return ({ sre: 'SRE', operations: 'Operations steward' })[status(value)] || pretty(value); }
+  function roleLabel(value) { return ({ sre: 'SRE', operations: 'Operations steward', triage: 'Blocker triage', 'blocker-triage': 'Blocker triage', 'repair-author': 'Repair author', controller: 'Controller' })[status(value)] || pretty(value); }
   function taskButton(task) {
     const button = el('button', 'task-title-button', task.title || task.id || 'Untitled task');
     button.type = 'button';
@@ -149,6 +149,7 @@
     $('map-count').textContent = data.agents.length || data.tasks.length ? `${data.agents.length} agent${data.agents.length === 1 ? '' : 's'} / ${data.tasks.length} task${data.tasks.length === 1 ? '' : 's'}` : 'Awaiting first agents';
     renderMap();
     renderAutonomy();
+    renderRecovery();
     renderRoster();
     renderTasks();
     renderKanban();
@@ -465,6 +466,97 @@
       .sort((a, b) => string(b.updated_at || b.created_at).localeCompare(string(a.updated_at || a.created_at)))[0] || null;
   }
 
+  function recoveryRoot(cycle) {
+    if (!cycle) return null;
+    if (cycle.recovery_root_id) {
+      const cycles = state.data.autonomy?.cycles;
+      return Array.isArray(cycles) ? cycles.find((entry) => string(entry.id) === string(cycle.recovery_root_id)) || null : null;
+    }
+    return cycle.recovery_status || cycle.recovery_owner ? cycle : null;
+  }
+
+  function recoveryLabel(value) {
+    return ({ triage_queued: 'Triage queued', triaging: 'Diagnosing blocker', repair_queued: 'Repair queued',
+      repair_in_progress: 'Repair in progress', repair_merged: 'Repair merged · reconciliation pending',
+      escalated: 'Escalated · controller action required', awaiting_controller_integration: 'Controller integration required',
+      controller_scope_review: 'Controller scope review required', resolved: 'Resolved' })[value] || pretty(value || 'Recovery state not reported');
+  }
+
+  function recoveryText(parent, label, value, className = '') {
+    if (!value) return;
+    const paragraph = el('p', `recovery-field ${className}`.trim());
+    paragraph.append(el('strong', '', `${label}: `), document.createTextNode(printable(value)));
+    parent.append(paragraph);
+  }
+
+  function recoveryTaskLink(container, label, id) {
+    if (!id) return;
+    const task = state.data.tasks.find((entry) => string(entry.id) === string(id));
+    const row = el('div', 'recovery-task-link');
+    row.append(el('span', '', `${label}: `));
+    if (task) {
+      const button = taskButton(task);
+      button.textContent = `${task.id} · ${task.title || 'Inspect task'}`;
+      row.append(button);
+    } else row.append(el('span', '', string(id)));
+    container.append(row);
+  }
+
+  function recoveryDetails(task, cycle, compact = false) {
+    const root = recoveryRoot(cycle);
+    if (!root) return null;
+    const value = root.recovery_status;
+    const controllerRequired = ['escalated', 'awaiting_controller_integration', 'controller_scope_review'].includes(value);
+    const node = el('div', `recovery-case${compact ? ' recovery-compact' : ''}${controllerRequired ? ' recovery-controller-required' : ''}`);
+    const heading = el('div', 'recovery-case-heading');
+    heading.append(el('strong', '', cycle?.recovery_kind ? `${pretty(cycle.recovery_kind)} for ${root.task_id || 'parked work'}` : 'Recovery'));
+    heading.append(el('span', `status-badge ${value === 'resolved' ? 'status-done' : controllerRequired ? 'status-blocked' : 'status-review'}`, recoveryLabel(value)));
+    node.append(heading);
+    recoveryText(node, 'Owner', root.recovery_owner ? roleLabel(root.recovery_owner) : 'Not reported');
+    recoveryText(node, 'Next action', root.recovery_next_action || 'Not reported', 'recovery-next-action');
+    if (root.recovery_next_action_deadline && value !== 'resolved') recoveryText(node, 'Next action due', dateTime(root.recovery_next_action_deadline));
+    if (!compact) {
+      recoveryText(node, 'Reason', root.recovery_reason);
+      recoveryText(node, 'Diagnosis', root.recovery_diagnosis);
+      if (root.source_head_sha) recoveryText(node, 'Source head', string(root.source_head_sha).slice(0, 12));
+      const sourcePR = link('Source pull request ↗', root.source_pr_url);
+      if (sourcePR) node.append(sourcePR);
+      const cycles = Array.isArray(state.data.autonomy?.cycles) ? state.data.autonomy.cycles : [];
+      const triage = cycles.find((entry) => string(entry.id) === string(root.recovery_triage_cycle_id));
+      if (triage && string(triage.task_id) !== string(task.id)) recoveryTaskLink(node, 'Triage', triage.task_id);
+    }
+    if (cycle?.recovery_root_id && string(root.task_id) !== string(task.id)) recoveryTaskLink(node, 'Original task', root.task_id);
+    if (root.recovery_repair_task_id && string(root.recovery_repair_task_id) !== string(task.id)) recoveryTaskLink(node, 'Repair task', root.recovery_repair_task_id);
+    if (controllerRequired) node.append(el('p', 'recovery-attention', 'Controller action required. This case does not grant permission to change scope or deploy.'));
+    else if (value === 'repair_merged') node.append(el('p', 'recovery-attention', 'The original blocker remains open until acceptance and remote reconciliation are recorded.'));
+    return node;
+  }
+
+  function renderRecovery() {
+    const cycles = Array.isArray(state.data.autonomy?.cycles) ? state.data.autonomy.cycles : [];
+    const cases = cycles.filter((cycle) => !cycle.recovery_root_id && (cycle.recovery_status || cycle.recovery_owner));
+    $('recovery-panel').hidden = !cases.length;
+    const unresolved = cases.filter((cycle) => cycle.recovery_status !== 'resolved').length;
+    $('recovery-count').textContent = `${unresolved} open / ${cases.length} recorded case${cases.length === 1 ? '' : 's'}`;
+    const list = $('recovery-cases');
+    list.replaceChildren();
+    cases.sort((a, b) => Number(a.recovery_status === 'resolved') - Number(b.recovery_status === 'resolved') || string(a.recovery_next_action_deadline).localeCompare(string(b.recovery_next_action_deadline)) || string(a.task_id).localeCompare(string(b.task_id)));
+    cases.forEach((cycle) => {
+      const card = el('article', 'recovery-overview-card');
+      const task = state.data.tasks.find((entry) => string(entry.id) === string(cycle.task_id));
+      const heading = el('h3');
+      if (task) {
+        const button = taskButton(task);
+        button.textContent = `${task.id} · ${task.title || 'Inspect task'}`;
+        heading.append(button);
+      } else heading.append(el('span', '', cycle.task_id || cycle.id || 'Recorded recovery case'));
+      card.append(heading);
+      const details = recoveryDetails(task || { id: cycle.task_id }, cycle);
+      if (details) card.append(details);
+      list.append(card);
+    });
+  }
+
   function boardStage(task, cycle) {
     const value = status(task.status);
     const phase = status(cycle?.phase);
@@ -515,6 +607,8 @@
       note.title = text;
       card.append(note);
     }
+    const recovery = recoveryDetails(task, cycle, true);
+    if (recovery) card.append(recovery);
     const links = el('div', 'kanban-card-links');
     const pr = link('Pull request ↗', cycle?.pr_url || task.pr_url);
     const issue = link('Issue ↗', task.issue_url);
@@ -537,7 +631,7 @@
     const entries = tasks.map((task) => {
       const cycle = cycleForTask(task);
       return { task, cycle, stage: boardStage(task, cycle) };
-    }).filter(({ task, cycle, stage }) => (role === 'all' || string(task.role) === role) && [task.id, task.title, task.role, task.description, task.pr_url, task.issue_url, cycle?.pr_url, cycle?.phase, cycle?.last_error, stage.label].filter(Boolean).join(' ').toLowerCase().includes(query));
+    }).filter(({ task, cycle, stage }) => (role === 'all' || string(task.role) === role) && [task.id, task.title, task.role, task.description, task.pr_url, task.issue_url, cycle?.pr_url, cycle?.phase, cycle?.last_error, cycle?.recovery_owner, cycle?.recovery_status, cycle?.recovery_next_action, cycle?.recovery_diagnosis, stage.label].filter(Boolean).join(' ').toLowerCase().includes(query));
     $('kanban-count').textContent = `${entries.length} of ${tasks.length} recorded task${tasks.length === 1 ? '' : 's'}${state.source.startsWith('snapshot') ? ' · saved snapshot' : state.source !== 'live' ? ' · current state unconfirmed' : ''}`;
     const autonomy = state.data.autonomy || {};
     const budget = autonomy.budget || autonomy.service?.budget || {};
@@ -763,6 +857,8 @@
     });
     content.append(properties);
     if (kind === 'task') {
+      const recovery = recoveryDetails(item, cycleForTask(item));
+      if (recovery) content.append(detailSection('Blocker recovery', recovery));
       const acceptance = item.acceptance;
       const criteria = Array.isArray(acceptance) ? acceptance : acceptance ? [acceptance] : [];
       if (criteria.length) {

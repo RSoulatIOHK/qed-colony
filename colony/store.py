@@ -289,6 +289,41 @@ class Store:
         with self._connection() as conn:
             return self._task(conn.execute("SELECT * FROM tasks WHERE id=?", (task_id,)).fetchone())
 
+    def complete_recovery(self, source_task_id, replacement_task_id, expected_description,
+                          expected_acceptance, replacement_pr_url, actor="controller"):
+        """Resolve the original only after controller-verified replacement integration.
+
+        Remote exact-head review, CI and closure are the pipeline's responsibility.
+        This transaction preserves acceptance and releases dependencies exactly once.
+        """
+        if source_task_id == replacement_task_id or not isinstance(replacement_pr_url, str) or not replacement_pr_url.startswith("https://"):
+            raise ValueError("Recovery requires a distinct replacement and HTTPS PR")
+        now = time.time()
+        with self._connection(write=True) as conn:
+            source = self._task(conn.execute("SELECT * FROM tasks WHERE id=?", (source_task_id,)).fetchone())
+            replacement = self._task(conn.execute("SELECT * FROM tasks WHERE id=?", (replacement_task_id,)).fetchone())
+            if source is None or replacement is None:
+                raise ValueError("Recovery source or replacement is missing")
+            if (source["description"] != expected_description or source["acceptance"] != expected_acceptance
+                    or replacement["acceptance"] != expected_acceptance
+                    or not replacement["description"].startswith(expected_description)
+                    or source["role"] != replacement["role"]
+                    or replacement["status"] != "done" or replacement["pr_url"] != replacement_pr_url):
+                raise ValueError("Recovery acceptance, role, or integrated replacement differs")
+            summary = "Original acceptance satisfied by reviewed replacement " + replacement_pr_url
+            if source["status"] == "done":
+                if source["summary"] != summary:
+                    raise ValueError("Source was completed by another action")
+                return source
+            if source["status"] not in {"blocked", "failed", "review"}:
+                raise ValueError("Recovery source must be parked, not executing")
+            conn.execute("UPDATE tasks SET status='done',summary=?,lease_owner=NULL,lease_until=NULL,block_reason=NULL,updated_at=? WHERE id=?",
+                         (summary, now, source_task_id))
+            self._event(conn, "task.recovery_completed", actor, summary, source_task_id,
+                        {"replacement_task_id": replacement_task_id, "replacement_pr_url": replacement_pr_url}, now)
+            self._refresh_dependencies(conn, now)
+            return self._task(conn.execute("SELECT * FROM tasks WHERE id=?", (source_task_id,)).fetchone())
+
     def get_agent(self, agent_id):
         with self._connection() as conn:
             return self._agent(conn.execute("SELECT * FROM agents WHERE id=?", (agent_id,)).fetchone())
@@ -372,7 +407,11 @@ class Store:
                     "head_sha", "reviewed_sha", "revision", "review", "checks", "summary", "model",
                     "reasoning_effort", "model_reason", "author_model", "review_model", "last_error",
                     "ci_status", "ci_checks", "review_attempt", "governance_required",
-                    "governance_status", "follow_up_task_ids"}
+                    "governance_status", "follow_up_task_ids", "recovery_kind", "recovery_root_id",
+                    "recovery_owner", "recovery_status", "recovery_reason", "recovery_next_action",
+                    "recovery_next_action_deadline", "recovery_triage_cycle_id", "recovery_repair_cycle_id",
+                    "recovery_repair_task_id", "recovery_diagnosis", "recovery_replacement_pr_url",
+                    "recovery_replacement_head_sha", "source_pr_url", "source_head_sha"}
             cycles = [{key: value for key, value in cycle.items() if key in keys}
                       for cycle in autonomy.list_cycles()]
             result["autonomy"] = {"service": autonomy.service_snapshot(),

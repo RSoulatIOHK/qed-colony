@@ -27,7 +27,8 @@ SRE_FILES = frozenset({
     "tests/test_network_recovery.py", "tests/test_network.py", "tests/test_supervisor.py",
     "tests/test_pipeline.py", "tests/test_worker.py", "tests/test_execute_job.py",
     "tests/test_github_broker.py", "tests/test_operations.py", "docs/network-recovery.md", "docs/autonomy.md",
-    "docs/pipeline.md", "docs/workers.md",
+    "docs/pipeline.md", "docs/workers.md", "colony/recovery.py", "tests/test_recovery.py",
+    "docs/recovery.md",
 })
 SECRET_PATTERN = re.compile(
     rb"(?:-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|"
@@ -201,6 +202,10 @@ class GitHubBroker:
         body = ("%s\n\nTask: `%s`\n\n%s\n\nThe colony controller published this candidate. %s "
                 "Model output alone is not a proof certificate.\n\n<!-- colony-cycle:%s -->\n") % (
                     task["title"], task["id"], summary[:12000], disposition, cycle["id"])
+        if cycle.get("recovery_kind") == "repair":
+            body += ("\nRecovery of %s at source head `%s`. This fresh candidate must satisfy the "
+                     "unchanged original acceptance. The source is resolved only after verified integration "
+                     "of this replacement.\n") % (cycle["source_pr_url"], cycle["source_head_sha"])
         validate_public_text(body)
         with tempfile.TemporaryDirectory(prefix="colony-pr-") as directory:
             body_path = Path(directory) / "body.md"
@@ -216,6 +221,54 @@ class GitHubBroker:
     def get_pr(self, number):
         return json.loads(self.gh("pr", "view", str(int(number)), "--json",
             "number,url,state,headRefOid,mergedAt,mergeable,mergeStateStatus,statusCheckRollup"))
+
+    def close_superseded_pr(self, number, expected_head, replacement_url, recovery_id):
+        """Reconcile closure without ever calling a stale source a checked merge.
+
+        GitHub has no atomic head-conditioned PR close. Recheck afterwards and
+        require our exact comment marker on restart before accepting a closure.
+        """
+        if (not re.fullmatch(r"[0-9a-f]{40}", expected_head or "")
+                or not re.fullmatch(r"[A-Za-z0-9_-]{1,80}", recovery_id or "")
+                or not re.fullmatch(r"https://github\.com/" + re.escape(self.repository) + r"/pull/[1-9][0-9]*", replacement_url or "")):
+            raise PublicationRejected("Invalid recovery closure identity")
+        if replacement_url == "https://github.com/%s/pull/%s" % (self.repository, int(number)):
+            raise PublicationRejected("A source PR cannot supersede itself")
+        marker = "<!-- colony-superseded:%s:%s -->" % (recovery_id, expected_head)
+        pr = self.get_pr(number)
+        if pr.get("headRefOid") != expected_head or pr.get("mergedAt") or pr.get("state") == "MERGED":
+            raise PublicationRejected("Source PR changed or merged outside recovery")
+        pages = json.loads(self.gh("api", "--paginate", "--slurp",
+            "repos/%s/issues/%s/comments?per_page=100" % (self.repository, int(number))))
+        controller_login = json.loads(self.gh("api", "user"))["login"]
+        exact_url = re.compile(re.escape(replacement_url) + r"(?=$|[\s)\]>.,;])")
+        found = any(marker in comment.get("body", "") and exact_url.search(comment.get("body", ""))
+                    and (comment.get("user") or {}).get("login", "").lower() == controller_login.lower()
+                    for page in pages for comment in page)
+        if pr.get("state") == "CLOSED":
+            if not found:
+                raise PublicationRejected("Source PR was closed without this recovery marker")
+            return pr
+        if pr.get("state") != "OPEN":
+            raise PublicationRejected("Source PR is unavailable for recovery closure")
+        current = self.get_pr(number)
+        if current.get("state") != "OPEN" or current.get("mergedAt") or current.get("headRefOid") != expected_head:
+            raise PublicationRejected("Source PR changed while reading recovery evidence")
+        if not found:
+            body = ("### Colony recovery resolved\n\nSuperseded by %s after independent exact-head review, "
+                    "required CI and confirmed merge. The original task acceptance was preserved. "
+                    "This PR's original head `%s` is closed as superseded, not counted as a merged candidate.\n\n%s\n") % (
+                        replacement_url, expected_head, marker)
+            validate_public_text(body)
+            with tempfile.TemporaryDirectory(prefix="colony-recovery-") as directory:
+                path = Path(directory) / "body.md"
+                path.write_text(body, encoding="utf-8")
+                self.gh("pr", "comment", str(int(number)), "--body-file", str(path))
+        self.gh("pr", "close", str(int(number)))
+        confirmed = self.get_pr(number)
+        if confirmed.get("state") != "CLOSED" or confirmed.get("mergedAt") or confirmed.get("headRefOid") != expected_head:
+            raise PublicationRejected("Source PR changed during recovery closure; controller attention required")
+        return confirmed
 
     def comment_review(self, number, review, head_sha, cycle_id):
         marker = "<!-- colony-review:%s:%s -->" % (cycle_id, head_sha)

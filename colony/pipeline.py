@@ -11,6 +11,7 @@ from .autonomy_store import BudgetExceeded, DuplicateAttempt
 from .github_broker import GitHubBroker, PublicationRejected, SRE_FILES, checks_state, safe_slug, validate_public_text
 from .model_policy import choose_model
 from .operations import OPS_SCHEMA, enqueue_followups, parse_operations_output, render_operations_report
+from .recovery import TRIAGE_SCHEMA, apply_triage_result
 from .worker import execute_job
 
 
@@ -137,7 +138,8 @@ class Pipeline:
 
     def _revise(self, cycle, feedback):
         revision = int(cycle.get("revision", 0))
-        if revision >= int(self.policy.get("max_revisions", 2)):
+        limit = 0 if cycle.get("recovery_kind") == "repair" else int(self.policy.get("max_revisions", 2))
+        if revision >= limit:
             return self._terminal(cycle, "needs_review", "Revision limit reached: " + feedback[:1500])
         task = self.tasks.get_task(cycle["task_id"])
         if task and task["status"] in {"review", "failed"}:
@@ -148,12 +150,28 @@ class Pipeline:
 
     def advance(self, cycle):
         """Advance one durable stage. Repeated publication/merge calls reconcile GitHub."""
+        if cycle.get("recovery_kind") == "triage":
+            return self._triage(cycle)
         task = self.tasks.get_task(cycle["task_id"])
         if task is None:
             return self._terminal(cycle, "failed", "Cycle task no longer exists")
+        if cycle.get("recovery_kind") == "repair":
+            root = self.autonomy.get_cycle(cycle["recovery_root_id"])
+            source_task = self.tasks.get_task(root["task_id"])
+            if (root.get("recovery_status") in {"escalated", "controller_scope_review", "resolved"}
+                    or source_task is None or source_task["status"] not in {"blocked", "failed", "review"}
+                    or source_task["description"] != cycle.get("source_task_description")
+                    or source_task["acceptance"] != cycle.get("source_task_acceptance")):
+                return self._terminal(cycle, "needs_review", "Source ownership or original specification changed during repair")
         try:
             phase = cycle["phase"]
             if phase == "queued":
+                if cycle.get("recovery_kind") == "repair":
+                    root = self.autonomy.get_cycle(cycle["recovery_root_id"])
+                    source = self.broker.get_pr(root["pr_number"])
+                    if (source.get("state") != "OPEN" or source.get("headRefOid") != cycle.get("source_head_sha")
+                            or source.get("url") != cycle.get("source_pr_url")):
+                        return self._terminal(cycle, "needs_review", "Source PR changed before the bounded repair began")
                 context = self.broker.prepare_worktree(cycle)
                 if task["role"] == "sre":
                     context.update(governance_required=True, governance_status="candidate")
@@ -185,11 +203,135 @@ class Pipeline:
         except (ValueError, KeyError, TypeError) as exc:
             return self._terminal(cycle, "needs_review", "Invalid candidate/review data: " + type(exc).__name__)
 
+    def _triage(self, cycle):
+        """One operational diagnosis may assign a repair, never authorize a merge."""
+        root = self.autonomy.get_cycle(cycle["recovery_root_id"])
+        if root.get("recovery_status") in {"escalated", "controller_scope_review", "resolved", "awaiting_controller_integration"}:
+            return self._update(cycle, "done", triage_action="cancelled")
+        timeout = min(180, int(self.policy.get("planner_timeout_seconds", 180)))
+        if cycle.get("phase") != "triage_handoff":
+            self._require_budget(timeout)
+        try:
+            if cycle.get("phase") == "triage_handoff":
+                remote = self.broker.get_pr(root["pr_number"])
+                if (remote.get("state") != "OPEN" or remote.get("headRefOid") != cycle.get("source_head_sha")
+                        or remote.get("url") != cycle.get("source_pr_url")):
+                    raise PublicationRejected("Source PR changed before the recovery handoff")
+                apply_triage_result(self.tasks, self.autonomy, self.policy, cycle, cycle["triage_result"])
+                return self.autonomy.get_cycle(cycle["id"])
+            if not cycle.get("worktree"):
+                cycle = self._update(cycle, **self.broker.prepare_worktree(cycle))
+            original = self.tasks.get_task(root["task_id"])
+            remote = self.broker.get_pr(root["pr_number"])
+            if (remote.get("state") != "OPEN" or remote.get("headRefOid") != cycle.get("source_head_sha")
+                    or remote.get("url") != cycle.get("source_pr_url")):
+                raise PublicationRejected("Source PR changed or closed; controller reconciliation required")
+            def public_excerpt(value):
+                try:
+                    return validate_public_text(str(value or ""))[:3000]
+                except PublicationRejected:
+                    return "Operational details redacted; inspect the public source PR and review."
+
+            evidence = {"task_id": root["task_id"], "title": original["title"],
+                        "description": cycle["source_task_description"],
+                        "acceptance": cycle["source_task_acceptance"], "role": cycle["source_task_role"],
+                        "pr_url": cycle["source_pr_url"], "head_sha": cycle["source_head_sha"],
+                        "last_error": public_excerpt(root.get("last_error")),
+                        "prior_feedback": public_excerpt(root.get("feedback")),
+                        "review": public_excerpt(json.dumps(root.get("review"))), "revision": root.get("revision")}
+            prompt = ("You are the READ ONLY blocker triage worker. Read AGENTS.md and relevant public source. "
+                      "Diagnose exactly this parked PR and choose repair or escalate. A repair is one fresh "
+                      "author call (480 seconds maximum) and one independent review (240 seconds maximum), "
+                      "all charged to the existing daily ledger. Supply one narrow repair_title and "
+                      "repair_description; role must equal the original execution role. The controller copies "
+                      "the original description and acceptance verbatim; you cannot replace or weaken them. "
+                      "The new repair starts from current main, so it must reproduce any useful source-PR "
+                      "implementation needed for the FULL original acceptance, using the public source head. "
+                      "Do not turn an implementation into a research proposal. Escalate if current scopes "
+                      "cannot satisfy that acceptance, authority must change, or a bounded fix is infeasible. "
+                      "No edits, execution of candidate code, publication, merge, deployment, credentials, "
+                      "new permissions, or agents. Return only the strict JSON, under 8000 characters. "
+                      "Escalation strings may be empty except diagnosis.\nEvidence:\n" +
+                      validate_public_text(json.dumps(evidence, ensure_ascii=False)))
+            self.autonomy.update_cycle(root["id"], recovery_status="triaging",
+                                       recovery_next_action="Diagnose the parked PR and assign one bounded repair")
+            result = self._job(cycle, "triage:0", prompt, timeout, "read-only", TRIAGE_SCHEMA)
+            if result.get("status") != "completed":
+                return self._terminal(cycle, "needs_review", "Bounded blocker triage failed; controller escalation required")
+            payload = json.loads(self._output(result, cycle))
+            cycle = self._update(cycle, "triage_handoff", triage_result=payload)
+            return self._triage(cycle)
+        except BudgetExceeded:
+            raise
+        except Exception as error:
+            # No second diagnosis for an uncertain or malformed stage.
+            return self._terminal(cycle, "needs_review", "Blocker triage stopped: " + type(error).__name__)
+
+    def reconcile_recovery(self, root_cycle_id):
+        """Close a superseded source only after its full replacement is integrated."""
+        root = self.autonomy.get_cycle(root_cycle_id)
+        if root.get("recovery_status") != "repair_merged":
+            return root
+        if time.time() < root.get("recovery_reconcile_after", 0):
+            return root
+        try:
+            triage = self.autonomy.get_cycle(root["recovery_triage_cycle_id"])
+            repair = self.autonomy.get_cycle(root["recovery_repair_cycle_id"])
+            source = self.tasks.get_task(root["task_id"])
+            task = self.tasks.get_task(root["recovery_repair_task_id"])
+            recovered_summary = "Original acceptance satisfied by reviewed replacement " + str(task.get("pr_url") or "")
+            if (source["status"] not in {"blocked", "failed", "review"}
+                    and not (source["status"] == "done" and source["summary"] == recovered_summary)):
+                raise PublicationRejected("Source task is active, ready, or completed by another action")
+            if (repair.get("recovery_root_id") != root["id"] or repair.get("recovery_kind") != "repair"
+                    or source["description"] != triage["source_task_description"]
+                    or source["acceptance"] != triage["source_task_acceptance"]
+                    or source["pr_url"] != triage["source_pr_url"] or root["pr_url"] != triage["source_pr_url"]
+                    or task["acceptance"] != triage["source_task_acceptance"]
+                    or task["role"] != triage["source_task_role"] or source["role"] != task["role"]
+                    or not task["description"].startswith(triage["source_task_description"])
+                    or repair.get("phase") != "done" or task["status"] != "done"
+                    or repair.get("review", {}).get("verdict") != "approve"
+                    or not repair.get("reviewed_sha") or repair["reviewed_sha"] != repair.get("head_sha")
+                    or repair.get("ci_status") != "passed"):
+                raise PublicationRejected("Replacement lacks unchanged original acceptance and review evidence")
+            remote = self.broker.get_pr(repair["pr_number"])
+            if (remote.get("state") != "MERGED" or not remote.get("mergedAt")
+                    or remote.get("headRefOid") != repair["reviewed_sha"]
+                    or remote.get("url") != task["pr_url"]
+                    or checks_state(remote, self.policy.get("required_checks", ["control-plane", "lean-seed"])) != "passed"):
+                raise PublicationRejected("Replacement merge, head, or required CI was not confirmed")
+            source_remote = self.broker.get_pr(root["pr_number"])
+            if source_remote.get("url") != triage["source_pr_url"]:
+                raise PublicationRejected("Source PR identity differs from the captured recovery target")
+            self.broker.close_superseded_pr(root["pr_number"], triage["source_head_sha"], task["pr_url"], root["id"])
+            self.tasks.complete_recovery(source["id"], task["id"], triage["source_task_description"],
+                                         triage["source_task_acceptance"], task["pr_url"])
+            resolved = self.autonomy.update_cycle(root["id"], recovery_status="resolved", recovery_owner="controller",
+                source_pr_url=triage["source_pr_url"], source_head_sha=triage["source_head_sha"],
+                recovery_replacement_pr_url=task["pr_url"], recovery_replacement_head_sha=repair["reviewed_sha"],
+                recovery_next_action="Resolved; source PR closed as superseded after verified replacement merge")
+            self._event(root, "recovery.resolved", "Original acceptance satisfied by a verified merged replacement",
+                        replacement_task_id=task["id"], replacement_pr_url=task["pr_url"])
+            return resolved
+        except PublicationRejected as error:
+            return self.autonomy.update_cycle(root["id"], recovery_status="escalated", recovery_owner="controller",
+                recovery_reason=str(error), recovery_next_action="Inspect replacement evidence and reconcile the source PR")
+        except Exception:
+            attempts = int(root.get("recovery_reconcile_attempts", 0)) + 1
+            return self.autonomy.update_cycle(root["id"], recovery_reconcile_attempts=attempts,
+                recovery_reconcile_after=time.time() + 300,
+                recovery_status="escalated" if attempts >= 3 else "repair_merged", recovery_owner="controller",
+                recovery_next_action="Reconcile remote closure and integrated acceptance; no model work is repeated")
+
     def _author(self, cycle, task):
-        self._require_budget(int(self.policy.get("author_timeout_seconds", 600)))
+        timeout = int(self.policy.get("author_timeout_seconds", 600))
+        if cycle.get("recovery_kind") == "repair":
+            timeout = min(480, timeout)
+        self._require_budget(timeout)
         agent_id = "colony-author-" + cycle["id"][:10]
         self.tasks.register_agent(agent_id, "Colony author", task["role"])
-        lease = int(self.policy.get("author_timeout_seconds", 600)) + 120
+        lease = timeout + 120
         current = self.tasks.get_task(task["id"])
         if current["status"] == "ready":
             current = self.tasks.claim(agent_id, task_id=task["id"], lease_seconds=lease)
@@ -241,7 +383,7 @@ Return a concise complete result with actual checks and remaining limitations.
            criteria=json.dumps(task.get("acceptance", [])), base=cycle["base_sha"],
            feedback=cycle.get("feedback", "None"), mode=mode)
         result = self._job(cycle, "author:%s" % cycle.get("revision", 0), prompt,
-                           int(self.policy.get("author_timeout_seconds", 600)),
+                           timeout,
                            "workspace-write" if implementation else "read-only",
                            OPS_SCHEMA if task["role"] == "operations" else None)
         if result.get("status") != "completed":
@@ -286,11 +428,15 @@ specific actionable findings. A successful author process is not evidence of pro
                        "proposals: they must stay within existing engineer/researcher/sre scopes. Proposed role "
                        "charters grant no permissions. Any controller execution or authority change needs a "
                        "separate SRE governance PR and controller integration. Approve only the actual public report.\n")
+        timeout = int(self.policy.get("review_timeout_seconds", 240))
+        if cycle.get("recovery_kind") == "repair":
+            timeout = min(240, timeout)
         result = self._job(cycle, "review:%s:%s" % (cycle["head_sha"], cycle.get("review_attempt", 0)), prompt,
-                           int(self.policy.get("review_timeout_seconds", 240)), "read-only", REVIEW_SCHEMA)
+                           timeout, "read-only", REVIEW_SCHEMA)
         if result.get("status") != "completed":
             attempt = int(cycle.get("review_attempt", 0))
-            if attempt < int(self.policy.get("max_revisions", 2)):
+            limit = 0 if cycle.get("recovery_kind") == "repair" else int(self.policy.get("max_revisions", 2))
+            if attempt < limit:
                 self._event(cycle, "review.retry", "Review failed; retrying with a stronger configured model", attempt=attempt + 1)
                 return self._update(cycle, "reviewing", review_attempt=attempt + 1)
             return self._terminal(cycle, "needs_review", "Independent review exhausted its bounded retries; candidate is not approved")

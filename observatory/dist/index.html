@@ -57,6 +57,11 @@
           <div class="autonomy-cycle-heading"><span class="section-index">IMPLEMENT → REVIEW → CI → MERGE</span><div class="cycle-heading-links"><span id="cycle-count" class="subtle-label">No cycles recorded</span><button type="button" class="text-button" data-go="kanban">Open Kanban <span aria-hidden="true">↗</span></button></div></div>
           <div id="autonomy-cycles" class="autonomy-cycles"><p class="cycle-empty">Public PRs and their recorded review and CI results will appear here.</p></div>
         </section>
+        <section id="recovery-panel" class="panel recovery-panel" aria-labelledby="recovery-title" hidden>
+          <div class="panel-heading"><div><span class="section-index">UNBLOCKING THE WORK</span><h2 id="recovery-title">Recovery queue</h2></div><span id="recovery-count" class="subtle-label"></span></div>
+          <p class="recovery-explanation">Each recorded blocker has an owner and a next action. Triage and repair share the daily model budget; a merged repair still needs acceptance and reconciliation.</p>
+          <div id="recovery-cases" class="recovery-cases"></div>
+        </section>
         <div class="overview-grid">
           <section class="map-panel panel" aria-labelledby="map-title">
             <div class="panel-heading"><div><span class="section-index">01 / THE COLONY</span><h2 id="map-title">An organization in motion</h2></div><span id="map-count" class="subtle-label">Awaiting first agents</span></div>

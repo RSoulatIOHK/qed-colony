@@ -1,4 +1,5 @@
 import importlib.util
+import copy
 from pathlib import Path
 import unittest
 from unittest.mock import Mock
@@ -16,6 +17,40 @@ def pr(**values):
 
 
 class ProjectMappingTests(unittest.TestCase):
+    def test_closed_original_is_done_only_with_exact_resolved_recovery_evidence(self):
+        item = pr(state="CLOSED", merged=False, headRefOid="a" * 40)
+        state = {"tasks": [{"id": "T1", "status": "done", "pr_url": item["url"]}],
+                 "autonomy": {"cycles": [{"task_id": "T1", "phase": "needs_review",
+                     "pr_url": item["url"], "source_pr_url": item["url"],
+                     "recovery_status": "resolved", "source_head_sha": "a" * 40,
+                     "recovery_replacement_pr_url": "https://github.com/example/repo/pull/2"}]}}
+        result = board.desired_items([], [item], state)[0]
+        self.assertEqual(result["lane"], "Done")
+        self.assertIn("replacement", result["reason"])
+        self.assertEqual(board.desired_items([], [item])[0]["lane"], "Blocked")
+        mutations = [
+            ("task", "status", "blocked"),
+            ("task", "pr_url", "https://github.com/example/repo/pull/99"),
+            ("cycle", "pr_url", "https://github.com/example/repo/pull/99"),
+            ("cycle", "source_pr_url", "https://github.com/example/repo/pull/99"),
+            ("cycle", "source_pr_url", None),
+            ("cycle", "recovery_status", "repair_merged"),
+            ("cycle", "source_head_sha", "b" * 40),
+            ("cycle", "source_head_sha", None),
+            ("cycle", "recovery_replacement_pr_url", item["url"]),
+            ("cycle", "recovery_replacement_pr_url", "https://github.com/another/repo/pull/2"),
+            ("cycle", "recovery_replacement_pr_url", None),
+        ]
+        for kind, field, value in mutations:
+            altered = copy.deepcopy(state)
+            target = altered["tasks"][0] if kind == "task" else altered["autonomy"]["cycles"][0]
+            target[field] = value
+            with self.subTest(kind=kind, field=field, value=value):
+                self.assertEqual(board.desired_items([], [item], altered)[0]["lane"], "Blocked")
+        # A replacement does not complete an original PR reopened by somebody else.
+        item["state"] = "OPEN"
+        self.assertNotEqual(board.desired_items([], [item], state)[0]["lane"], "Done")
+
     def test_github_terminal_states_are_honest(self):
         self.assertEqual(board.pr_lane(pr(state="MERGED", merged=True))[0], "Done")
         self.assertEqual(board.pr_lane(pr(state="CLOSED", merged=False))[0], "Blocked")

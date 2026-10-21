@@ -88,9 +88,17 @@ class Supervisor:
         if not self.policy.get("enabled", False):
             return self._service("disabled", "Autonomy is disabled in controller policy")
 
+        # Recovery ownership is deterministic and independent of both model
+        # budget and the merge status of an operations audit.
+        from .recovery import scan_recoveries
+        scan_recoveries(self.tasks, self.autonomy, self.policy)
+        for root in self.autonomy.list_cycles():
+            if root.get("recovery_status") == "repair_merged" and hasattr(self.pipeline, "reconcile_recovery"):
+                self.pipeline.reconcile_recovery(root["id"])
+
         # Advancing an existing cycle can poll CI or reconcile a published PR
         # without spending model budget. The pipeline reserves each model call.
-        cycle = self.autonomy.next_cycle()
+        cycle = self._next_cycle()
         if cycle is not None:
             return self._advance(cycle)
 
@@ -126,12 +134,27 @@ class Supervisor:
         message = "Waiting for review of interrupted work" if needs_review else "Healthy; waiting for runnable work or the next planning interval"
         return self._service("waiting", message)
 
+    def _next_cycle(self):
+        # Persistent round-robin selection: a pending CI poll cannot monopolize
+        # the dispatcher while a recovery diagnosis or repair waits to run.
+        cycles = [item for item in self.autonomy.list_cycles() if item["phase"] not in TERMINAL_PHASES]
+        return min(cycles, key=lambda item: (item.get("last_scheduled_order", 0), item["created_at"], item["id"])) if cycles else None
+
     def _advance(self, cycle):
+        order = 1 + max((item.get("last_scheduled_order", 0) for item in self.autonomy.list_cycles()), default=0)
+        cycle = self.autonomy.update_cycle(cycle["id"], last_scheduled_order=order)
         self._service("working", "Advancing " + cycle["phase"], cycle["id"])
         try:
             result = self.pipeline.advance(cycle)
         except BudgetExceeded as error:
             return self._service("budget_limited", str(error), cycle["id"])
+        except Exception as error:
+            # Round-robin scheduling means the oldest cycle may not be the
+            # operation that failed. Park precisely the dispatched cycle.
+            self.autonomy.update_cycle(cycle["id"], phase="needs_review", last_error=type(error).__name__)
+            self.tasks.record_event("autonomy.error", "supervisor", "Controller operation requires review",
+                                    cycle["task_id"], {"error_type": type(error).__name__})
+            return self._service("needs_review", "Controller error: " + type(error).__name__)
         current = self.autonomy.get_cycle(cycle["id"])
         if current["phase"] in TERMINAL_PHASES:
             status = "needs_review" if current["phase"] in {"needs_review", "blocked"} else "waiting"
@@ -161,12 +184,8 @@ class Supervisor:
                 except Exception as error:
                     # Unexpected failures must remain visible and must not
                     # automatically repeat a potentially mutating operation.
-                    cycle = self.autonomy.next_cycle()
-                    if cycle is not None:
-                        self.autonomy.update_cycle(cycle["id"], phase="needs_review",
-                                                   last_error=type(error).__name__)
                     self.tasks.record_event("autonomy.error", "supervisor", "Controller operation requires review",
-                                            cycle["task_id"] if cycle else None,
+                                            None,
                                             {"error_type": type(error).__name__})
                     self._service("needs_review", "Controller error: " + type(error).__name__)
                 stop_event.wait(poll_seconds)
