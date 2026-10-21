@@ -6,6 +6,7 @@ import Colony.Examples.ResultFlow
 import Colony.Examples.ListStateInvariant
 import Colony.Examples.AccumulatorLength
 import Colony.Examples.FuelStateInvariant
+import Colony.Examples.KeyedStateInvariant
 
 namespace Colony
 
