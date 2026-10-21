@@ -28,6 +28,21 @@ private def optionPortfolio (subject : Ident) : TacticM Unit := do
     arithmeticPortfolio
   setGoals []
 
+/-- Split exactly one candidate; branch solvers do not call `colony` recursively.
+The caller restores the complete candidate snapshot if any branch fails. -/
+private def exceptPortfolio (subject : Ident) : TacticM Unit := do
+  evalTactic (← `(tactic| cases $subject:ident))
+  let branches ← getGoals
+  for branch in branches do
+    setGoals [branch]
+    evalTactic (← `(tactic| first
+      | (solve | simp_all <;> omega)
+      | (solve | simp_all <;> decide)
+      | (solve | omega)))
+    unless (← getGoals).isEmpty do
+      throwError "colony: an Except branch remains unsolved"
+  setGoals []
+
 private def listProcessInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
   evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
   let branches ← getGoals
@@ -95,6 +110,22 @@ elab "colony" : tactic => do
           catch _ => candidateState.restore
     return false
   if optionSolved then
+    return
+  -- Context order is deterministic. Failed candidates do not accumulate splits:
+  -- every attempt starts from its own saved, unsplit tactic state.
+  let exceptSolved ← withMainContext do
+    let context ← getLCtx
+    for decl in context do
+      unless decl.isImplementationDetail do
+        let type ← whnf decl.type
+        if type.isAppOf ``Except then
+          let candidateState ← saveState
+          try
+            exceptPortfolio (mkIdent decl.userName)
+            return true
+          catch _ => candidateState.restore
+    return false
+  if exceptSolved then
     return
   let commandSolved ← withMainContext do
     let context ← getLCtx

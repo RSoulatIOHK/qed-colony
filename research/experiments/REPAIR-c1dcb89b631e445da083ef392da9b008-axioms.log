@@ -1,0 +1,5 @@
+'Colony.Examples.result_preserves_counter_difference' depends on axioms: [propext, Quot.sound]
+'Colony.Examples.successful_result_updates_counters_consistently' depends on axioms: [propext]
+'Colony.Examples.failed_result_leaves_state_unchanged' does not depend on any axioms
+'Colony.Examples.except_after_failed_candidate' depends on axioms: [propext]
+'Colony.Examples.two_results_need_two_splits' depends on axioms: [propext, Quot.sound]
