@@ -81,6 +81,30 @@ class BrokerGateTests(unittest.TestCase):
                 validate_public_text(value)
         self.assertEqual(validate_public_text("lean/Colony/Tactic.lean"), "lean/Colony/Tactic.lean")
 
+    def test_failure_details_redacts_runner_paths_and_keeps_actionable_filename(self):
+        broker = GitHubBroker(".", {"repository": "example/qed-colony"})
+        broker._bounded_log = Mock(return_value=(
+            'File "/home/runner/work/qed-colony/qed-colony/scripts/evaluate_lean.py", line 42\n'
+            '/home/runner/.elan/toolchains/lean/bin/lean: failure\n'
+            '/Users/runner/work/qed-colony/qed-colony/lean/Colony/Tactic.lean:7: error'))
+        pr = {"statusCheckRollup": [{"name": "lean-seed", "conclusion": "FAILURE",
+                                   "detailsUrl": "https://github.com/example/qed-colony/actions/runs/123/job/456"}]}
+        details = broker.failure_details(pr)
+        self.assertIn('File "<checkout>/scripts/evaluate_lean.py", line 42', details)
+        self.assertIn("<checkout>/lean/Colony/Tactic.lean:7: error", details)
+        self.assertIn("<runner-home>/.elan/toolchains/lean/bin/lean", details)
+        self.assertNotIn("/home/", details)
+        self.assertNotIn("/Users/", details)
+        broker._bounded_log.assert_called_once_with("123")
+
+    def test_failure_details_still_rejects_credentials_after_path_redaction(self):
+        broker = GitHubBroker(".", {"repository": "example/qed-colony"})
+        broker._bounded_log = Mock(return_value="/home/runner/work/qed-colony/qed-colony/file ghp_" + "a" * 30)
+        pr = {"statusCheckRollup": [{"name": "lean-seed", "conclusion": "FAILURE",
+                                   "detailsUrl": "https://github.com/example/qed-colony/actions/runs/123/job/456"}]}
+        with self.assertRaises(PublicationRejected):
+            broker.failure_details(pr)
+
 
 class BrokerPathTests(unittest.TestCase):
     def setUp(self):
