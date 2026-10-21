@@ -8,6 +8,7 @@ import Colony.Examples.AccumulatorLength
 import Colony.Examples.FuelStateInvariant
 import Colony.Examples.KeyedStateInvariant
 import Colony.Examples.ProductStateTransition
+import Colony.Examples.ArrayStateInvariant
 
 namespace Colony
 
