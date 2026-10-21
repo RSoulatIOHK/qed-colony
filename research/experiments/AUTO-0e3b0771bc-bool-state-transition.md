@@ -1,33 +1,49 @@
 # AUTO-0e3b0771bc: bounded Bool splitting for a state transition invariant
 
-## Scope and fixed statement
+## Scope and acceptance
 
-This is an independent example in `Colony.Examples.BoolStateTransition`. Its
-state is exactly `State` with natural-number fields `sent` and `recorded`; its
-step function increments both fields when `advance = true` and returns the
-input state when `advance = false`. The initial assumption is exactly
-`state.sent = state.recorded`. The target is exactly
-`(step state advance).sent = (step state advance).recorded`. No bounds are
-present or changed. The proof attempt is `by colony` using the existing
-`Colony.Tactic`; `lean/Colony/Tactic.lean` was not edited.
+This independent example fixes `State` as natural-number fields `sent` and
+`recorded`, and `Command` as a structure with an `advance : Bool` field.
+`step state command` increments both fields when `command.advance` is true and
+otherwise returns `state`. The only initial assumption for the positive theorem
+is `state.sent = state.recorded`. The exact target is
+`(step state command).sent = (step state command).recorded` after one step.
+There are no bounds. The positive proof attempt is exactly `by colony` with the
+existing tactic. An adjacent `fail_if_success` guards the false target that the
+stepped `sent` field equals the stepped `recorded` field plus one. Concrete
+true and false command examples exercise both branches, and a concrete false
+command refutes the control target.
 
-The adjacent false control asks `colony` to prove that the stepped `sent`
-counter equals the stepped `recorded` counter plus one from the same initial
-equality assumption. `fail_if_success` requires this tactic attempt to fail.
+Acceptance was a compiling positive theorem, a compiling guarded rejection of
+the false target, and an axiom report, without changes to the tactic or to
+evaluation, benchmark, policy, or challenge files.
 
-## Experiments and results
+## Source identity and experiments
 
-Source revision: `6d4efea988ed6a34038a64bb4c8280290cd15700`.
+Base revision: `6d4efea988ed6a34038a64bb4c8280290cd15700` (before this
+example existed). Prior reviewed revision: `cbaf5368651525d626511eea08665fecb07d2ed4`.
+That revision has a standalone `advance : Bool` parameter; the SHA-256 of its
+example file is `1ce58dce35937ba0afb52d17fba350c4464b01759c66b5837f48e9ba9daba66b`.
+Its report records an earlier uncommitted failed build before projection lemmas
+were added. No content hash for that first failed source was retained, so its
+exact source identity cannot be established from the record.
 
-First attempt: after adding the state, step, and direct `by colony` theorem,
-`cd lean && lake build Colony.Examples.BoolStateTransition` exited 1 with
-`colony: the initial proof portfolio could not close this goal`. The Bool split
-alone could not simplify projections through the named step definition.
+For the command-field revision, the first `cd lean && lake build
+Colony.Examples.BoolStateTransition` exited 1. The two projection lemmas used
+`cases command.advance <;> rfl`. Lean reported that `(step state command).sent`
+and `(step state command).recorded` were not definitionally equal to their
+respective branch expressions after the field split. The failed build also
+printed `[propext, sorryAx]` for the positive theorem because its source had
+errors; that output is **not** an accepted proof or the final axiom report.
+Splitting the `Command` constructor before its Bool field fixed the projection
+lemmas, using `cases command with | mk advance => cases advance <;> rfl`.
 
-Adjustment: added `[simp]` projection equations for the two fields of `step`.
-These do not prove the invariant; they expose the step's branch equations to
-the tactic's existing `simp_all` portfolio. No tactic integration or tactic
-source change was made.
+Final tested source is the uncommitted worktree based on `cbaf536` with
+SHA-256 `829bff3bc9b2d0f2d195b46226280885ba4f992ca357adeab7b8361001b79cd6`
+for `lean/Colony/Examples/BoolStateTransition.lean`. The unchanged tactic file
+has SHA-256 `d193f91238ab9d7a49856df2430588b56246fafd73f8036015b0facf47002a88`.
+These hashes identify the source used for the final build and axiom output;
+the base revision alone does not.
 
 Final command, from repository root:
 
@@ -35,10 +51,8 @@ Final command, from repository root:
 cd lean && lake build Colony.Examples.BoolStateTransition
 ```
 
-Result: exit 0, build completed successfully (4 jobs). Compilation checks the
-positive theorem's `by colony` attempt, and the false control compiles with
-`fail_if_success`, so `colony` did not close the false target. The source also
-prints this exact axiom report:
+Result: exit 0, `Build completed successfully (4 jobs)` under the pinned
+`leanprover/lean4:v4.35.0` toolchain. The source's `#print axioms` output was:
 
 ```text
 'Colony.Examples.BoolStateTransition.step_preserves_counter_agreement' depends on axioms: [propext]
@@ -46,11 +60,13 @@ prints this exact axiom report:
 
 ## Assurance and limits
 
-The successful tactic attempt constructed a Lean proof term for the stated
-one-step invariant, and Lean's elaborator/kernel accepted the example module
-under the pinned `leanprover/lean4:v4.35.0` toolchain. The reported dependency is
-`propext`; no `sorryAx`, custom axiom, or disabled kernel check is reported.
-This is elaborator/kernel acceptance of this example, not exported replay,
-independent-kernel acceptance, or evidence about Cardano execution. The
-false-control result is tactic rejection observed through the successful
-`fail_if_success` check, not a general soundness or completeness claim.
+The positive `by colony` theorem and the two example-level projection lemmas
+were accepted by Lean's elaborator/kernel. The projection lemmas expose the
+step branches to simplification; the successful build does not establish that
+`colony` itself split `command.advance`. The concrete branch examples and
+false counterexample are additional example-level proofs. The guarded
+`fail_if_success` establishes that `colony` did not close the stated false
+target in this context. The positive theorem's reported axiom dependency is
+`propext`, with no `sorryAx` in the successful build. This is Lean
+elaborator/kernel acceptance of this example, not exported replay,
+independent-kernel acceptance, or correspondence to Cardano execution.
