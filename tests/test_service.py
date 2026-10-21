@@ -9,6 +9,36 @@ from unittest import mock
 from colony.service import install_service, service_status, start_service, stop_service, uninstall_service
 
 
+RUNNING_JOB = """gui/501/io.qed-colony.autonomy.example = {
+\tactive count = 1
+\tpath = /Users/example/Library/LaunchAgents/colony.plist
+\tstate = running
+\targuments = {
+\t\t/usr/bin/python3
+\t\t-m
+\t\tcolony
+\t}
+\tpid = 12345
+\tresource coalition = {
+\t\tid = 456
+\t\tstate = active
+\t\tpid = 98765
+\t}
+}
+"""
+
+SCHEDULED_JOB = """gui/501/io.qed-colony.autonomy.example = {
+\tactive count = 0
+\tstate = spawn scheduled
+\tlast exit code = 1
+\tresource coalition = {
+\t\tstate = active
+\t\tpid = 98765
+\t}
+}
+"""
+
+
 class ServiceTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -27,7 +57,7 @@ class ServiceTests(unittest.TestCase):
         def run(arguments, **kwargs):
             self.calls.append((arguments, kwargs))
             if arguments[1] == "print":
-                return subprocess.CompletedProcess(arguments, 0, stdout="state = running\n  pid = 12345\n", stderr="")
+                return subprocess.CompletedProcess(arguments, 0, stdout=RUNNING_JOB, stderr="")
             return subprocess.CompletedProcess(arguments, 0, stdout="", stderr="")
         self.run_mock = mock.patch("colony.service.subprocess.run", side_effect=run).start()
         self.addCleanup(mock.patch.stopall)
@@ -73,6 +103,7 @@ class ServiceTests(unittest.TestCase):
         running = service_status(self.root, home=self.home)
         self.assertTrue(running["running"])
         self.assertEqual(running["pid"], 12345)
+        self.assertEqual(running["state"], "running")
         self.run_mock.side_effect = lambda arguments, **kwargs: subprocess.CompletedProcess(arguments, 113, "", "No such process")
         stopped = service_status(self.root, home=self.home)
         self.assertTrue(stopped["installed"])
@@ -82,6 +113,15 @@ class ServiceTests(unittest.TestCase):
         uninstall_service(self.root, home=self.home)
         self.assertTrue(runtime.exists())
         self.assertFalse(Path(result["plist"]).exists())
+
+    def test_scheduled_job_ignores_nested_coalition_state_and_pid(self):
+        self.install()
+        self.run_mock.side_effect = lambda arguments, **kwargs: subprocess.CompletedProcess(arguments, 0, SCHEDULED_JOB, "")
+        scheduled = service_status(self.root, home=self.home)
+        self.assertTrue(scheduled["loaded"])
+        self.assertEqual(scheduled["state"], "spawn scheduled")
+        self.assertIsNone(scheduled["pid"])
+        self.assertFalse(scheduled["running"])
 
     def test_invalid_port_or_missing_codex_never_runs_launchctl(self):
         with self.assertRaises(ValueError):

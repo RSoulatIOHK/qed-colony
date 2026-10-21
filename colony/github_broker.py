@@ -40,6 +40,15 @@ def validate_public_text(value):
     return value
 
 
+def redact_ci_paths(value):
+    """Keep actionable filenames while removing CI-specific machine prefixes."""
+    # GitHub checks out a repository beneath work/<repo>/<repo>. Resolve this
+    # first so the useful repository-relative suffix survives home redaction.
+    value = re.sub(r"/(?:home|Users)/runner/work/([^/\s\"':]+)/\1(?=/|[\s\"':]|$)",
+                   "<checkout>", value)
+    return re.sub(r"/(?:home|Users)/[^/\s\"':]+(?=/|[\s\"':]|$)", "<runner-home>", value)
+
+
 def checks_state(pr, required_checks):
     """Only exact required check names with a successful conclusion satisfy CI."""
     found = {}
@@ -230,7 +239,7 @@ class GitHubBroker:
                     details.append(log[-12000:])
                 except (subprocess.SubprocessError, OSError):
                     details.append("Failed log is unavailable; reproduce the named check locally.")
-        return validate_public_text("\n".join(details)[:16000])
+        return validate_public_text(redact_ci_paths("\n".join(details))[:16000])
 
     def _bounded_log(self, run_id):
         """Bound both bytes retained and bytes consumed from potentially huge CI logs."""

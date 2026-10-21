@@ -172,12 +172,22 @@ def service_status(root, *, home=None):
     state = "unloaded"
     if result.returncode == 0:
         state = "loaded"
+        depth = 0
         for line in result.stdout.splitlines():
-            key, separator, value = line.strip().partition(" = ")
-            if separator and key == "pid" and value.isdigit():
-                pid = int(value)
-            elif separator and key == "state":
-                state = value
+            stripped = line.strip()
+            if stripped == "}":
+                depth = max(0, depth - 1)
+                continue
+            # launchctl also prints state and pid inside resource coalitions
+            # and other nested records. Only the job's own fields describe it.
+            if depth == 1:
+                key, separator, value = stripped.partition(" = ")
+                if separator and key == "pid" and value.isdigit():
+                    pid = int(value)
+                elif separator and key == "state":
+                    state = value
+            if stripped.endswith("= {"):
+                depth += 1
     return {"installed": bool(metadata and paths["plist"].is_file()), "loaded": result.returncode == 0,
             "running": result.returncode == 0 and pid is not None, "pid": pid, "state": state,
             "label": paths["label"], "deployment_id": (metadata or {}).get("deployment_id"),
