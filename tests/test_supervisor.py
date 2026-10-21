@@ -131,6 +131,26 @@ class SupervisorTests(unittest.TestCase):
         self.assertEqual(self.autonomy.service_snapshot()["status"], "stopped")
         self.make_supervisor().acquire_lock()
 
+    def test_periodic_operations_audit_dispatches_before_new_research(self):
+        for number in range(3):
+            cycle = self.autonomy.create_cycle("old-%s" % number, "engineer")
+            self.autonomy.update_cycle(cycle["id"], phase="done")
+        self.seed()
+        self.supervisor.tick()
+        cycle = self.autonomy.next_cycle()
+        self.assertEqual(cycle["task_id"], "OPS001")
+        self.assertEqual(cycle["role"], "operations")
+
+    def test_pending_ci_advances_without_scheduling_audit(self):
+        for number in range(3):
+            old = self.autonomy.create_cycle("old-%s" % number, "engineer")
+            self.autonomy.update_cycle(old["id"], phase="done")
+        active = self.autonomy.create_cycle("active", "engineer")
+        self.autonomy.update_cycle(active["id"], phase="ci")
+        self.supervisor.tick()
+        self.assertEqual(self.autonomy.get_cycle(active["id"])["phase"], "done")
+        self.assertIsNone(self.tasks.get_task("OPS001"))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -371,7 +371,8 @@ class Store:
             keys = {"id", "task_id", "role", "phase", "created_at", "updated_at", "branch", "pr_url",
                     "head_sha", "reviewed_sha", "revision", "review", "checks", "summary", "model",
                     "reasoning_effort", "model_reason", "author_model", "review_model", "last_error",
-                    "ci_status", "ci_checks", "review_attempt"}
+                    "ci_status", "ci_checks", "review_attempt", "governance_required",
+                    "governance_status", "follow_up_task_ids"}
             cycles = [{key: value for key, value in cycle.items() if key in keys}
                       for cycle in autonomy.list_cycles()]
             result["autonomy"] = {"service": autonomy.service_snapshot(),

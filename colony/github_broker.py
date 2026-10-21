@@ -21,6 +21,14 @@ class PublicationRejected(RuntimeError):
 
 ENGINEER_FILES = frozenset({"lean/Colony/Tactic.lean", "lean/Colony.lean"})
 ENGINEER_PREFIXES = ("lean/Colony/Procedures/", "lean/Colony/Examples/", "research/")
+SRE_FILES = frozenset({
+    "colony/network_recovery.py", "colony/network.py", "colony/supervisor.py",
+    "colony/pipeline.py", "colony/worker.py", "colony/github_broker.py", "colony/operations.py",
+    "tests/test_network_recovery.py", "tests/test_network.py", "tests/test_supervisor.py",
+    "tests/test_pipeline.py", "tests/test_worker.py", "tests/test_execute_job.py",
+    "tests/test_github_broker.py", "tests/test_operations.py", "docs/network-recovery.md", "docs/autonomy.md",
+    "docs/pipeline.md", "docs/workers.md",
+})
 SECRET_PATTERN = re.compile(
     rb"(?:-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|"
     rb"\bgh[pousr]_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{30,}|"
@@ -122,7 +130,7 @@ class GitHubBroker:
             if path.is_absolute() or ".." in path.parts or any(part.startswith(".") for part in path.parts):
                 raise PublicationRejected("Unsafe candidate path")
             allowed = name.startswith("research/") or (role == "engineer" and
-                (name in ENGINEER_FILES or name.startswith(ENGINEER_PREFIXES)))
+                (name in ENGINEER_FILES or name.startswith(ENGINEER_PREFIXES))) or (role == "sre" and name in SRE_FILES)
             if not allowed:
                 raise PublicationRejected("Protected path changed: " + name)
             candidate = worktree / name
@@ -185,17 +193,21 @@ class GitHubBroker:
         existing = self.find_pr(cycle["branch"])
         if existing:
             return existing
-        body = ("%s\n\nTask: `%s`\n\n%s\n\n"
-                "The colony controller published this candidate. A separate read-only model context reviews "
-                "the exact head; protected CI must pass before automatic merge. Model output alone is not "
-                "a proof certificate.\n\n<!-- colony-cycle:%s -->\n") % (
-                    task["title"], task["id"], summary[:12000], cycle["id"])
+        governance = task.get("role") == "sre"
+        disposition = ("This is a separate governance PR for controller code. A separate read-only model context "
+                       "reviews the exact head and required CI must pass. It then awaits controller integration; "
+                       "the routine pipeline never automatically merges or deploys this candidate." if governance else
+                       "A separate read-only model context reviews the exact head; protected CI must pass before automatic merge.")
+        body = ("%s\n\nTask: `%s`\n\n%s\n\nThe colony controller published this candidate. %s "
+                "Model output alone is not a proof certificate.\n\n<!-- colony-cycle:%s -->\n") % (
+                    task["title"], task["id"], summary[:12000], disposition, cycle["id"])
         validate_public_text(body)
         with tempfile.TemporaryDirectory(prefix="colony-pr-") as directory:
             body_path = Path(directory) / "body.md"
             body_path.write_text(body, encoding="utf-8")
             self.gh("pr", "create", "--base", self.base_branch, "--head", cycle["branch"],
-                    "--title", "%s: %s" % (task["id"], task["title"][:150]), "--body-file", str(body_path))
+                    "--title", ("Governance: " if governance else "") + "%s: %s" % (task["id"], task["title"][:150]),
+                    "--body-file", str(body_path))
         result = self.find_pr(cycle["branch"])
         if result is None:
             raise RuntimeError("PR creation did not return a discoverable pull request")

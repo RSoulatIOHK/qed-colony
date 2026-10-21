@@ -69,6 +69,24 @@ class BrokerGateTests(unittest.TestCase):
         broker.gh.assert_not_called()
         broker.git.assert_called_once()
 
+    def test_sre_publication_is_explicitly_a_separate_governance_pr(self):
+        broker = GitHubBroker(".")
+        broker.git = Mock()
+        broker.find_pr = Mock(side_effect=[None, passing_pr()])
+        published = {}
+
+        def create(*args):
+            published["title"] = args[args.index("--title") + 1]
+            published["body"] = Path(args[args.index("--body-file") + 1]).read_text()
+
+        broker.gh = Mock(side_effect=create)
+        broker.publish({"worktree": ".", "branch": "codex/sre", "id": "s1"},
+                       {"id": "S1", "title": "Recover network errors", "role": "sre"}, "A bounded recovery candidate")
+        self.assertEqual(published["title"], "Governance: S1: Recover network errors")
+        self.assertIn("separate governance PR", published["body"])
+        self.assertIn("awaits controller integration", published["body"])
+        self.assertIn("never automatically merges or deploys", published["body"])
+
     def test_review_comment_is_idempotent_and_honestly_labelled(self):
         broker = GitHubBroker(".")
         broker.gh = Mock(return_value=json.dumps([{"body": "<!-- colony-review:c1:abc -->"}]))
@@ -181,6 +199,37 @@ class BrokerPathTests(unittest.TestCase):
         with self.assertRaisesRegex(PublicationRejected, "Git history"):
             self.broker.commit({"worktree": str(self.root), "base_sha": self.base, "branch": "master"},
                                {"id": "T1", "title": "Example", "role": "engineer"})
+
+    def test_sre_can_publish_narrow_controller_recovery_code_and_tests(self):
+        for name in ["colony/network_recovery.py", "colony/pipeline.py", "tests/test_network_recovery.py",
+                     "docs/network-recovery.md", "research/recovery.md"]:
+            path = self.root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("Scoped recovery proposal\n")
+        paths = self.broker.validate_changes(self.root, "sre", self.base)
+        self.assertIn("colony/network_recovery.py", paths)
+        self.assertIn("tests/test_network_recovery.py", paths)
+        with self.assertRaisesRegex(PublicationRejected, "Protected path"):
+            self.broker.validate_changes(self.root, "engineer", self.base)
+
+    def test_sre_cannot_publish_authority_configuration_evaluator_or_lean_changes(self):
+        for name in ["colony/service.py", "colony/__main__.py", "colony/model_policy.py", "colony.json", "AGENTS.md",
+                     ".github/workflows/ci.yml", "scripts/evaluate_lean.py", "lean/Challenge.lean",
+                     "benchmarks/seed-v1.json", "lean/Colony/Tactic.lean"]:
+            with self.subTest(path=name):
+                path = self.root / name
+                existed = path.exists()
+                original = path.read_text() if existed else None
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text("Forbidden scoped modification\n")
+                try:
+                    with self.assertRaises(PublicationRejected):
+                        self.broker.validate_changes(self.root, "sre", self.base)
+                finally:
+                    if existed:
+                        path.write_text(original)
+                    else:
+                        path.unlink()
 
 
 if __name__ == "__main__":

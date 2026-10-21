@@ -19,6 +19,7 @@ This repository includes a bounded, persistent local colony:
 - A restartable controller that takes scoped tasks through implementation, public PRs, independent agent review, CI, and head-pinned merging.
 - Adaptive model routing: GPT-6 Luna at medium reasoning first, stronger Sol models on retries and proof-sensitive review. All attempts share a daily runtime budget.
 - A pinned macOS user service that survives the chat closing. The Mac must remain awake and connected for work to progress.
+- SRE workers for scoped controller fixes and an operations steward that audits bottlenecks and proposes missing roles and reviewed follow-up jobs. See [roles and handoffs](docs/roles.md).
 - A small Lean tactic and seed benchmark. These are infrastructure checks, **not evidence of superiority to Blaster or verification of deployed Cardano scripts**.
 
 ## Run the Observatory

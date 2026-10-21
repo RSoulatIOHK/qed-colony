@@ -54,6 +54,8 @@
         "model": "gpt-6.1-sol",
         "reasoning_effort": "high"
       }
-    ]
+    ],
+    "operations_audit_every_cycles": 3,
+    "operations_max_backlog": 12
   }
 }
