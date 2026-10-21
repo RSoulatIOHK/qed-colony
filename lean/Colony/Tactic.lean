@@ -20,6 +20,14 @@ private def booleanPortfolio (subject : Ident) : TacticM Unit := do
     arithmeticPortfolio
   setGoals []
 
+private def optionPortfolio (subject : Ident) : TacticM Unit := do
+  evalTactic (← `(tactic| cases $subject:ident))
+  let branches ← getGoals
+  for branch in branches do
+    setGoals [branch]
+    arithmeticPortfolio
+  setGoals []
+
 /--
 The initial deterministic proof portfolio: simplification, Presburger arithmetic,
 closed decision procedures, and one structural induction on a list or natural.
@@ -45,6 +53,20 @@ elab "colony" : tactic => do
           catch _ => candidateState.restore
     return false
   if booleanSolved then
+    return
+  let optionSolved ← withMainContext do
+    let context ← getLCtx
+    for decl in context do
+      unless decl.isImplementationDetail do
+        let type ← whnf decl.type
+        if type.isAppOf ``Option then
+          let candidateState ← saveState
+          try
+            optionPortfolio (mkIdent decl.userName)
+            return true
+          catch _ => candidateState.restore
+    return false
+  if optionSolved then
     return
   let commandSolved ← withMainContext do
     let context ← getLCtx
