@@ -54,6 +54,36 @@ def fixture_report():
         "baseline_comparability": {"blaster": {"state": "unavailable", "reason": "Toolchains differ; no matched comparison."}}}
 
 
+def coverage_counts(total, attempted=0, certified=0, uncertified=0):
+    return {"attempted": attempted, "certified": certified, "proof_failed": 0, "timeouts": 0,
+            "errors": 0, "uncertified": uncertified, "unattempted": total - attempted}
+
+
+def fixture_northstar(report_digest):
+    families = []
+    for index, total in enumerate([108, 100] + [46] * 9 + [49]):
+        admitted, blocked = (12 if index == 0 else 0), (2 if index == 1 else 0)
+        family = "NNG4" if index == 0 else "Verina" if index == 1 else "FixtureFamily%d" % index
+        families.append({"id": family, "label": family, "source_url": "https://github.com/example/upstream/tree/" + "b" * 40 + "/" + family,
+            "total_cases": total, "admitted_cases": admitted, "unadmitted_cases": total - admitted - blocked,
+            "integration_blocked_cases": blocked, "current": coverage_counts(total, admitted, admitted), "historical": None})
+    return {"schema": "colony.benchmark_northstar.v1",
+        "catalog": {"id": "fixture-full-catalog", "sha256": "c" * 64, "lock_sha256": "d" * 64,
+                    "repository": "https://github.com/example/upstream", "upstream_revision": "b" * 40,
+                    "url": "https://github.com/example/repo/blob/main/benchmarks/catalog.json",
+                    "upstream_url": "https://github.com/example/upstream/tree/" + "b" * 40,
+                    "total_cases": 671, "family_count": 12},
+        "status": {"state": "current", "stale": False, "target_revision": "a" * 40,
+                   "measured_revision": "a" * 40, "observed_at": "2026-10-21T12:00:00Z",
+                   "report_sha256": report_digest, "binding_valid": True, "controls_valid": True, "message": "Measured fixture only."},
+        "totals": {"total_cases": 671, "admitted_cases": 12, "unadmitted_cases": 657, "integration_blocked_cases": 2},
+        "current": coverage_counts(671, 12, 12), "historical": None, "families": families,
+        "issues": [{"canonical_case_id": "fixture.ambiguous%d" % index, "family": "Verina", "kind": "ambiguous_helper_target",
+                    "message": "The source runner and target name differ.", "source_url": "https://github.com/example/upstream/blob/" + "b" * 40 + "/Ambiguous.lean"} for index in (1, 2)],
+        "next_admission": {"family": "NNG4", "canonical_cases": 108, "admitted_cases": 12, "remaining_cases": 96,
+                           "status": "governance_required", "message": "Admission requires reviewed governance."}}
+
+
 class BenchmarkStateTests(unittest.TestCase):
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
@@ -81,6 +111,8 @@ class BenchmarkStateTests(unittest.TestCase):
         self.assertTrue(snapshot["live_benchmark"]["status"]["stale"])
         self.assertNotIn("summary", snapshot["live_benchmark"])
         self.assertEqual(len(snapshot["benchmarks"]), 1)
+        self.assertIsNone(snapshot["live_benchmark"]["north_star"]["catalog"])
+        self.assertNotIn("current", snapshot["live_benchmark"]["north_star"])
 
     def test_snapshot_projects_actual_report_without_commands_or_private_context(self):
         self.report["commands"] = [["private-command", str(self.root)]]
@@ -292,6 +324,177 @@ process.stdout.write(JSON.stringify({live,saved,empty:container.textContent}));
         self.assertNotIn("null /", rendered["live"])
         self.assertIn("stale run", rendered["saved"])
         self.assertIn("No completed strict benchmark report", rendered["empty"])
+
+
+class NorthStarStateTests(unittest.TestCase):
+    def setUp(self):
+        temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
+        self.directory = Path(temporary.name)
+        self.report = fixture_report()
+        self.report["cases"] = [fixture_case("fixture_case%d" % index) for index in range(12)]
+        self.report["suite"].update(case_count=12)
+        self.report["suite"]["selection"]["count"] = 12
+        for item in self.report["summary"].values():
+            item.update(proved=12, total=12, wall_seconds=1.5)
+        self.status = {"schema": "colony.live_benchmark_status.v1", "state": "ready", "stale": False,
+            "target_revision": "a" * 40, "latest_revision": "a" * 40, "observed_at": "2026-10-21T12:00:00Z"}
+        self.write_report()
+        self.north = fixture_northstar(self.digest)
+        self.write_north()
+
+    def write_report(self):
+        raw = json.dumps(self.report).encode()
+        (self.directory / "latest.json").write_bytes(raw)
+        (self.directory / "status.json").write_text(json.dumps(self.status))
+        self.digest = hashlib.sha256(raw).hexdigest()
+
+    def write_north(self):
+        (self.directory / "northstar.json").write_text(json.dumps(self.north))
+
+    def read(self, now=NOW):
+        return read_live_benchmark(self.directory, now=now)
+
+    def test_whole_canonical_denominator_families_and_blocked_subset_are_separate(self):
+        north = self.read()["north_star"]
+        self.assertTrue(north["coverage_available"])
+        self.assertEqual(north["catalog"]["total_cases"], 671)
+        self.assertEqual(len(north["families"]), 12)
+        self.assertEqual(north["current"], coverage_counts(671, 12, 12))
+        self.assertEqual(north["totals"], {"total_cases": 671, "admitted_cases": 12, "unadmitted_cases": 657, "integration_blocked_cases": 2})
+        self.assertEqual(north["current"]["proof_failed"], 0)
+        self.assertEqual(north["current"]["unattempted"], 659)
+        self.assertEqual(north["families"][0]["current"], coverage_counts(108, 12, 12))
+        self.assertEqual(len(north["issues"]), 2)
+        self.assertIsNone(north["historical"])
+
+    def test_revision_change_preserves_history_without_combining_it_with_current(self):
+        self.status.update(target_revision="f" * 40, stale=True)
+        self.write_report()
+        self.north["status"].update(target_revision="f" * 40, stale=True, state="historical")
+        self.north["historical"] = {"measured_revision": "a" * 40, "counts": self.north["current"]}
+        self.north["current"] = coverage_counts(671)
+        for family in self.north["families"]:
+            family["historical"], family["current"] = family["current"], coverage_counts(family["total_cases"])
+        self.write_north()
+        north = self.read()["north_star"]
+        self.assertEqual(north["status"]["state"], "historical")
+        self.assertEqual(north["current"]["attempted"], 0)
+        self.assertEqual(north["historical"]["counts"]["certified"], 12)
+        self.assertEqual(north["families"][0]["current"]["certified"], 0)
+        self.assertEqual(north["families"][0]["historical"]["certified"], 12)
+
+    def test_expired_runner_observation_moves_proofs_to_history(self):
+        north = self.read(now=NOW + 301)["north_star"]
+        self.assertEqual(north["status"]["state"], "historical")
+        self.assertTrue(north["status"]["stale"])
+        self.assertEqual(north["current"]["attempted"], 0)
+        self.assertEqual(north["historical"]["counts"]["attempted"], 12)
+
+    def test_exact_report_bytes_and_binding_are_required_for_coverage(self):
+        for changes in ({"report_sha256": "0" * 64}, {"binding_valid": False}, {"measured_revision": "f" * 40}, {"report_sha256": None}):
+            with self.subTest(changes=changes):
+                self.north = fixture_northstar(self.digest)
+                self.north["status"].update(changes)
+                self.write_north()
+                north = self.read()["north_star"]
+                self.assertFalse(north["coverage_available"])
+                self.assertEqual(north["current"]["certified"], 0)
+                self.assertIsNone(north["historical"])
+                self.assertEqual(north["status"]["state"], "unavailable")
+        self.north = fixture_northstar(self.digest)
+        self.write_north()
+        with (self.directory / "latest.json").open("ab") as stream:
+            stream.write(b"\n")
+        self.assertFalse(self.read()["north_star"]["coverage_available"])
+
+    def test_invalid_controls_never_produce_certified_catalog_cases(self):
+        self.report["controls"][1]["results"]["colony"].update(status="kernel_accepted", axioms=[])
+        self.report["summary"]["colony"].update(valid=False, proved=None, accepted_unvalidated=12)
+        self.report["valid"] = False
+        self.write_report()
+        self.north = fixture_northstar(self.digest)
+        self.north["status"].update(controls_valid=False, state="uncertified")
+        self.north["current"] = coverage_counts(671, 12, 0, 12)
+        self.north["families"][0]["current"] = coverage_counts(108, 12, 0, 12)
+        self.write_north()
+        north = self.read()["north_star"]
+        self.assertTrue(north["coverage_available"])
+        self.assertEqual(north["status"]["state"], "uncertified")
+        self.assertEqual(north["current"]["certified"], 0)
+        self.assertEqual(north["current"]["uncertified"], 12)
+        self.north["current"] = coverage_counts(671, 12, 12)
+        self.north["families"][0]["current"] = coverage_counts(108, 12, 12)
+        self.write_north()
+        self.assertIsNone(self.read()["north_star"]["catalog"])
+
+    def test_inconsistent_or_fabricated_counts_are_withheld(self):
+        for mutate in (
+                lambda value: value["current"].update(attempted=671),
+                lambda value: value["families"][0]["current"].update(certified=13),
+                lambda value: value["totals"].update(unadmitted_cases=659),
+                lambda value: value["families"][1].update(integration_blocked_cases=0),
+                lambda value: value["status"].update(controls_valid=False),
+                lambda value: value["next_admission"].update(remaining_cases=97)):
+            with self.subTest(mutation=mutate):
+                self.north = fixture_northstar(self.digest)
+                mutate(self.north)
+                self.write_north()
+                state = self.read()
+                self.assertIsNone(state["north_star"]["catalog"])
+                self.assertIsNotNone(state["report"])
+
+    def test_missing_unsafe_oversize_and_symlink_catalog_state_never_invent_coverage(self):
+        self.north["private_log"] = "/" + "Users/example/private/local.log"
+        self.write_north()
+        self.assertNotIn("private_log", self.read()["north_star"])
+        self.north["issues"][0]["message"] = self.north["private_log"]
+        self.write_north()
+        self.assertIsNone(self.read()["north_star"]["catalog"])
+        self.north = fixture_northstar(self.digest)
+        self.write_north()
+        with patch("colony.benchmark_state.MAX_NORTHSTAR_BYTES", 100):
+            self.assertIsNone(self.read()["north_star"]["catalog"])
+        external = self.directory / "external.json"
+        external.write_text(json.dumps(self.north))
+        (self.directory / "northstar.json").unlink()
+        (self.directory / "northstar.json").symlink_to(external)
+        self.assertIsNone(self.read()["north_star"]["catalog"])
+        (self.directory / "northstar.json").unlink()
+        value = self.read()["north_star"]
+        self.assertIsNone(value["catalog"])
+        self.assertNotIn("current", value)
+
+    @unittest.skipUnless(shutil.which("node"), "Node is needed for the DOM contract regression")
+    def test_dom_shows_whole_denominator_only_twelve_families_and_saved_evidence_separately(self):
+        script = r"""
+const fs=require('fs'),vm=require('vm'),payload=JSON.parse(fs.readFileSync(0,'utf8'));
+class Node{constructor(tag,text=''){this.tag=tag;this.text=String(text);this.children=[];}
+append(...children){this.children.push(...children);}replaceChildren(...children){this.children=[...children];this.text='';}
+get textContent(){return this.text+' '+this.children.map(n=>n.textContent??String(n)).join(' ');}}
+const container=new Node('section'),state={source:'live',data:{live_benchmark:payload}};
+const context={state,el:(tag,cls='',text='')=>new Node(tag,text),$:()=>container,
+pretty:x=>String(x).replaceAll('_',' '),dateTime:x=>x,relative:x=>'recorded time',
+link:(label,url)=>url?new Node('a',label):null,empty:(title,message)=>new Node('p',title+' '+message)};
+vm.createContext(context);const source=fs.readFileSync('observatory/dist/app.js','utf8');
+vm.runInContext(source.slice(source.indexOf('  const liveStrategies ='),source.indexOf('  function renderBenchmarks()')),context);
+vm.runInContext('renderNorthStar()',context);const live=container.textContent;
+const find=n=>n.tag==='tbody'?n.children.length:n.children.reduce((sum,c)=>sum+find(c),0);
+const familyRows=find(container);state.source='snapshot';vm.runInContext('renderNorthStar()',context);const saved=container.textContent;
+state.data.live_benchmark={};vm.runInContext('renderNorthStar()',context);
+process.stdout.write(JSON.stringify({live,saved,familyRows,empty:container.textContent}));
+"""
+        completed = subprocess.run([shutil.which("node"), "-e", script], input=json.dumps(self.read()),
+            capture_output=True, text=True, check=True, timeout=10, cwd=Path(__file__).resolve().parents[1])
+        rendered = json.loads(completed.stdout)
+        for text in ("671 canonical source cases", "12 / 671", "659", "12 / 108", "2 upstream source ambiguities", "not failures", "whole canonical catalog JSON"):
+            self.assertIn(text, rendered["live"])
+        self.assertEqual(rendered["familyRows"], 12)
+        self.assertIn("Saved coverage", rendered["saved"])
+        self.assertIn("Historical measured coverage", rendered["saved"])
+        self.assertIn("no live current-target coverage", rendered["saved"])
+        self.assertIn("Full benchmark coverage unavailable", rendered["empty"])
+        self.assertNotIn("671", rendered["empty"])
 
 
 if __name__ == "__main__":

@@ -317,6 +317,7 @@ class BenchmarkService:
         self.command_runner = command_runner
         self.stop = stop or threading.Event()
         self._deadline = None
+        self._catalog = None
         self.state_dir.mkdir(parents=True, exist_ok=True)
 
     def command(self, args, cwd=None, timeout=60):
@@ -338,7 +339,30 @@ class BenchmarkService:
                  "message": "", "completed_rows": 0, "total_rows": 0, "observed_at": now()}
         value.update(data)
         atomic_json(self.state_dir / "status.json", value)
+        self._northstar(value)
         return value
+
+    def _northstar(self, status):
+        """Publish only derived inventory coverage, without executing new goals."""
+        from .benchmark_catalog import load_catalog, project_coverage
+        try:
+            if self._catalog is None:
+                self._catalog = load_catalog(self.runtime_root)
+            path = self.state_dir / "latest.json"
+            report, report_hash = None, None
+            if path.is_file() and not path.is_symlink() and path.stat().st_size <= 8 * 1024 * 1024:
+                raw = path.read_bytes()
+                report = json.loads(raw.decode("utf-8"))
+                report_hash = digest(raw)
+            coverage = project_coverage(self._catalog, report, status, report_hash)
+        except (OSError, ValueError, KeyError, TypeError, RecursionError, OverflowError):
+            # An unavailable protected catalog never promotes an older coverage
+            # document to current status, nor prevents the existing fixed suite.
+            coverage = {"schema": "colony.benchmark_northstar.v1",
+                        "status": {"state": "unavailable", "stale": True,
+                                   "observed_at": status["observed_at"],
+                                   "message": "Pinned whole-benchmark catalog is unavailable; no coverage is claimed."}}
+        atomic_json(self.state_dir / "northstar.json", coverage)
 
     def run_once(self, force=False):
         lock = (self.state_dir / "run.lock").open("a+")
@@ -352,6 +376,7 @@ class BenchmarkService:
             lock.close()
 
     def _run_locked(self, force):
+        self._catalog = None
         latest = read_json(self.state_dir / "latest.json")
         revision, worktree = None, None
         started = now()

@@ -13,6 +13,7 @@ from urllib.parse import urlsplit
 
 MAX_REPORT_BYTES = 8 * 1024 * 1024
 MAX_STATUS_BYTES = 64 * 1024
+MAX_NORTHSTAR_BYTES = 256 * 1024
 MAX_STATUS_AGE_SECONDS = 300
 STRATEGIES = {"colony": "by colony", "simp": "by simp_all",
               "omega": "by intros; omega", "grind": "by intros; grind"}
@@ -71,7 +72,7 @@ def _object(value):
     return value
 
 
-def _load(path, limit):
+def _load(path, limit, with_digest=False):
     if path.is_symlink() or not stat.S_ISREG(path.stat().st_mode):
         raise ValueError("Benchmark input must be a regular file")
     with path.open("rb") as stream:
@@ -80,7 +81,8 @@ def _load(path, limit):
         raise ValueError("Benchmark input exceeds its public size limit")
     def invalid_constant(value):
         raise ValueError("Non-finite JSON number")
-    return _object(json.loads(raw.decode("utf-8"), parse_constant=invalid_constant))
+    value = _object(json.loads(raw.decode("utf-8"), parse_constant=invalid_constant))
+    return (value, hashlib.sha256(raw).hexdigest()) if with_digest else value
 
 
 def _status(value):
@@ -278,21 +280,181 @@ def _report(value):
     return clean
 
 
+NORTHSTAR_COUNT_KEYS = ("attempted", "certified", "proof_failed", "timeouts", "errors", "uncertified", "unattempted")
+
+
+def _northstar_counts(value, total):
+    value = _object(value)
+    clean = {key: _count(value[key]) for key in NORTHSTAR_COUNT_KEYS}
+    if (clean["attempted"] + clean["unattempted"] != total
+            or sum(clean[key] for key in ("certified", "proof_failed", "timeouts", "errors", "uncertified")) != clean["attempted"]):
+        raise ValueError("North-star outcomes differ from their canonical denominator")
+    return clean
+
+
+def _northstar_empty(total):
+    return {key: total if key == "unattempted" else 0 for key in NORTHSTAR_COUNT_KEYS}
+
+
+def _northstar(value, report, report_digest, runner_status, now):
+    if value.get("schema") != "colony.benchmark_northstar.v1":
+        raise ValueError("Unsupported north-star schema")
+    catalog = _object(value["catalog"])
+    clean_catalog = {key: _hash(catalog[key], 40 if key == "upstream_revision" else 64)
+                     for key in ("sha256", "lock_sha256", "upstream_revision")}
+    clean_catalog.update(id=_text(catalog["id"], 250), repository=_text(catalog["repository"], 1000),
+                         url=_url(catalog["url"]), upstream_url=_url(catalog["upstream_url"]),
+                         total_cases=_count(catalog["total_cases"]), family_count=_count(catalog["family_count"], 100))
+    if not clean_catalog["total_cases"] or not clean_catalog["family_count"] or not clean_catalog["url"] or not clean_catalog["upstream_url"]:
+        raise ValueError("Incomplete north-star catalog identity")
+    total = clean_catalog["total_cases"]
+    totals = {key: _count(value["totals"][key]) for key in
+              ("total_cases", "admitted_cases", "unadmitted_cases", "integration_blocked_cases")}
+    if (totals["total_cases"] != total or sum(totals[key] for key in
+            ("admitted_cases", "unadmitted_cases", "integration_blocked_cases")) != total):
+        raise ValueError("North-star admission categories overlap")
+    raw_status = _object(value["status"])
+    if (raw_status.get("state") not in {"current", "historical", "unavailable", "uncertified"}
+            or any(type(raw_status.get(key)) is not bool for key in ("stale", "binding_valid", "controls_valid"))):
+        raise ValueError("Invalid north-star observation status")
+    status = {key: raw_status[key] for key in ("state", "stale", "binding_valid", "controls_valid")}
+    status.update(observed_at=_time(raw_status["observed_at"]), message=_text(raw_status["message"], 2000))
+    for key in ("target_revision", "measured_revision", "report_sha256"):
+        status[key] = _hash(raw_status[key], 64 if key == "report_sha256" else 40) if raw_status.get(key) is not None else None
+    current = _northstar_counts(value["current"], total)
+    historical = value.get("historical")
+    if historical is not None:
+        historical = _object(historical)
+        historical = {"measured_revision": _hash(historical["measured_revision"], 40),
+                      "counts": _northstar_counts(historical["counts"], total)}
+        if current["attempted"]:
+            raise ValueError("Current and historical measurements cannot be combined")
+    families = value["families"]
+    if not isinstance(families, list) or len(families) != clean_catalog["family_count"]:
+        raise ValueError("North-star family inventory differs")
+    clean_families = []
+    for item in families:
+        item = _object(item)
+        family = {key: _text(item[key], 250) for key in ("id", "label")}
+        family.update(source_url=_url(item["source_url"]))
+        family.update({key: _count(item[key]) for key in totals})
+        if sum(family[key] for key in ("admitted_cases", "unadmitted_cases", "integration_blocked_cases")) != family["total_cases"]:
+            raise ValueError("North-star family admission categories overlap")
+        family["current"] = _northstar_counts(item["current"], family["total_cases"])
+        family["historical"] = _northstar_counts(item["historical"], family["total_cases"]) if item.get("historical") is not None else None
+        if any(counts and counts["attempted"] > family["admitted_cases"] for counts in (family["current"], family["historical"])):
+            raise ValueError("Unadmitted canonical cases cannot have measured outcomes")
+        clean_families.append(family)
+    if len({family["id"] for family in clean_families}) != len(clean_families):
+        raise ValueError("Duplicate north-star family")
+    for key in totals:
+        if sum(family[key] for family in clean_families) != totals[key]:
+            raise ValueError("North-star family totals differ")
+    for key in NORTHSTAR_COUNT_KEYS:
+        if sum(family["current"][key] for family in clean_families) != current[key]:
+            raise ValueError("North-star family current outcomes differ")
+        if historical and sum(family["historical"][key] if family["historical"] else family["total_cases"] if key == "unattempted" else 0 for family in clean_families) != historical["counts"][key]:
+            raise ValueError("North-star family historical outcomes differ")
+    if not historical and any(family["historical"] for family in clean_families):
+        raise ValueError("Historical family results lack a measured revision")
+    issues = value["issues"]
+    if not isinstance(issues, list) or len(issues) != totals["integration_blocked_cases"] or len(issues) > 100:
+        raise ValueError("North-star source integrity issues differ from the blocked subset")
+    clean_issues = []
+    for item in issues:
+        clean_issue = {key: _text(item[key], 2000 if key == "message" else 250)
+                       for key in ("canonical_case_id", "family", "kind", "message")}
+        clean_issue["source_url"] = _url(item["source_url"])
+        clean_issues.append(clean_issue)
+    if (len({item["canonical_case_id"] for item in clean_issues}) != len(clean_issues)
+            or any(sum(issue["family"] == family["id"] for issue in clean_issues) != family["integration_blocked_cases"] for family in clean_families)):
+        raise ValueError("North-star source issues do not match their families")
+    admission = _object(value["next_admission"])
+    next_admission = {key: _text(admission[key], 2000 if key == "message" else 250)
+                      for key in ("family", "status", "message")}
+    next_admission.update({key: _count(admission[key]) for key in ("canonical_cases", "admitted_cases", "remaining_cases")})
+    family = next((family for family in clean_families if family["id"] == next_admission["family"]), None)
+    if (family is None or next_admission["canonical_cases"] != family["total_cases"]
+            or next_admission["admitted_cases"] != family["admitted_cases"]
+            or next_admission["remaining_cases"] != family["unadmitted_cases"]):
+        raise ValueError("Next admission differs from the pinned family")
+    bound = bool(report and status["binding_valid"] and report_digest == status["report_sha256"]
+                 and report["source_revision"] == status["measured_revision"])
+    measured = historical["counts"] if historical else current
+    if bound:
+        if historical and historical["measured_revision"] != report["source_revision"]:
+            raise ValueError("North-star history refers to another report")
+        expected = {"attempted": len(report["cases"]), "certified": 0, "proof_failed": 0,
+                    "timeouts": 0, "errors": 0, "uncertified": 0, "unattempted": total - len(report["cases"])}
+        for case in report["cases"]:
+            outcome = case["results"]["colony"]["status"]
+            key = {"kernel_accepted": "certified" if report["valid"] else "uncertified",
+                   "proof_failed": "proof_failed", "timeout": "timeouts"}.get(outcome, "errors")
+            expected[key] += 1
+        if measured != expected or status["controls_valid"] != report["valid"]:
+            raise ValueError("North-star progress differs from its exact measured report")
+    if not bound:
+        status.update(state="unavailable", stale=True, binding_valid=False,
+                      message="Canonical inventory is available, but no exact validated report binding is available.")
+        current, historical = _northstar_empty(total), None
+        for family in clean_families:
+            family.update(current=_northstar_empty(family["total_cases"]), historical=None)
+    else:
+        observed = dt.datetime.fromisoformat(status["observed_at"].replace("Z", "+00:00")).timestamp()
+        age = (time.time() if now is None else now) - observed
+        status["observation_age_seconds"] = round(age, 3)
+        stale = bool(status["stale"] or status["state"] == "historical" or not -30 <= age <= MAX_STATUS_AGE_SECONDS
+                     or runner_status.get("stale") is not False
+                     or status["target_revision"] != runner_status.get("target_revision")
+                     or status["target_revision"] != report["source_revision"])
+        if stale or historical:
+            status.update(state="historical", stale=True)
+            if not historical:
+                historical = {"measured_revision": report["source_revision"], "counts": current}
+                for family in clean_families:
+                    family["historical"] = family["current"]
+            current = _northstar_empty(total)
+            for family in clean_families:
+                family["current"] = _northstar_empty(family["total_cases"])
+        elif not report["valid"]:
+            status.update(state="uncertified", stale=False)
+        else:
+            status.update(state="current", stale=False)
+    return {"schema": value["schema"], "catalog": clean_catalog, "status": status, "totals": totals,
+            "current": current, "historical": historical, "families": clean_families, "issues": clean_issues,
+            "next_admission": next_admission, "coverage_available": bound}
+
+
+def _read_northstar(directory, report, report_digest, runner_status, now):
+    fallback = {"catalog": None, "coverage_available": False,
+                "status": {"state": "unavailable", "stale": True, "message": "The full pinned benchmark catalog is unavailable."}}
+    try:
+        return _northstar(_load(directory / "northstar.json", MAX_NORTHSTAR_BYTES), report, report_digest, runner_status, now)
+    except FileNotFoundError:
+        return fallback
+    except (OSError, ValueError, TypeError, KeyError, RecursionError, OverflowError):
+        fallback["status"]["message"] = "Full benchmark coverage failed public validation; invalid or unsafe fields were withheld."
+        return fallback
+
+
 def read_live_benchmark(directory, now=None):
     """Return safe measured evidence, or an explicit unavailable/error state."""
     directory = Path(directory)
     fallback = {"state": "unavailable", "stale": True, "message": "No live benchmark report is recorded."}
     if directory.is_symlink():
-        return {"status": dict(fallback, state="error", message="Benchmark state is unavailable."), "report": None}
-    status, report = None, None
+        return {"status": dict(fallback, state="error", message="Benchmark state is unavailable."), "report": None,
+                "north_star": {"catalog": None, "coverage_available": False, "status": dict(fallback)}}
+    status, report, report_digest = None, None, None
     failed = False
     for name, limit, cleaner in (("status.json", MAX_STATUS_BYTES, _status), ("latest.json", MAX_REPORT_BYTES, _report)):
         try:
-            result = cleaner(_load(directory / name, limit))
+            raw, digest = _load(directory / name, limit, with_digest=True)
+            result = cleaner(raw)
             if name == "status.json":
                 status = result
             else:
                 report = result
+                report_digest = digest
         except FileNotFoundError:
             continue
         except (OSError, ValueError, TypeError, KeyError, RecursionError, OverflowError):
@@ -317,4 +479,5 @@ def read_live_benchmark(directory, now=None):
         status["stale"] = bool(status.get("stale") or status.get("state") != "ready"
                                or status.get("target_revision") != report["source_revision"]
                                or status.get("latest_revision") != report["source_revision"])
-    return {"status": status, "report": report}
+    return {"status": status, "report": report,
+            "north_star": _read_northstar(directory, report, report_digest, status, now)}

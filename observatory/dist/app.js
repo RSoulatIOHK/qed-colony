@@ -764,6 +764,87 @@
     return card;
   }
 
+  function renderNorthStar() {
+    const container = $('benchmark-north-star');
+    container.replaceChildren();
+    const north = state.data.live_benchmark?.north_star;
+    if (!north?.catalog) {
+      container.append(empty('Full benchmark coverage unavailable.', north?.status?.message || 'No validated whole-catalog state is recorded. The strict sample below does not stand in for full coverage.'));
+      return;
+    }
+    const { catalog, status, totals } = north;
+    const saved = state.source !== 'live';
+    const heading = el('div', 'live-benchmark-heading');
+    heading.append(el('h3', '', 'The whole pinned Blaster benchmark'),
+      el('span', !saved && status.state === 'current' ? 'live-benchmark-state' : 'live-benchmark-state is-stale',
+        saved ? 'Saved coverage · current target unconfirmed' : status.state === 'current' ? 'Bound to the observed target' : pretty(status.state)));
+    container.append(heading, el('p', 'north-star-denominator', `${catalog.total_cases.toLocaleString()} canonical source cases · ${catalog.family_count} families`),
+      el('p', '', status.message));
+    const metadata = el('dl', 'live-benchmark-metadata');
+    [['Runner’s observed current target', status.target_revision || 'Unavailable'],
+      ['Measured report revision', status.measured_revision || 'No bound report'],
+      ['Runner observation', `${dateTime(status.observed_at)} · ${relative(status.observed_at)}`],
+      ['Pinned upstream revision', catalog.upstream_revision],
+      ['Canonical inventory SHA-256', catalog.sha256], ['Inventory lock SHA-256', catalog.lock_sha256]]
+      .forEach(([label, value]) => { const pair = el('div'); pair.append(el('dt', '', label), el('dd', '', value)); metadata.append(pair); });
+    container.append(metadata);
+    const links = el('div', 'north-star-links');
+    [link('Inspect the whole canonical catalog JSON ↗', catalog.url), link('Pinned official upstream source ↗', catalog.upstream_url)]
+      .forEach((item) => { if (item) links.append(item); });
+    container.append(links,
+      el('p', 'north-star-admission', `${totals.admitted_cases} cases are admitted to the strict runner; ${totals.unadmitted_cases} await admission; ${totals.integration_blocked_cases} are blocked by upstream source ambiguity. These are separate inventory categories.`));
+    const showCounts = (label, counts, className = '') => {
+      const block = el('section', `north-star-counts ${className}`);
+      block.append(el('h4', '', label));
+      const metrics = el('div', 'north-star-metrics');
+      [[`${counts.attempted} / ${catalog.total_cases}`, 'Attempted canonical cases'],
+        [String(counts.certified), 'Certified single-call cases'], [String(counts.unattempted), 'Unattempted cases']]
+        .forEach(([value, name]) => { const metric = el('div'); metric.append(el('strong', '', value), el('span', '', name)); metrics.append(metric); });
+      block.append(metrics, el('p', '', `${counts.proof_failed} proof failures · ${counts.timeouts} timeouts · ${counts.errors} errors · ${counts.uncertified} uncertified acceptances. Unattempted cases are not failures; they include the ${totals.integration_blocked_cases} source-blocked cases.`));
+      container.append(block);
+    };
+    const historical = north.historical || (saved && north.current.attempted ? { measured_revision: status.measured_revision, counts: north.current } : null);
+    if (!north.coverage_available) {
+      container.append(el('p', 'live-benchmark-message', 'Coverage counts are withheld: the projection has no exact binding to the validated measured report.'));
+    } else if (!saved) {
+      showCounts('Current observed target · measured coverage', north.current);
+    } else {
+      container.append(el('p', 'live-benchmark-message', 'This saved export establishes no live current-target coverage.'));
+    }
+    if (north.coverage_available && historical) showCounts(`Historical measured coverage · ${historical.measured_revision}`, historical.counts, 'is-historical');
+    const tableWrap = el('div', 'live-benchmark-table-wrap');
+    const table = el('table', 'live-benchmark-table north-star-family-table');
+    table.append(el('caption', '', 'Whole-catalog family coverage · historical outcomes never add to current outcomes'));
+    const header = el('tr');
+    ['Family', 'Canonical', 'Admitted', 'Current attempted / canonical · certified', 'Current unattempted', 'Source blocked', 'Historical attempted / certified']
+      .forEach((label) => { const cell = el('th', '', label); cell.scope = 'col'; header.append(cell); });
+    const thead = el('thead'); thead.append(header); const tbody = el('tbody');
+    north.families.forEach((family) => {
+      const row = el('tr'); const name = el('th'); name.scope = 'row';
+      name.append(link(family.label + ' ↗', family.source_url) || el('span', '', family.label)); row.append(name);
+      const past = family.historical || (saved && family.current.attempted ? family.current : null);
+      const available = north.coverage_available;
+      [family.total_cases, family.admitted_cases,
+        available && !saved ? `${family.current.attempted} / ${family.total_cases} · ${family.current.certified} certified` : 'Unconfirmed',
+        available && !saved ? family.current.unattempted : 'Unconfirmed', family.integration_blocked_cases,
+        available && past ? `${past.attempted} / ${past.certified}` : '—']
+        .forEach((value) => row.append(el('td', '', String(value))));
+      tbody.append(row);
+    });
+    table.append(thead, tbody); tableWrap.append(table); container.append(tableWrap);
+    const issues = el('details', 'north-star-issues');
+    issues.append(el('summary', '', `${north.issues.length} upstream source ambiguities · included in the unattempted total`));
+    north.issues.forEach((issue) => {
+      const item = el('div'); item.append(el('strong', '', `${issue.family} · ${issue.canonical_case_id}`),
+        el('p', '', `${pretty(issue.kind)}: ${issue.message}`));
+      const source = link('Inspect the original ambiguous source ↗', issue.source_url); if (source) item.append(source);
+      issues.append(item);
+    });
+    container.append(issues,
+      el('p', 'north-star-next', `Next proposed admission: ${north.next_admission.family} · ${north.next_admission.admitted_cases} / ${north.next_admission.canonical_cases} admitted, ${north.next_admission.remaining_cases} awaiting admission. ${north.next_admission.message}`),
+      el('p', 'live-benchmark-assurance', 'Certification here means the strict report’s Lean elaborator/kernel acceptance with allowed axioms and valid controls. This catalog does not establish full-suite execution, independent replay, or a matched Lean Blaster comparison.'));
+  }
+
   function renderLiveBenchmark() {
     const container = $('live-benchmark');
     const expanded = new Set(Array.from(container.querySelectorAll?.('details[open]') || [], (detail) => detail.id));
@@ -812,7 +893,7 @@
     container.append(el('p', 'live-benchmark-contract', `Strict Colony contract: exactly “by colony”, importing Colony.Tactic. No per-case manual steps, helpers or extra imports count as tactic wins. Each strategy gets ${report.protocol.timeout_seconds} seconds and ${report.protocol.max_heartbeats.toLocaleString()} heartbeats per case.`));
     const tableWrap = el('div', 'live-benchmark-table-wrap');
     const table = el('table', 'live-benchmark-table');
-    const caption = el('caption', '', 'Completed scored cases · controls excluded');
+    const caption = el('caption', '', 'Completed scored sample cases · controls excluded');
     const header = el('tr');
     ['Strategy', 'Fixed proof body', 'Proved / cases', 'No proof', 'Timeout', 'Error', 'Total wall time'].forEach((label) => {
       const cell = el('th', '', label); cell.scope = 'col'; header.append(cell);
@@ -855,6 +936,7 @@
   }
 
   function renderBenchmarks() {
+    renderNorthStar();
     renderLiveBenchmark();
     const container = $('benchmark-list');
     container.replaceChildren();
