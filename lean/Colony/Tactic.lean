@@ -84,6 +84,15 @@ private def exceptPortfolio (subject : Ident) : TacticM Unit := do
       throwError "colony: an Except branch remains unsolved"
   setGoals []
 
+/-- Split one product-valued local and close every resulting branch. -/
+private def productPortfolio (subject : Ident) : TacticM Unit := do
+  evalTactic (← `(tactic| cases $subject:ident))
+  let branches ← getGoals
+  for branch in branches do
+    setGoals [branch]
+    evalTactic (← `(tactic| solve | simp_all <;> omega))
+  setGoals []
+
 private def listProcessInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
   evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
   let branches ← getGoals
@@ -218,6 +227,21 @@ elab "colony" : tactic => do
       candidateState.restore
       return false
   if listInductionSolved then
+    return
+  -- Use local-context order and attempt at most one product candidate at a time.
+  -- A candidate is committed only if its complete split tree closes.
+  let productSolved ← withMainContext do
+    let context ← getLCtx
+    for decl in context do
+      unless decl.isImplementationDetail do
+        if (← whnf decl.type).isAppOf ``Prod then
+          let candidateState ← saveState
+          try
+            productPortfolio (mkIdent decl.userName)
+            return true
+          catch _ => candidateState.restore
+    return false
+  if productSolved then
     return
   try
     let bridge := mkIdent (.str (.mkSimple "Colony") "reverseAcc_bridge")
