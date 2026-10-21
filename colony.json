@@ -23,7 +23,7 @@
     "automatic_publication": false
   },
   "autonomy": {
-    "enabled": true,
+    "enabled": false,
     "repository": "RSoulatIOHK/qed-colony",
     "base_branch": "main",
     "max_daily_seconds": 43200,
