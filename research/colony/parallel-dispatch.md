@@ -45,6 +45,12 @@ planner/triage paths that needed explicit preparation before submission, and
 controller-only network resumptions that must progress even with all lanes busy.
 Regression cases cover these boundaries.
 
+Independent review reproduced an admission race where another lane could record
+a provider outage after a successful availability check but before reservation.
+The provider-state lock now covers that entire admission boundary. An event-based
+regression checks the interleaving and verifies that a subsequent call against
+the recorded outage creates neither an attempt nor an executor invocation.
+
 Implementation, regression results, and the final activation observation are
 recorded in the public governance PR. This change concerns colony throughput;
 it does not establish new Lean proof or Cardano correspondence assurance.
