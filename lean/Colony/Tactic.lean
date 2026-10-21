@@ -109,20 +109,23 @@ private def equalitySplitSearch : Nat → TacticM Unit
     let mut attempts := 0
     for i in [:locals.size] do
       for j in [i+1:locals.size] do
-        if attempts < 8 && (← isDefEq locals[i]!.type locals[j]!.type) then
-          attempts := attempts + 1
+        if attempts < 8 then
           let snapshot ← saveState
-          try
-            let left := mkIdent locals[i]!.userName
-            let right := mkIdent locals[j]!.userName
-            evalTactic (← `(tactic| by_cases h : $left:ident = $right:ident))
-            let branches ← getGoals
-            for branch in branches do
-              setGoals [branch]
-              equalitySplitSearch depth
-            setGoals []
-            return
-          catch _ => snapshot.restore
+          if ← isDefEq locals[i]!.type locals[j]!.type then
+            attempts := attempts + 1
+            try
+              let left := mkIdent locals[i]!.userName
+              let right := mkIdent locals[j]!.userName
+              evalTactic (← `(tactic| by_cases h : $left:ident = $right:ident))
+              let branches ← getGoals
+              for branch in branches do
+                setGoals [branch]
+                equalitySplitSearch depth
+              setGoals []
+              return
+            catch _ => snapshot.restore
+          else
+            snapshot.restore
     throwError "colony: bounded equality split found no proof"
 
 

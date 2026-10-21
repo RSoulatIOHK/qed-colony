@@ -10,16 +10,28 @@ namespace Colony.Examples.RecursiveKeyedInvariant
 
 @[simp] def sumExcept (key : Nat) : List Nat → Nat
   | [] => 0
-  | head :: tail => (if head = key then 0 else head) + sumExcept key tail
+  | head :: tail =>
+      if head = key then sumExcept key tail
+      else head + sumExcept key tail
 
-theorem replaceKey_preserves_other_sum (state : List Nat) (key value : Nat) :
-    sumExcept key (replaceKey key value state) = sumExcept key state := by
+@[simp] def sumState : List Nat → Nat
+  | [] => 0
+  | head :: tail => head + sumState tail
+
+/-- Zeroing every matching entry leaves exactly the sum of the other entries. -/
+theorem replaceKey_zero_sum (state : List Nat) (key : Nat) :
+    sumState (replaceKey key 0 state) = sumExcept key state := by
   colony
 
-example (state : List Nat) (key value : Nat) : True := by
+example : sumState (replaceKey 2 0 [2, 3, 2]) = 3 ∧
+    sumExcept 2 [2, 3, 2] = 3 ∧
+    ¬ sumState (replaceKey 2 0 [2, 3, 2]) = sumExcept 2 [2, 3, 2] + 1 := by
+  decide
+
+example (state : List Nat) (key : Nat) : True := by
   fail_if_success
     (have false_invariant :
-      sumExcept key (replaceKey key value state) = sumExcept key state + 1 := by
+      sumState (replaceKey key 0 state) = sumExcept key state + 1 := by
       colony)
   trivial
 
