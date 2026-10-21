@@ -21,32 +21,212 @@ Fresh binders are used exactly as shown. Statements and bounds are fixed for the
 
 ## Method
 
-Each target/control is evaluated independently by the installed Lean toolchain with `import Colony.Tactic` and proof body exactly `by colony`. A target is placed in the imported coverage module only when that exact attempt succeeds. Failure attempts use a temporary source harness and their full generated source and Lean output are retained below. No result from another example or helper theorem is imported. Successful acceptance is Lean elaborator/kernel acceptance in this build only, not exported replay, independent-kernel acceptance, or correspondence to Cardano execution. This is an engineering measurement, not an official benchmark score.
+Each target/control is evaluated independently by the installed Lean toolchain with `import Colony.Tactic` and proof body exactly `by colony`. A target is placed in the imported coverage module only when that exact attempt succeeds. Each independent attempt uses a temporary source harness; complete regenerated sources and the captured Lean outputs are retained below. No result from another example or helper theorem is imported. Successful acceptance is Lean elaborator/kernel acceptance in this build only, not exported replay, independent-kernel acceptance, or correspondence to Cardano execution. This is an engineering measurement, not an official benchmark score.
 
-## Outcomes
+## Outcome and evidence status
 
-Attempted every matrix case once after building `Colony.Tactic`. A1–A4, O1, L1–L3 all succeeded with exactly the proof bodies shown below; they are included in `lean/Colony/Examples/FoundationsCoverage.lean`. Both intentionally false claims failed with the tactic's terminal error. Both concrete non-vacuity witnesses succeeded. Controls are not included in the coverage count. No proof failed due to resource exhaustion; there was no timeout. Initial attempts before building the imported module failed at module resolution (`unknown module prefix 'Colony'`); these are harness/build setup failures, not target outcomes, and were discarded before the measured attempts. The prerequisite build then succeeded.
+The first historical invocation preceded `lake build Colony.Tactic`. Its per-case source files and full output were discarded in that run; only the reported `unknown module prefix 'Colony'` summary survives. Those exact historical bytes cannot be recovered. To address the retention gap, the same 12 declarations were generated again and run twice: once with an isolated empty `LEAN_PATH` to reproduce the module-resolution failure, then through `lake env lean` with the tactic available. The reproduced setup failures below are new observations, not a claim that the lost original diagnostics were captured. The valid rerun is the measured coverage result.
 
-| ID | Outcome | Raw proof declaration |
+| ID | Isolated module-path run | Measured Lake run |
 |---|---|---|
-| A1 | proof accepted | `theorem math002_A1 (n : Nat) : n + 0 = n := by colony` |
-| A2 | proof accepted | `theorem math002_A2 (n : Nat) : 0 + n = n := by colony` |
-| A3 | proof accepted | `theorem math002_A3 (x y : Nat) : x + y = y + x := by colony` |
-| A4 | proof accepted | `theorem math002_A4 (x y z : Nat) : (x + y) + z = x + (y + z) := by colony` |
-| O1 | proof accepted | `theorem math002_O1 (x y z : Nat) : x ≤ y → x + z ≤ y + z := by colony` |
-| L1 | proof accepted | `theorem math002_L1 (xs ys : List Nat) : (xs ++ ys).length = xs.length + ys.length := by colony` |
-| L2 | proof accepted | `theorem math002_L2 (xs : List Nat) : xs.reverse.length = xs.length := by colony` |
-| L3 | proof accepted | `theorem math002_L3 (xs : List Nat) : xs.reverse.reverse = xs := by colony` |
-| CTRL-ARITH | expected rejection (`proof_failed`) | `theorem math002_invalid_arith (n : Nat) : n + 1 = n := by colony` |
-| CTRL-LIST | expected rejection (`proof_failed`) | `theorem math002_invalid_list (xs : List Nat) : xs.length = 0 := by colony` |
-| CTRL-NAT-WITNESS | proof accepted (non-vacuity) | `theorem math002_witness_nat : 1 + 1 = 2 := by colony` |
-| CTRL-LIST-WITNESS | proof accepted (non-vacuity) | `theorem math002_witness_list : ([0] : List Nat).length = 1 := by colony` |
+| A1 | harness/build failure (exit 1) | proof accepted (exit 0) |
+| A2 | harness/build failure (exit 1) | proof accepted (exit 0) |
+| A3 | harness/build failure (exit 1) | proof accepted (exit 0) |
+| A4 | harness/build failure (exit 1) | proof accepted (exit 0) |
+| O1 | harness/build failure (exit 1) | proof accepted (exit 0) |
+| L1 | harness/build failure (exit 1) | proof accepted (exit 0) |
+| L2 | harness/build failure (exit 1) | proof accepted (exit 0) |
+| L3 | harness/build failure (exit 1) | proof accepted (exit 0) |
+| CTRL-ARITH | harness/build failure (exit 1) | proof_failed (exit 1) |
+| CTRL-LIST | harness/build failure (exit 1) | proof_failed (exit 1) |
+| CTRL-NAT-WITNESS | harness/build failure (exit 1) | proof accepted (exit 0) |
+| CTRL-LIST-WITNESS | harness/build failure (exit 1) | proof accepted (exit 0) |
 
-## Failure evidence: complete generated source and diagnostics
+All 12 isolated module-path runs exited 1 before elaborating a target. The eight predeclared propositions and two non-vacuity witnesses exited 0 with empty diagnostics in the measured rerun. The two invalid controls exited 1 with tactic errors. No run reported resource exhaustion or a timeout. Coverage is **8/8 predeclared propositions**; controls are excluded.
 
-Each source was independently generated with `import Colony.Tactic`, a blank line, the declaration below, and a final newline. These are complete source files.
+## Per-case complete generated source and Lean diagnostics
+
+Commands ran from `lean/`. For each ID below, the complete generated source was saved at `.lake/math002_harness/<ID>.lean`. The setup reproduction used `env LEAN_PATH=.lake/math002_harness/empty lean .lake/math002_harness/<ID>.lean`; the measured rerun used `lake env lean .lake/math002_harness/<ID>.lean`. The empty path directory had no `Colony` module. Output is combined standard output and standard error. The sole output normalization replaces the absolute Lean toolchain library path on the final line of each setup diagnostic with `<LEAN_TOOLCHAIN_LIB>` using `re.sub(r'(?m)^/[^\n]*leanprover--lean4---v4\.35\.0/lib/lean$', '<LEAN_TOOLCHAIN_LIB>', output)`. All other characters, including emitted relative source paths and line/column numbers, are unchanged. The measured control diagnostics have no normalization.
+
+### A1
+
+Complete generated source:
+
+```lean
+import Colony.Tactic
+
+theorem math002_A1 (n : Nat) : n + 0 = n := by colony
+```
+
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/A1.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+### A2
+
+Complete generated source:
+
+```lean
+import Colony.Tactic
+
+theorem math002_A2 (n : Nat) : 0 + n = n := by colony
+```
+
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/A2.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+### A3
+
+Complete generated source:
+
+```lean
+import Colony.Tactic
+
+theorem math002_A3 (x y : Nat) : x + y = y + x := by colony
+```
+
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/A3.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+### A4
+
+Complete generated source:
+
+```lean
+import Colony.Tactic
+
+theorem math002_A4 (x y z : Nat) : (x + y) + z = x + (y + z) := by colony
+```
+
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/A4.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+### O1
+
+Complete generated source:
+
+```lean
+import Colony.Tactic
+
+theorem math002_O1 (x y z : Nat) : x ≤ y → x + z ≤ y + z := by colony
+```
+
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/O1.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+### L1
+
+Complete generated source:
+
+```lean
+import Colony.Tactic
+
+theorem math002_L1 (xs ys : List Nat) : (xs ++ ys).length = xs.length + ys.length := by colony
+```
+
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/L1.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+### L2
+
+Complete generated source:
+
+```lean
+import Colony.Tactic
+
+theorem math002_L2 (xs : List Nat) : xs.reverse.length = xs.length := by colony
+```
+
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/L2.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+### L3
+
+Complete generated source:
+
+```lean
+import Colony.Tactic
+
+theorem math002_L3 (xs : List Nat) : xs.reverse.reverse = xs := by colony
+```
+
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/L3.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
 
 ### CTRL-ARITH
+
+Complete generated source:
 
 ```lean
 import Colony.Tactic
@@ -54,15 +234,25 @@ import Colony.Tactic
 theorem math002_invalid_arith (n : Nat) : n + 1 = n := by colony
 ```
 
-Lean diagnostic (exit 1):
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
 
 ```text
-<generated-source>:3:58: error: colony: the initial proof portfolio could not close this goal
+.lake/math002_harness/CTRL-ARITH.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
 ```
 
-Counterexample data: `n = 0`, yielding `1 = 0`.
+Measured Lake run — `proof_failed`, exit 1; full diagnostic:
+
+```text
+.lake/math002_harness/CTRL-ARITH.lean:3:58: error: colony: the initial proof portfolio could not close this goal
+```
 
 ### CTRL-LIST
+
+Complete generated source:
 
 ```lean
 import Colony.Tactic
@@ -70,17 +260,25 @@ import Colony.Tactic
 theorem math002_invalid_list (xs : List Nat) : xs.length = 0 := by colony
 ```
 
-Lean diagnostic (exit 1):
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
 
 ```text
-<generated-source>:3:67: error: colony: the initial proof portfolio could not close this goal
+.lake/math002_harness/CTRL-LIST.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
 ```
 
-Counterexample data: `xs = [0]`, yielding `1 = 0`.
+Measured Lake run — `proof_failed`, exit 1; full diagnostic:
 
-## Non-vacuity and successful dependencies
+```text
+.lake/math002_harness/CTRL-LIST.lean:3:67: error: colony: the initial proof portfolio could not close this goal
+```
 
-Non-vacuity sources, each independently attempted with exactly the displayed proof:
+### CTRL-NAT-WITNESS
+
+Complete generated source:
 
 ```lean
 import Colony.Tactic
@@ -88,13 +286,47 @@ import Colony.Tactic
 theorem math002_witness_nat : 1 + 1 = 2 := by colony
 ```
 
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/CTRL-NAT-WITNESS.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+### CTRL-LIST-WITNESS
+
+Complete generated source:
+
 ```lean
 import Colony.Tactic
 
 theorem math002_witness_list : ([0] : List Nat).length = 1 := by colony
 ```
 
-Both Lean invocations exited 0 with no diagnostics. `#print axioms` after importing `Colony.Examples.FoundationsCoverage` reported:
+Isolated module-path run — `harness/build failure`, exit 1; full diagnostic with the single path normalization stated above:
+
+```text
+.lake/math002_harness/CTRL-LIST-WITNESS.lean:1:0: error: unknown module prefix 'Colony'
+
+No directory 'Colony' or file 'Colony.olean' in the search path entries:
+.lake/math002_harness/empty
+<LEAN_TOOLCHAIN_LIB>
+```
+
+Measured Lake run — `proof accepted`, exit 0; empty diagnostic output.
+
+## Control data and axiom dependencies
+
+- Invalid arithmetic: `n = 0` makes `n + 1 = n` become `1 = 0`.
+- Invalid list: `xs = [0]` makes `xs.length = 0` become `1 = 0`.
+- Non-vacuity witnesses: `1 + 1 = 2` and `([0] : List Nat).length = 1` were each accepted with exactly `by colony`, as shown above.
+
+After importing `Colony.Examples.FoundationsCoverage`, `#print axioms` reported:
 
 ```text
 'math002_A1' depends on axioms: [propext, Quot.sound]
@@ -107,13 +339,14 @@ Both Lean invocations exited 0 with no diagnostics. `#print axioms` after import
 'math002_L3' depends on axioms: [propext]
 ```
 
-These are Lean's reported dependencies; no `sorry`, `admit`, or custom axiom was introduced.
+No `sorry`, `admit`, or custom axiom was introduced.
 
 ## Reproduction record and assurance
 
-- Starting revision and tactic implementation: `929ec986830a8ed0d31c2b73cb737334fc86c47d` (workspace `HEAD` at start; `lean/Colony/Tactic.lean` was not changed).
-- Toolchain: repository `lean/lean-toolchain`, `leanprover/lean4:v4.35.0`.
-- Commands: `lake build Colony.Tactic`; independently for each source, `lake env lean <generated-source>`; after adding the coverage module, `lake build Colony`; axiom query via `lake env lean --stdin` with `import Colony.Examples.FoundationsCoverage` and the eight `#print axioms` commands; final full project check `lake build`.
-- The initial independent source run preceded the prerequisite build and produced `unknown module prefix 'Colony'` for each case. `lake build Colony.Tactic` succeeded, after which the measured rerun produced the outcomes above.
-- `lake build Colony` and final `lake build` succeeded. The latter built/replayed all 16 jobs; existing unrelated linter warnings were emitted.
-- Coverage measured: 8/8 predeclared ordinary propositions accepted in one tactic call. This is a small declared coverage matrix, not a new official benchmark score. Assurance is elaborator/kernel acceptance by this Lean build. No exported replay or independent-kernel check was performed, and no claim of correspondence to Cardano execution is made.
+- Starting reviewed revision and unchanged tactic implementation: `929ec986830a8ed0d31c2b73cb737334fc86c47d`. The current reviewed MATH002 commit is `0d67bc91e539a5a5fdd6ebe17b1eed2ef5a4c49e`; `lean/Colony/Tactic.lean` has no diff from the starting revision.
+- Toolchain: `lean/lean-toolchain` contains `leanprover/lean4:v4.35.0`.
+- Original setup sequence reported in the first run: `lake env lean <generated-source>` before `lake build Colony.Tactic`, then `lake build Colony.Tactic` and measured reruns. Full original prebuild diagnostics were not retained, as noted above.
+- Evidence rerun commands: the per-case isolated and measured invocations specified above. The per-case full sources and outputs are recorded in this report.
+- Build check: `lake build` exited 0, `Build completed successfully (16 jobs)`; it replayed existing unrelated linter warnings.
+- Axiom check: `printf` supplied `import Colony.Examples.FoundationsCoverage` and eight `#print axioms` commands to `lake env lean --stdin`; exit 0, output above.
+- This reports elaborator/kernel acceptance in the pinned local Lean build. It does not establish exported replay, independent-kernel acceptance, correspondence to Cardano execution, or a new official benchmark score.
