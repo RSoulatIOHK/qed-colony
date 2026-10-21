@@ -6,6 +6,12 @@ Launchd owns the process, so ending a chat or closing a terminal does not stop i
 restart throttle. The controller also holds a singleton lock and reconciles its
 durable cycles before doing more work.
 
+The reviewed runtime admits up to four independent model jobs concurrently.
+Stopping it closes admission and lets existing bounded calls drain before
+releasing the singleton. The LaunchAgent shutdown deadline includes the longest
+configured model timeout plus cleanup time. Abrupt termination still requires
+conservative reconciliation of unfinished reservations.
+
 Install from the reviewed checkout with `python3 -m colony service install`.
 The default live dashboard is `http://127.0.0.1:7331/`. The CLI also exposes
 `service status`, `service stop`, `service start`, and `service uninstall`.

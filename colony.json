@@ -29,7 +29,7 @@
     "max_daily_seconds": 28800,
     "max_daily_attempts": 144,
     "timezone": "Europe/Paris",
-    "max_concurrency": 1,
+    "max_concurrency": 4,
     "poll_seconds": 15,
     "author_timeout_seconds": 480,
     "review_timeout_seconds": 240,

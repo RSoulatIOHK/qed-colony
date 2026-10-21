@@ -60,6 +60,28 @@ class ServerTests(unittest.TestCase):
         self.assertEqual(body, b"")
         self.assertGreater(int(headers["Content-Length"]), 0)
 
+    def test_parallel_reservations_are_visible_without_private_cycle_context(self):
+        from colony.autonomy_store import AutonomyStore
+        policy = {"max_daily_seconds": 28800, "max_daily_attempts": 144,
+                  "max_concurrency": 4, "timezone": "Europe/Paris"}
+        self.store.autonomy_policy = policy
+        autonomy = AutonomyStore(self.store.path).initialize()
+        cycle_ids = []
+        for index in range(3):
+            cycle = autonomy.create_cycle("parallel-%s" % index, "engineer")
+            autonomy.update_cycle(cycle["id"], worktree=str(self.root / "private-cycle"))
+            autonomy.reserve_attempt(cycle["id"], "author:0", 480, policy)
+            cycle_ids.append(cycle["id"])
+        status, _, body = self.request("/api/state")
+        self.assertEqual(status, 200)
+        budget = json.loads(body)["autonomy"]["budget"]
+        self.assertEqual(budget["active_attempts"], 3)
+        self.assertEqual(set(budget["active_cycle_ids"]), set(cycle_ids))
+        self.assertEqual(budget["concurrency_limit"], 4)
+        self.assertEqual(budget["reserved_seconds"], 1440)
+        self.assertNotIn(str(self.root), body.decode())
+        self.assertNotIn("worktree", body.decode())
+
     def test_path_traversal_symlinks_hidden_files_and_database_are_denied(self):
         for path in ("/../secret.txt", "/%2e%2e/secret.txt", "/outside.txt", "/.colony/colony.db", "/state.db"):
             with self.subTest(path=path):
