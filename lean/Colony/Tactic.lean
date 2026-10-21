@@ -10,6 +10,8 @@ private def arithmeticPortfolio : TacticM Unit := do
   evalTactic (← `(tactic| first
     | (solve | omega)
     | (solve | simp_all <;> omega)
+    | (solve | rw [Nat.mul_comm])
+    | (solve | rw [Nat.add_comm])
     | (solve | decide)))
 
 private def orderedProductPortfolio : TacticM Unit := do
