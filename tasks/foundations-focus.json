@@ -1,0 +1,55 @@
+{
+  "tasks": [
+    {
+      "id": "MATH001",
+      "title": "Normalize reducible Nat and Int aliases before arithmetic reasoning",
+      "role": "engineer",
+      "priority": 130,
+      "status": "ready",
+      "depends_on": [],
+      "description": "In one bounded engineering attempt, reproduce the controller-observed arithmetic failure on unchanged Nat statements behind reducible type aliases, then implement a generic bounded normalization path for arithmetic backends. Normalize by expression/type structure and definitional equality, never by the spelling of an alias, theorem, namespace, benchmark, or task. Include fresh aliases, nested aliases, Nat addition permutations, and Int arithmetic. Own only lean/Colony/Tactic.lean, optional new modules under lean/Colony/Procedures/, the distinct new lean/Colony/Examples/FoundationsAliases.lean, and research/experiments/MATH001-alias-normalization.md. The shared integration surface is Colony's arithmetic portfolio; reconcile existing arithmetic PR artifacts before starting a duplicate objective. Check the example directly without editing Colony.lean. Preserve all challenge sources, definitions, declarations, assumptions, bounds, evaluator, policy, CI and toolchain. No state-machine scaffold, target-specific helper proof, manual scored proof step, runtime model call, sorry, admit, new axiom, native_decide, or disabled kernel checks.",
+      "acceptance": [
+        "Record the reviewed starting revision, exact unchanged failing declarations, generated Lean sources, commands and actual diagnostics before implementation; distinguish a reproduced failure from an unconfirmed hypothesis.",
+        "Close representative fresh and nested reducible Nat aliases and fresh Int aliases with exactly by colony; include renamed binders and addition permutations, with no hardcoded alias, theorem or benchmark names and no target-specific helper lemmas.",
+        "Preserve the original addition commutativity and right-commutativity statements; show ordinary Lean proof terms and their actual axiom dependencies for every claimed success, with explicit elaborator/kernel assurance limits.",
+        "Include intentionally false arithmetic goals and missing-hypothesis controls that colony must fail to close, concrete counterexample input data, and a true non-vacuity witness attempted with exactly by colony. Keep every control separate from the score and retain failed witness attempts honestly.",
+        "Keep normalization/search bounded and deterministic, restore tactic state on failure, and record actual Lean checks, regressions, remaining failures and unsuccessful experiments without editing protected measurement inputs.",
+        "Touch only the declared engineering paths; leave Colony.lean, benchmarks, evaluator, controller, policy and permissions unchanged, and hand reviewable artifacts to the controller without publication or deployment."
+      ]
+    },
+    {
+      "id": "MATH002",
+      "title": "Measure existing single-call coverage of foundational mathematics",
+      "role": "engineer",
+      "priority": 125,
+      "status": "ready",
+      "depends_on": [],
+      "description": "In one bounded attempt, measure the currently reviewed colony tactic on a small declared coverage matrix of ordinary arithmetic, order, and basic Nat/List laws. This is an engineering harness and evidence job, not a new state-machine example or a protected benchmark change. Own only the distinct new lean/Colony/Examples/FoundationsCoverage.lean, its import in lean/Colony.lean, and research/experiments/MATH002-foundations-coverage.md. Declare 6 to 10 exact propositions and their categories before measuring, include natural addition identities/permutations, an order implication, and ordinary list length/append/reverse laws, and retain every outcome. Use exactly by colony as the entire proof body for each positive attempt. Store raw generated source and Lean diagnostics for failures in the research artifact; use an appropriate failure-check harness rather than leave uncompilable positive declarations in the imported module. Work independently from MATH001 on the starting reviewed revision and do not change Tactic.lean, Procedures, upstream corpus, scores, evaluator or toolchain. No helper proofs, manual proof steps or imported example results may turn a failed target into a claimed success.",
+      "acceptance": [
+        "Predeclare and retain a 6-to-10 proposition matrix spanning arithmetic, order, and basic Nat/List laws, including fresh binder names; keep original statements, assumptions and bounds fixed throughout the experiment and report all cases.",
+        "Every reported positive success has the entire proof body exactly by colony and uses the tactic implementation from the recorded starting revision, without importing prior example/helper modules to supply target proofs.",
+        "For each failed attempt preserve complete generated source, actual Lean failure diagnostics and outcome; distinguish proof_failed, resource exhaustion and harness/build failure instead of hiding failures or replacing them with manual proofs.",
+        "Include intentionally invalid arithmetic and list claims with concrete counterexample input data and true non-vacuity witnesses attempted with exactly by colony; check that colony leaves invalid claims unproved, retain every control outcome, and exclude controls from the coverage score.",
+        "The imported coverage module and the existing Lean build pass, successful proof axiom dependencies and exact commands/revision are recorded, and limitations are labeled as elaborator/kernel acceptance rather than independent replay or new official benchmark scores.",
+        "Only the new coverage module, its Colony.lean import and the named research artifact change; do not edit Tactic.lean, Procedures, challenge statements, protected corpus, evaluator, policy, CI, permissions or any existing example."
+      ]
+    },
+    {
+      "id": "SRE-MATH-SCHEDULING",
+      "title": "Prevent duplicate planner objectives and conflicting implementation ownership",
+      "role": "sre",
+      "priority": 120,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Implement a bounded planner-admission reliability fix as a separate SRE governance candidate. Own only colony/pipeline.py, colony/supervisor.py if necessary, tests/test_pipeline.py, tests/test_supervisor.py if necessary, docs/pipeline.md, and research/experiments/SRE-MATH-SCHEDULING.md, all within the existing SRE allowlist. Select recent task history chronologically from existing timestamps, enrich active-objective context with descriptions, acceptance criteria, declared objective keys and integration ownership, and deterministically reject or defer duplicate proposals and conflicting implementation surfaces before new tasks/cycles are admitted. Use existing task fields and persisted cycle data/API for restart-safe objective and ownership records; do not edit colony/store.py, colony/autonomy_store.py, schemas outside allowed files, role profiles, allowlists or permissions. Match declared semantic objective keys and normalized exact duplicates without pretending unrestricted semantic equivalence can be solved by string matching. Cover active review/CI and parallel admission, while allowing independent files and read-only measurements to overlap. Preserve already published artifacts, one in-flight stage per cycle, quotas, retry bounds, exact-head review, CI and merge gates. No automatic cancellation, authority increase, benchmark edits, publication, merge, or deployment.",
+      "acceptance": [
+        "A regression demonstrates genuinely recent tasks are selected by timestamp despite priority ordering, with deterministic tie handling; active context carries complete objective and acceptance information rather than titles alone.",
+        "Exact duplicate proposals and proposals sharing an explicit normalized semantic objective key are rejected or deferred before duplicate ready tasks/cycles are created, including when the owner is in review or CI; explain the conservative matching limits.",
+        "Persist objective ownership and its bounded release/reconciliation through existing cycle APIs so restart and repeated planner passes cannot duplicate active work; no Store or autonomy-store implementation/schema or worker-permission expansion is introduced.",
+        "Regressions cover duplicate proposals within one planner result and across parallel admission passes, shared implementation-surface conflicts, and independent tasks with distinct ownership continuing to run concurrently; a read-only coverage measurement must not be blocked merely for reading Tactic.lean.",
+        "Budget, concurrency, network waiting, review, exact-head CI, bounded recovery and protected acceptance gates remain intact; existing work and PR artifacts are not silently cancelled, rewritten or marked complete.",
+        "Record actual checks and failed experiments, provide an operator handoff and separate governance PR artifact for independent controller review, and leave deployment, publication, merge, policy, caps, roles, permissions, benchmarks and theorem requirements unchanged."
+      ]
+    }
+  ]
+}
