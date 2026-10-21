@@ -8,6 +8,8 @@ namespace Colony
 
 private def arithmeticPortfolio : TacticM Unit := do
   evalTactic (← `(tactic| first
+    | (solve | apply le_trans <;> (assumption <;> apply le_trans <;> assumption))
+    | (solve | assumption <;> (apply le_trans <;> assumption))
     | (solve | omega)
     | (solve | simp_all <;> omega)
     | (solve | decide)))
