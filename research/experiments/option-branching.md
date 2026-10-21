@@ -10,8 +10,14 @@ candidate restores the tactic state before trying the next candidate.
 ## Source and experiment
 
 - Source revision before this change: `e1892b16c65d85d960b079970c5547cc050bb978`
+- Tested implementation revision: `e462d830ce18e0891a754cb3cb18dd94d28f2fa6`
+  (clean working tree before this record edit).
 - Command: `lake build Colony` (run from the `lean/` project directory)
-- Result: exit code `0`; `Build completed successfully (9 jobs).`
+- Result: exit code `0`; Lake replayed the cached `OptionBranching` and
+  `ListStateInvariant` jobs and reported `Build completed successfully (9 jobs).`
+- Command: `lake env lean Colony/Examples/OptionBranching.lean` (from `lean/`)
+- Result: exit code `0`; Lean emitted only the two unused-variable warnings
+  described below.
 - Lean also emitted existing unused-variable warnings in
   `Examples/ListStateInvariant.lean`, and unused-variable warnings for the
   intentionally irrelevant option and negative example parameter in
