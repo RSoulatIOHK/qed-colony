@@ -76,14 +76,14 @@ operational limits include:
 ```json
 {
   "enabled": true,
-  "max_daily_seconds": 3600,
-  "max_daily_attempts": 12,
+  "max_daily_seconds": 7200,
+  "max_daily_attempts": 36,
   "timezone": "Europe/Paris",
   "poll_seconds": 30
 }
 ```
 
-The example is a one-worker-hour daily allocation, not a monetary price. The
+The current experimental allocation is two worker-hours and 36 attempts per Paris calendar day, not a monetary price. Existing usage is retained when limits change. The
 selected model, reasoning effort, tokens, and measured elapsed time should be
 recorded with the attempt. Model selection policy can use cheaper models for
 routine work and stronger models for difficult research or review while sharing
