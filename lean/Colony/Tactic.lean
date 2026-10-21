@@ -59,17 +59,31 @@ elab "colony" : tactic => do
         if type.isAppOf ``List || type.isConstOf ``Nat then
           let subject := mkIdent decl.userName
           let mut generalized : Array Ident := #[]
+          let mut generalizedData : Array Ident := #[]
           for other in context do
             unless other.isImplementationDetail || other.fvarId == decl.fvarId do
+              generalized := generalized.push (mkIdent other.userName)
               unless (← isProp other.type) do
-                generalized := generalized.push (mkIdent other.userName)
+                generalizedData := generalizedData.push (mkIdent other.userName)
           try
-            if generalized.isEmpty then
+            let procedure := .str (.mkSimple "Colony") "Procedure"
+            if type.isAppOf ``List &&
+                (type.getAppArgs[0]!).isConstOf (.str procedure "ListCommand") then
+              let process := mkIdent (.str procedure "process")
+              let step := mkIdent (.str procedure "step")
+              evalTactic (← `(tactic| solve |
+                induction $subject:ident generalizing $[$generalized:ident]* with
+                | nil => simp_all [$process:ident]
+                | cons command rest ih =>
+                    simp only [$process:ident]
+                    apply ih
+                    cases command <;> simp_all [$step:ident] <;> omega))
+            else if generalizedData.isEmpty then
               evalTactic (← `(tactic| solve |
                 induction $subject:ident <;> (simp_all <;> omega)))
             else
               evalTactic (← `(tactic| solve |
-                induction $subject:ident generalizing $[$generalized:ident]* <;>
+                induction $subject:ident generalizing $[$generalizedData:ident]* <;>
                   (simp_all <;> omega)))
             return
           catch _ => initial.restore
