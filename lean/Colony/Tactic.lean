@@ -1,6 +1,7 @@
 import Lean
 import Std.Tactic
 import Colony.Procedures.ListState
+import Colony.Procedures.TreeState
 
 open Lean Elab Tactic Meta
 
@@ -69,6 +70,15 @@ private def listProcessInduction (subject : Ident) (generalized : Array Ident) :
           setGoals [splitBranch]
           evalTactic (← `(tactic| solve |
             simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))
+  setGoals []
+
+private def treeExecutionInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
+  evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
+  let branches ← getGoals
+  for branch in branches do
+    setGoals [branch]
+    evalTactic (← `(tactic| solve |
+      simp_all [Colony.Procedure.execute, Colony.Procedure.weight] <;> omega))
   setGoals []
 
 /--
@@ -173,6 +183,29 @@ elab "colony" : tactic => do
       candidateState.restore
       return false
   if listInductionSolved then
+    return
+  let treeInductionSolved ← withMainContext do
+    let context ← getLCtx
+    let mut candidates : Array LocalDecl := #[]
+    for decl in context do
+      unless decl.isImplementationDetail do
+        if (← whnf decl.type).isConstOf ``Colony.Procedure.CommandTree then
+          candidates := candidates.push decl
+    if candidates.size != 1 then
+      return false
+    let candidateState ← saveState
+    let mut generalized : Array Ident := #[]
+    for decl in context do
+      unless decl.isImplementationDetail || decl.userName == candidates[0]!.userName do
+        unless (← isProp decl.type) do
+          generalized := generalized.push (mkIdent decl.userName)
+    try
+      treeExecutionInduction (mkIdent candidates[0]!.userName) generalized
+      return true
+    catch _ =>
+      candidateState.restore
+      return false
+  if treeInductionSolved then
     return
   try
     let bridge := mkIdent (.str (.mkSimple "Colony") "reverseAcc_bridge")
