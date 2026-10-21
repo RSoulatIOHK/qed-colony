@@ -22,16 +22,10 @@ def applyCommand (state : TreeState) (command : TreeCommand) : TreeState :=
   | .noop => state
   | .tick amount => ⟨state.leftCount + amount, state.rightCount + amount⟩
 
-def weight (tree : CommandTree) : Nat :=
-  match tree with
-  | .empty => 0
-  | .node command left right =>
-      let own := match command with
-        | .noop => 0
-        | .tick amount => amount
-      own + weight left + weight right
-
 def execute (tree : CommandTree) (state : TreeState) : TreeState :=
-  ⟨state.leftCount + weight tree, state.rightCount + weight tree⟩
+  match tree with
+  | .empty => state
+  | .node command left right =>
+      execute right (execute left (applyCommand state command))
 
 end Colony.Procedure

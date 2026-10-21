@@ -58,17 +58,21 @@ private def listProcessInduction (subject : Ident) (generalized : Array Ident) :
   setGoals []
 
 private def treeExecutionInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do
-  evalTactic (← `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))
-  let branches ← getGoals
-  for branch in branches do
-    setGoals [branch]
-    evalTactic (← `(tactic| solve |
-      simp_all [Colony.Procedure.execute, Colony.Procedure.weight] <;> omega))
-  setGoals []
+  evalTactic (← `(tactic| solve |
+    induction $subject:ident generalizing $[$generalized:ident]* with
+    | empty => simp_all [Colony.Procedure.execute]
+    | node command left right ihLeft ihRight =>
+        simp only [Colony.Procedure.execute]
+        apply ihRight
+        apply ihLeft
+        cases command <;>
+          simp_all [Colony.Procedure.applyCommand] <;> omega))
+  unless (← getGoals).isEmpty do
+    throwError "colony: tree induction did not close every branch"
 
 /--
 The initial deterministic proof portfolio: simplification, Presburger arithmetic,
-closed decision procedures, and one structural induction on a list or natural.
+closed decision procedures, and one structural induction on a list, tree, or natural.
 Every successful branch constructs an ordinary Lean proof term. This is a seed
 implementation, not the intended final architecture.
 -/
@@ -165,11 +169,13 @@ elab "colony" : tactic => do
     let candidateState ← saveState
     let mut generalized : Array Ident := #[]
     for decl in context do
-      unless decl.isImplementationDetail || decl.userName == candidates[0]!.userName do
+      unless decl.isImplementationDetail || decl.fvarId == candidates[0]!.fvarId do
         unless (← isProp decl.type) do
           generalized := generalized.push (mkIdent decl.userName)
     try
-      treeExecutionInduction (mkIdent candidates[0]!.userName) generalized
+      -- Failed elaboration must throw rather than recover with a synthetic proof.
+      -- The saved goals and metavariable assignments are restored below.
+      withoutRecover <| treeExecutionInduction (mkIdent candidates[0]!.userName) generalized
       return true
     catch _ =>
       candidateState.restore
