@@ -63,7 +63,19 @@ elab "colony" : tactic => do
             unless other.isImplementationDetail || other.fvarId == decl.fvarId do
               generalized := generalized.push (mkIdent other.userName)
           try
-            if generalized.isEmpty then
+            let procedure := .str (.mkSimple "Colony") "Procedure"
+            if type.isAppOf ``List &&
+                (type.getAppArgs[0]!).isConstOf (.str procedure "ListCommand") then
+              let process := mkIdent (.str procedure "process")
+              let step := mkIdent (.str procedure "step")
+              evalTactic (← `(tactic| solve |
+                induction $subject:ident generalizing $[$generalized:ident]* with
+                | nil => simp_all [$process:ident]
+                | cons command rest ih =>
+                    simp only [$process:ident]
+                    apply ih
+                    cases command <;> simp_all [$step:ident] <;> omega))
+            else if generalized.isEmpty then
               evalTactic (← `(tactic| solve |
                 induction $subject:ident <;>
                   (simp_all [process, step] <;> omega)))
