@@ -42,7 +42,7 @@
           <button type="button" role="tab" id="tab-overview" aria-selected="true" aria-controls="view-overview" data-view="overview" tabindex="0">Overview</button>
           <button type="button" role="tab" id="tab-queue" aria-selected="false" aria-controls="view-queue" data-view="queue" tabindex="-1">Research queue <span id="queue-count" class="tab-count">0</span></button>
           <button type="button" role="tab" id="tab-kanban" aria-selected="false" aria-controls="view-kanban" data-view="kanban" tabindex="-1">Kanban</button>
-          <button type="button" role="tab" id="tab-frontier" aria-selected="false" aria-controls="view-frontier" data-view="frontier" tabindex="-1">Proof frontier</button>
+          <button type="button" role="tab" id="tab-frontier" aria-selected="false" aria-controls="view-frontier" data-view="frontier" tabindex="-1">Live benchmark</button>
           <button type="button" role="tab" id="tab-activity" aria-selected="false" aria-controls="view-activity" data-view="activity" tabindex="-1">Activity</button>
         </nav>
         <div class="phase"><span id="phase-indicator" class="phase-indicator unknown"></span><span id="phase-label">Controller unconfirmed</span></div>
@@ -113,10 +113,14 @@
       </section>
 
       <section id="view-frontier" class="view-section" role="tabpanel" aria-labelledby="tab-frontier" tabindex="0" hidden>
+        <div class="view-heading"><div><p class="eyebrow">The original theorem. One tactic.</p><h2>Live tactic benchmark</h2><p>Measured against fixed statements with the exact proof body <code>by colony</code>. Manual proofs and older seed reports are separate evidence.</p></div></div>
+        <section id="live-benchmark" class="panel live-benchmark-panel" aria-label="Strict live tactic benchmark"><p class="benchmark-live-empty">No live benchmark report is recorded.</p></section>
+        <details class="benchmark-archive"><summary>Earlier reported experiments · outside this strict score</summary>
         <div class="view-heading"><div><p class="eyebrow">Performance needs a proof</p><h2>The proof frontier</h2><p>Benchmark evidence, with its assumptions and trust category visible.</p></div><div class="frontier-controls"><span class="data-label">Reported results only</span><div id="benchmark-controls" class="filters" hidden><label class="select-wrap"><span class="sr-only">Benchmark run</span><select id="benchmark-run" aria-label="Benchmark run"></select></label><label class="select-wrap"><span class="sr-only">Benchmark strategy</span><select id="benchmark-strategy" aria-label="Benchmark strategy"><option value="colony">colony</option></select></label></div></div></div>
         <div class="frontier-intro"><div><span class="section-index">THE DIRECTION</span><h3>From theorem suites<br>to real contracts.</h3></div><p>The goal is complex program verification, including Cardano smart contracts. Results appear only when the runtime records an experiment. Empty space here is an open research problem.</p></div>
         <div id="benchmark-list"></div>
         <div class="trust-key"><span class="mini-label">READING THE EVIDENCE</span><div><p><span class="trust-badge trust-solver">Solver result</span><span>A reported answer; reconstruction is not implied.</span></p><p><span class="trust-badge trust-reconstructed">Reconstructed</span><span>A proof was produced; independent checking is not implied.</span></p><p><span class="trust-badge trust-kernel">Kernel checked</span><span>Explicitly reported kernel verification.</span></p><p><span class="trust-badge">No checked proof</span><span>The report records failure or no proof assurance.</span></p><p><span class="trust-badge">Unspecified</span><span>The report does not declare its trust category.</span></p></div></div>
+        </details>
       </section>
 
       <section id="view-activity" class="view-section" role="tabpanel" aria-labelledby="tab-activity" tabindex="0" hidden>

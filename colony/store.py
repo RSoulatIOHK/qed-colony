@@ -398,6 +398,8 @@ class Store:
             "generated_at": timestamp(), "mode": "live", "agents": agents, "tasks": tasks,
             "events": events, "benchmarks": records["benchmarks"], "reviews": records["reviews"],
         }
+        from .benchmark_state import read_live_benchmark
+        result["live_benchmark"] = read_live_benchmark(self.path.parent / "benchmark")
         policy = getattr(self, "autonomy_policy", None)
         if policy is not None:
             from .autonomy_store import AutonomyStore

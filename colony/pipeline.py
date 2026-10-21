@@ -705,7 +705,8 @@ specific actionable findings. A successful author process is not evidence of pro
 
     def _plan_model(self, cycle):
         """Infer and validate bounded tasks without preparing or publishing Git."""
-        snapshot = self.tasks.snapshot()["tasks"]
+        public_state = self.tasks.snapshot()
+        snapshot = public_state["tasks"]
         recent = [{"id": item["id"], "title": item["title"], "status": item["status"]}
                   for item in snapshot[-30:]]
         active = [{key: item[key] for key in ("id", "title", "role", "status")}
@@ -737,6 +738,21 @@ do not propose work that depends on another active task completing first.
 Recent tasks: %s
 Active unfinished tasks (including parked work): %s
 """ % (", ".join(sorted(SRE_FILES)), json.dumps(recent), json.dumps(active))
+        benchmark = public_state.get("live_benchmark", {})
+        report = benchmark.get("report") or {}
+        if report.get("valid") is True:
+            failures = [{key: row[key] for key in ("id", "header", "statement_sha256")}
+                        for row in report.get("cases", [])
+                        if row.get("results", {}).get("colony", {}).get("status") != "kernel_accepted"][:8]
+            diagnostic = {"source_revision": report.get("source_revision"),
+                          "stale": benchmark.get("status", {}).get("stale", True),
+                          "suite": report.get("suite", {}).get("id"), "colony_failures": failures}
+            prompt += ("\nController-owned benchmark diagnostics (historical if stale):\n" +
+                       validate_public_text(json.dumps(diagnostic, ensure_ascii=False))[:10000] +
+                       "\nUse these to propose generic tactic improvements. Every scored theorem must close with "
+                       "exactly `by colony`; manual proofs and benchmark-specific helper lemmas are not wins. "
+                       "Do not dispatch on benchmark/theorem names, alter statements, assumptions, bounds, "
+                       "corpus selection, controls, evaluation or reports to improve a score.\n")
         try:
             result = self._job(cycle, "planner:0", prompt,
                                int(self.policy.get("planner_timeout_seconds", 180)), "read-only", PLAN_SCHEMA)

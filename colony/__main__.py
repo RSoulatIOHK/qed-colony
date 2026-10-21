@@ -81,9 +81,25 @@ def main(argv=None):
     project_service.add_argument("--interval", type=int, default=120, help="Sync interval in seconds (30–86400)")
     project_service.add_argument("--repository", help="Override GitHub repository OWNER/REPO")
     project_service.add_argument("--project-url", help="Override public GitHub Projects v2 URL")
+    benchmark_service = commands.add_parser("benchmark-service", help="Manage strict live benchmarks independently of model workers")
+    benchmark_service.add_argument("action", choices=("install", "start", "stop", "status", "uninstall"))
+    benchmark_service.add_argument("--root", help="Operational repository (default: config directory)")
+    benchmark_service.add_argument("--source-root", help="Reviewed checkout supplying the pinned evaluator and challenge")
+    benchmark_service.add_argument("--interval", type=int, default=120)
     args = parser.parse_args(argv)
     try:
         config = load_config(args.config)
+        if args.command == "benchmark-service":
+            from . import benchmark_launchd as benchmark_control
+            root = Path(args.root or Path(args.config).resolve().parent).resolve()
+            if args.action == "install":
+                result = benchmark_control.install_service(root, source_root=args.source_root,
+                                                            interval=args.interval)
+            else:
+                operation = "service_status" if args.action == "status" else args.action + "_service"
+                result = getattr(benchmark_control, operation)(root)
+            print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+            return 0
         if args.command == "project-service":
             from . import project_service as project_control
             root = Path(args.root or Path(args.config).resolve().parent).resolve()

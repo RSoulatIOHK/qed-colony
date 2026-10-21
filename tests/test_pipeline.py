@@ -103,6 +103,35 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual([item["sandbox"] for item in self.jobs], ["workspace-write", "read-only"])
         self.assertEqual(self.auto.get_budget(self.policy)["attempts"], 2)
 
+    def test_planner_receives_revision_bound_strict_benchmark_failures(self):
+        self.review = {"tasks": [{"title": "Improve a generic proof mechanism", "role": "engineer",
+                                  "description": "Improve a general proof step in the existing tactic module.",
+                                  "acceptance": ["The fixed original theorem closes with one colony call"]}]}
+        state = self.store.snapshot()
+        state["live_benchmark"] = {"status": {"stale": True}, "report": {
+            "valid": True, "source_revision": "a" * 40, "suite": {"id": "fixed-suite"},
+            "cases": [{"id": "original_case", "header": "theorem original_case (n : Nat) : n = n :=",
+                       "statement_sha256": "b" * 64, "results": {"colony": {"status": "proof_failed"}}}]}}
+        with patch.object(self.store, "snapshot", return_value=state):
+            self.pipeline.plan()
+        prompt = self.jobs[-1]["prompt"]
+        self.assertIn('"source_revision": "' + "a" * 40, prompt)
+        self.assertIn('"stale": true', prompt)
+        self.assertIn("original_case (n : Nat) : n = n", prompt)
+        self.assertIn("exactly `by colony`", prompt)
+        self.assertIn("Do not dispatch on benchmark/theorem names", prompt)
+
+    def test_invalid_benchmark_controls_do_not_feed_a_scored_planner_claim(self):
+        self.review = {"tasks": [{"title": "Improve a generic proof mechanism", "role": "engineer",
+                                  "description": "Improve a general proof step in the existing tactic module.",
+                                  "acceptance": ["Preserve the original theorem statement"]}]}
+        state = self.store.snapshot()
+        state["live_benchmark"] = {"status": {"stale": False}, "report": {
+            "valid": False, "source_revision": "a" * 40, "cases": []}}
+        with patch.object(self.store, "snapshot", return_value=state):
+            self.pipeline.plan()
+        self.assertNotIn("Controller-owned benchmark diagnostics", self.jobs[-1]["prompt"])
+
     def test_pending_ci_never_merges_or_spends_another_model_attempt(self):
         self.to_ci()
         self.broker.pr["statusCheckRollup"] = []
