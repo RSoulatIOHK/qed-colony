@@ -151,6 +151,7 @@
     renderAutonomy();
     renderRoster();
     renderTasks();
+    renderKanban();
     renderEvents();
     renderBenchmarks();
     renderReviews();
@@ -450,6 +451,118 @@
     });
   }
 
+  function githubProjectURL(value) {
+    const safe = safeURL(value);
+    if (!safe) return null;
+    const url = new URL(safe);
+    return url.hostname === 'github.com' && !url.port && /^\/(?:users|orgs)\/[^/]+\/projects\/\d+(?:\/views\/\d+)?\/?$/.test(url.pathname) ? safe : null;
+  }
+
+  function cycleForTask(task) {
+    const cycles = state.data.autonomy?.cycles;
+    if (!Array.isArray(cycles)) return null;
+    return cycles.filter((cycle) => cycle && string(cycle.task_id) === string(task.id))
+      .sort((a, b) => string(b.updated_at || b.created_at).localeCompare(string(a.updated_at || a.created_at)))[0] || null;
+  }
+
+  function boardStage(task, cycle) {
+    const value = status(task.status);
+    const phase = status(cycle?.phase);
+    const review = cycle?.review && typeof cycle.review === 'object' ? cycle.review : {};
+    const verdict = status(cycle?.review_verdict || review.verdict);
+    const autonomy = state.data.autonomy || {};
+    const budget = autonomy.budget || autonomy.service?.budget || {};
+    const workers = workerActivity();
+    const active = (state.source.startsWith('snapshot') ? workers.recorded : workers.active).some((agent) => string(agent.task_id) === string(task.id));
+    const integrationHold = cycle?.governance_required === true && cycle.governance_status === 'awaiting_controller_integration';
+    if (doneStatuses.has(value) || ['done', 'completed', 'merged'].includes(phase)) return { lane: 'done', label: value === 'cancelled' || value === 'canceled' ? 'Cancelled' : 'Completed', tone: 'done' };
+    if (value === 'failed' || phase === 'failed') return { lane: 'blocked', label: 'Failed · needs intervention', tone: 'failed' };
+    if (integrationHold) return { lane: 'blocked', label: 'Awaiting controller integration', tone: 'integration' };
+    if (['blocked', 'needs_review', 'abandoned'].includes(phase) || ['blocked', 'needs_review'].includes(value)) return { lane: 'blocked', label: phase === 'needs_review' ? 'Needs intervention' : 'Blocked', tone: 'blocked' };
+    if (['changes_requested', 'request_changes', 'reject', 'rejected'].includes(verdict) && !(phase === 'authoring' && active)) return { lane: 'blocked', label: 'Review requested changes', tone: 'blocked' };
+    if (budget.exhausted === true && !active && ['queued', 'authoring', 'reviewing'].includes(phase)) return { lane: 'blocked', label: 'Daily model budget exhausted', tone: 'blocked' };
+    if (phase === 'authoring') return { lane: 'progress', label: active ? 'Worker active' : 'Implementation recorded', tone: 'working' };
+    if (['reviewing', 'review_publication', 'review_requested', 'ci', 'merging', 'publishing'].includes(phase) || ['review', 'in_review', 'awaiting_review', 'review_requested'].includes(value)) return { lane: 'review', label: ({ ci: 'Waiting for CI', merging: 'Ready for merge gate', publishing: 'Publishing PR', reviewing: 'Independent review', review_publication: 'Publishing review' })[phase] || 'Awaiting review', tone: 'review' };
+    if (['working', 'running', 'active', 'in_progress', 'claimed'].includes(value)) return { lane: 'progress', label: active ? 'Worker active' : 'Implementation recorded', tone: 'working' };
+    if (value === 'ready' || phase === 'queued') return { lane: 'ready', label: budget.exhausted === true ? 'Ready · waiting for daily budget' : 'Ready to be claimed', tone: 'ready' };
+    return { lane: 'backlog', label: pretty(task.status || 'backlog'), tone: 'pending' };
+  }
+
+  function boardCard(task, cycle, stage) {
+    const card = el('article', `kanban-card kanban-card-${stage.lane}`);
+    const meta = el('div', 'kanban-card-top');
+    meta.append(el('span', 'kanban-task-id', task.id || 'Task'), el('span', 'kanban-role-label', roleLabel(task.role || cycle?.role || 'Role unassigned')));
+    const heading = el('h4');
+    heading.append(taskButton(task));
+    card.append(meta, heading, el('span', `status-badge status-${stage.tone}`, stage.label));
+    if (task.lease_owner) card.append(el('p', 'kanban-owner', `Owner: ${ownerFor(task)}`));
+    const phase = cycle?.phase;
+    if (phase) card.append(el('p', 'kanban-phase', `Cycle: ${pretty(phase)}${cycle.revision !== undefined ? ` · revision ${cycle.revision}` : ''}`));
+    const review = cycle?.review && typeof cycle.review === 'object' ? cycle.review : {};
+    const verdict = cycle?.review_verdict || review.verdict;
+    if (cycle) card.append(el('p', 'kanban-evidence', [verdict ? `Review: ${pretty(verdict)}` : 'Review: not recorded', cycle.ci_status ? `CI: ${pretty(cycle.ci_status)}` : 'CI: not recorded'].join(' · ')));
+    const reviewed = cycle?.reviewed_sha || cycle?.reviewed_head || review.head_sha;
+    const head = cycle?.head_sha || cycle?.head_oid || cycle?.head;
+    if (reviewed) card.append(el('p', 'kanban-evidence', `Reviewed head: ${string(reviewed).slice(0, 10)}`));
+    if (reviewed && head && reviewed !== head) card.append(el('p', 'kanban-blocker', 'Recorded review applies to an earlier head.'));
+    const dependencyIDs = Array.isArray(task.depends_on) ? task.depends_on : [];
+    const unmet = dependencyIDs.filter((id) => !doneStatuses.has(status(state.data.tasks.find((entry) => string(entry.id) === string(id))?.status)));
+    if (unmet.length) card.append(el('p', 'kanban-blocker', `Dependencies: ${unmet.join(', ')}`));
+    const reason = cycle?.last_error || ((stage.lane === 'blocked' || stage.lane === 'done') && task.summary);
+    if (reason) {
+      const text = printable(reason);
+      const note = el('p', 'kanban-blocker', text.length > 320 ? `${text.slice(0, 317)}…` : text);
+      note.title = text;
+      card.append(note);
+    }
+    const links = el('div', 'kanban-card-links');
+    const pr = link('Pull request ↗', cycle?.pr_url || task.pr_url);
+    const issue = link('Issue ↗', task.issue_url);
+    if (pr) links.append(pr);
+    if (issue) links.append(issue);
+    if (links.childElementCount) card.append(links);
+    return card;
+  }
+
+  function renderKanban() {
+    const project = state.data.project || {};
+    const projectURL = githubProjectURL(project.github_project_url) || githubProjectURL(project.project_url);
+    const projectLink = $('github-project-link');
+    projectLink.hidden = !projectURL;
+    if (projectURL) projectLink.href = projectURL; else projectLink.removeAttribute('href');
+    const tasks = sortedTasks(state.data.tasks);
+    updateOptions($('kanban-role'), tasks.map((task) => task.role), 'All roles');
+    const query = $('kanban-search').value.trim().toLowerCase();
+    const role = $('kanban-role').value;
+    const entries = tasks.map((task) => {
+      const cycle = cycleForTask(task);
+      return { task, cycle, stage: boardStage(task, cycle) };
+    }).filter(({ task, cycle, stage }) => (role === 'all' || string(task.role) === role) && [task.id, task.title, task.role, task.description, task.pr_url, task.issue_url, cycle?.pr_url, cycle?.phase, cycle?.last_error, stage.label].filter(Boolean).join(' ').toLowerCase().includes(query));
+    $('kanban-count').textContent = `${entries.length} of ${tasks.length} recorded task${tasks.length === 1 ? '' : 's'}${state.source.startsWith('snapshot') ? ' · saved snapshot' : state.source !== 'live' ? ' · current state unconfirmed' : ''}`;
+    const autonomy = state.data.autonomy || {};
+    const budget = autonomy.budget || autonomy.service?.budget || {};
+    const notice = $('kanban-budget');
+    notice.hidden = budget.exhausted !== true;
+    notice.textContent = budget.exhausted === true ? `Daily model budget exhausted${budget.attempts !== undefined && budget.max_daily_attempts !== undefined ? ` (${budget.attempts}/${budget.max_daily_attempts} attempts)` : ''}. New model work waits${budget.resets_at ? ` until ${dateTime(budget.resets_at)}` : ' for the daily reset'}. Already reserved work and non-model controller steps may still finish.` : '';
+    const board = $('kanban-board');
+    board.replaceChildren();
+    const lanes = [['backlog', 'Backlog'], ['ready', 'Ready'], ['progress', 'In progress'], ['review', 'Review'], ['blocked', 'Blocked'], ['done', 'Done']];
+    lanes.forEach(([key, label]) => {
+      const laneEntries = entries.filter((entry) => entry.stage.lane === key);
+      const column = el('section', `kanban-column kanban-column-${key}`);
+      column.setAttribute('aria-labelledby', `kanban-lane-${key}`);
+      const heading = el('div', 'kanban-column-heading');
+      const title = el('h3', '', label);
+      title.id = `kanban-lane-${key}`;
+      heading.append(title, el('span', 'kanban-column-count', laneEntries.length));
+      const cards = el('div', 'kanban-cards');
+      if (!laneEntries.length) cards.append(el('p', 'kanban-empty', query || role !== 'all' ? 'No matching tasks' : 'No recorded tasks'));
+      laneEntries.forEach(({ task, cycle, stage }) => cards.append(boardCard(task, cycle, stage)));
+      column.append(heading, cards);
+      board.append(column);
+    });
+  }
+
   function orderedEvents() {
     return state.data.events.map((event, index) => ({ event, index })).sort((a, b) => string(b.event.at).localeCompare(string(a.event.at)) || (Number.isFinite(Number(a.event.id)) && Number.isFinite(Number(b.event.id)) ? Number(b.event.id) - Number(a.event.id) : b.index - a.index)).map(({ event }) => event);
   }
@@ -615,7 +728,7 @@
   }
 
   function switchView(view, focus = false) {
-    if (!['overview', 'queue', 'frontier', 'activity'].includes(view)) return;
+    if (!['overview', 'queue', 'kanban', 'frontier', 'activity'].includes(view)) return;
     state.view = view;
     document.querySelectorAll('[role="tab"]').forEach((tab) => {
       const selected = tab.dataset.view === view;
@@ -700,6 +813,8 @@
     event.preventDefault();
     switchView(tabs[next].dataset.view, true);
   });
+  $('kanban-search').addEventListener('input', renderKanban);
+  $('kanban-role').addEventListener('change', renderKanban);
   $('task-search').addEventListener('input', renderQueue);
   $('task-status').addEventListener('change', renderQueue);
   $('event-kind').addEventListener('change', renderActivity);
@@ -720,6 +835,7 @@
     const rect = $('detail-dialog').getBoundingClientRect();
     if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) $('detail-dialog').close();
   });
+  switchView(window.location.hash.slice(1));
   refresh();
   setInterval(() => { if (!document.hidden) refresh(); }, 15000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
