@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+  "runtime_llm": false,
+  "require_original_statement": true,
+  "measure": ["preprocessing", "search", "reconstruction", "kernel_checking", "wall_time", "peak_memory", "proof_size"],
+  "assurance_levels": ["solver_valid", "lean_kernel", "export_replayed", "independent_kernels", "contract_semantics_connected"],
+  "initial_assurance_ceiling": "lean_kernel",
+  "benchmark_changes": "separate_governance_pr",
+  "unsupported_result": "failure_or_unknown",
+  "public_comparison": "pinned_sources_and_resources",
+  "pilot_warning": "This tracked file is a review contract, not an externally enforced privilege boundary."
+}

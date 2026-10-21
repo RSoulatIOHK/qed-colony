@@ -1,0 +1,82 @@
+{
+  "schema": "colony.benchmark_manifest.v1",
+  "id": "colony-seed-v1",
+  "toolchain": "leanprover/lean4:v4.35.0",
+  "scope": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+  "imports": ["Colony"],
+  "open": ["Colony.Seed"],
+  "timeout_seconds": 15,
+  "max_heartbeats": 200000,
+  "allowed_axioms": ["propext", "Quot.sound", "Classical.choice"],
+  "protected_sources": ["lean/Colony/Seeds.lean"],
+  "strategies": {
+    "colony": "colony",
+    "simp": "simp_all",
+    "omega": "intros; omega",
+    "grind": "intros; grind"
+  },
+  "cases": [
+    {
+      "id": "arithmetic_monotonicity",
+      "family": "arithmetic",
+      "kind": "positive",
+      "statement": "∀ (x y : Nat), x ≤ y → x + 1 ≤ y + 1"
+    },
+    {
+      "id": "reverse_accumulator_length",
+      "family": "recursive_program",
+      "kind": "positive",
+      "statement": "∀ (xs acc : List Nat), (reverseAcc xs acc).length = xs.length + acc.length"
+    },
+    {
+      "id": "count_accumulator_invariant",
+      "family": "recursive_program",
+      "kind": "positive",
+      "statement": "∀ (xs : List Nat) (n : Nat), countAcc xs n = xs.length + n"
+    },
+    {
+      "id": "recursive_program_nonvacuity",
+      "family": "recursive_program",
+      "kind": "positive",
+      "statement": "reverseAcc [1, 2, 3] [] = [3, 2, 1] ∧ countAcc [1, 2, 3] 4 = 7"
+    },
+    {
+      "id": "account_state_invariant",
+      "family": "state_transition",
+      "kind": "positive",
+      "statement": "∀ (s : Account) (reserve amount : Nat), s.balance = s.received + reserve → (deposit s amount).balance = (deposit s amount).received + reserve"
+    },
+    {
+      "id": "allocated_payments_cover_sales",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "statement": "∀ (priceA priceB paidA paidB : Nat), allocatedSales priceA priceB paidA paidB → priceA + priceB ≤ paidA + paidB"
+    },
+    {
+      "id": "allocated_payments_nonvacuity",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "statement": "allocatedSales 10 15 10 15 ∧ 10 + 15 ≤ 10 + 15"
+    },
+    {
+      "id": "shared_payment_attack_witness",
+      "family": "marketplace_toy_model",
+      "kind": "positive",
+      "statement": "sharedPaymentSales 10 10 10 ∧ ¬ (10 + 10 ≤ 10)"
+    },
+    {
+      "id": "false_shared_payment_safety",
+      "family": "marketplace_toy_model",
+      "kind": "negative",
+      "statement": "∀ (priceA priceB paid : Nat), sharedPaymentSales priceA priceB paid → priceA + priceB ≤ paid",
+      "requires_positive": ["shared_payment_attack_witness", "allocated_payments_nonvacuity"]
+    },
+    {
+      "id": "reverse_involution_frontier",
+      "family": "recursive_program",
+      "kind": "unsupported",
+      "statement": "∀ (xs : List Nat), reverseAcc (reverseAcc xs []) [] = xs",
+      "note": "True challenge intentionally beyond the initial portfolio; a future certified solution is progress."
+    }
+  ]
+}

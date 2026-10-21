@@ -1,0 +1,64 @@
+{
+  "tasks": [
+    {
+      "id": "R001",
+      "title": "Compare three architecture candidates for certified UPLC verification",
+      "role": "researcher",
+      "priority": 100,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Write an experiment proposal comparing certified symbolic execution, compositional weakest-precondition generation, and a certificate-producing solver portfolio. Architecture is unconstrained. Use current repository facts; distinguish hypotheses from measured results. Do not edit code or publish externally.",
+      "acceptance": ["Three candidate approaches with a concrete falsifiable experiment each", "Original-theorem proof path and expected bottleneck for each", "A bounded first experiment with a stop condition", "No invented benchmark measurements or claims of Cardano correspondence"]
+    },
+    {
+      "id": "R002",
+      "title": "Audit the compiled-contract semantic path and trust dependencies",
+      "role": "researcher",
+      "priority": 90,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Propose an audit of CardanoLedgerApiBlaster and PlutusCoreBlaster: source provenance, decoding, preprocessing correctness, evaluation bounds, builtins, cryptographic assumptions, and conformance. This is an audit plan, not a claim of completed correspondence.",
+      "acceptance": ["Enumerate semantic bridges and required proof obligations", "Separate fuel exhaustion, failure, and success", "Include a non-vacuity strategy", "Identify a reproducible initial contract target"]
+    },
+    {
+      "id": "B001",
+      "title": "Freeze the first external comparison corpus",
+      "role": "benchmark",
+      "priority": 80,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Select and pin external program-verification cases, including Blaster-compatible cases and new contract families. Record licenses and source hashes; keep solver success separate from certified proof success.",
+      "acceptance": ["Pinned sources with license and extraction provenance", "Family-balanced cases and full-contract scoring", "Same-toolchain comparison or explicit incompatibility", "No benchmark-name special casing"]
+    },
+    {
+      "id": "P001",
+      "title": "Implement the winning bounded proof-engine experiment",
+      "role": "engineer",
+      "priority": 70,
+      "status": "ready",
+      "depends_on": ["R001", "B001"],
+      "description": "Implement the selected experiment after independent review of its research proposal and frozen challenge set. The pilot tactic is disposable; do not preserve its architecture for its own sake.",
+      "acceptance": ["Reconstruct original theorem proofs", "Report all failures and complete timings", "Independent review of semantic changes", "Public implementation PR with reproduction evidence"]
+    },
+    {
+      "id": "I001",
+      "title": "Move acceptance into an independent sandboxed evaluator",
+      "role": "infrastructure",
+      "priority": 85,
+      "status": "ready",
+      "depends_on": [],
+      "description": "Port to a suitable modern pinned Lean and evaluate lake comparator/check with external kernels. Keep trusted challenge/configuration outside worker authority. Add VM/container isolation and a narrow publication broker.",
+      "acceptance": ["Reject changed theorem statements and nonstandard axioms", "Replay exports in a fresh trusted process", "Verify independent kernels on representative proofs", "Document remaining trusted components and platform requirements"]
+    },
+    {
+      "id": "C001",
+      "title": "Specify the Plutus Gauntlet batch marketplace",
+      "role": "contracts",
+      "priority": 60,
+      "status": "ready",
+      "depends_on": ["R002"],
+      "description": "Specify payment allocation, unique obligations, cancellation, assets, and malformed inputs for an exact compiled marketplace script. Include vulnerable variants and successful witness transactions.",
+      "acceptance": ["Compiled-script hash and language version", "Explicit semantic correspondence scope and bounds", "Valid-transaction witnesses", "Replayable multi-satisfaction counterexample for a vulnerable variant"]
+    }
+  ]
+}

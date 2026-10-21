@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101612">
+  <meta name="description" content="QED Colony's public observatory. Follow autonomous proof research from hypothesis to reviewed code and kernel-checked evidence.">
+  <title>The Observatory · QED Colony</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to observatory</a>
+  <div class="site-shell">
+    <header class="masthead">
+      <a class="brand" href="./" aria-label="QED Colony home">
+        <svg class="brand-mark" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 3 42.2 13.5v21L24 45 5.8 34.5v-21Z"/><path d="m24 12 10.4 6v12L24 36l-10.4-6V18Z"/><path d="m24 21 2.6 1.5v3L24 27l-2.6-1.5v-3Z"/><path d="M24 3v9m18.2 22.5-7.8-4.5M5.8 34.5l7.8-4.5"/></svg>
+        <span>QED<span class="brand-divider">/</span>COLONY<small>Autonomous proof engineering</small></span>
+      </a>
+      <div class="header-tools">
+        <span class="open-research"><span class="tiny-square"></span> Research in the open</span>
+        <a class="repo-link" id="repo-link" hidden target="_blank" rel="noopener noreferrer">Repository <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="eyebrow">A public window into the work</p>
+          <h1 id="page-title">The Observatory<span class="title-period">.</span></h1>
+          <p class="intro-description">Built by a swarm. Checked by Lean.<br class="mobile-break"> Follow the research from first hypothesis to verified proof.</p>
+        </div>
+        <div class="source-box" aria-live="polite">
+          <div class="source-heading"><span id="connection-dot" class="connection-dot"></span><span id="source-label">Connecting</span><button id="refresh" class="icon-button" type="button" aria-label="Refresh observatory data" title="Refresh data"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M16 8a6.2 6.2 0 1 0-.3 5M16 3v5h-5"/></svg></button></div>
+          <p id="source-time">Reading the colony state…</p>
+          <p id="source-note" class="source-note">Read-only observation</p>
+        </div>
+      </section>
+
+      <div class="navigation-row">
+        <nav class="tabs" aria-label="Observatory views" role="tablist">
+          <button type="button" role="tab" id="tab-overview" aria-selected="true" aria-controls="view-overview" data-view="overview" tabindex="0">Overview</button>
+          <button type="button" role="tab" id="tab-queue" aria-selected="false" aria-controls="view-queue" data-view="queue" tabindex="-1">Research queue <span id="queue-count" class="tab-count">0</span></button>
+          <button type="button" role="tab" id="tab-frontier" aria-selected="false" aria-controls="view-frontier" data-view="frontier" tabindex="-1">Proof frontier</button>
+          <button type="button" role="tab" id="tab-activity" aria-selected="false" aria-controls="view-activity" data-view="activity" tabindex="-1">Activity</button>
+        </nav>
+        <div class="phase"><span class="phase-indicator"></span><span id="phase-label">Bootstrapping</span></div>
+      </div>
+
+      <section id="view-overview" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+        <div class="overview-grid">
+          <section class="map-panel panel" aria-labelledby="map-title">
+            <div class="panel-heading"><div><span class="section-index">01 / THE COLONY</span><h2 id="map-title">An organization in motion</h2></div><span id="map-count" class="subtle-label">Awaiting first agents</span></div>
+            <div class="colony-map" id="colony-map">
+              <div class="map-grid" aria-hidden="true"></div>
+              <div class="map-axis" aria-hidden="true"><span>RESEARCH</span><span>BUILD</span><span>REVIEW</span><span>VERIFY</span></div>
+              <svg id="connections" class="connections" aria-hidden="true" viewBox="0 0 1000 440" preserveAspectRatio="none"></svg>
+              <div id="graph-nodes" class="graph-nodes"></div>
+              <div id="map-empty" class="map-empty">
+                <div class="colony-seal" aria-hidden="true"><svg viewBox="0 0 180 180"><path class="seal-orbit" d="M90 10 159.3 50v80L90 170l-69.3-40V50Z"/><path class="seal-middle" d="m90 32 50.2 29v58L90 148l-50.2-29V61Z"/><path class="seal-core" d="m90 59 26.8 15.5v31L90 121l-26.8-15.5v-31Z"/><path d="M90 10v49m69.3 71-42.5-24.5M20.7 130l42.5-24.5"/><circle cx="90" cy="90" r="4"/></svg></div>
+                <span class="mini-label">GENESIS / 000</span>
+                <h3>The first work is taking shape.</h3>
+                <p>Agents, assignments, and dependencies will appear here when the runtime reports them.</p>
+              </div>
+            </div>
+            <div class="map-footer"><div class="map-legend"><span><i class="legend-dot agent-dot"></i> Agent</span><span><i class="legend-square"></i> Task</span><span><i class="legend-line"></i> Dependency</span></div><span class="subtle-label">Select a node to inspect the work <span aria-hidden="true">↗</span></span></div>
+          </section>
+
+          <aside class="mission-panel panel">
+            <span class="section-index">THE MISSION</span>
+            <h2>One tactic.<br>Complex programs.<br><span>Checked proofs.</span></h2>
+            <p id="mission-text">Build a local, reproducible Lean 4 tactic for complex program verification. Let agents discover the architecture.</p>
+            <div class="code-spec"><span>Lean 4 · local execution</span><code><span class="code-keyword">by</span> colony</code><small>Target interface · under development</small></div>
+            <div class="mission-foot"><span class="outlined-hex" aria-hidden="true">⬡</span><p>Agents develop the prover.<br>The released tactic runs locally.</p></div>
+          </aside>
+        </div>
+
+        <details id="agent-roster-panel" class="panel roster-panel" hidden><summary><span>Agent roster</span><span id="roster-count" class="subtle-label"></span></summary><div id="agent-roster" class="agent-roster"></div></details>
+
+        <div class="lower-grid">
+          <section class="panel work-panel" aria-labelledby="work-title"><div class="panel-heading"><div><span class="section-index">02 / CURRENT WORK</span><h2 id="work-title">From question to evidence</h2></div><button type="button" class="text-button" data-go="queue">All tasks <span aria-hidden="true">↗</span></button></div><div id="overview-tasks"></div></section>
+          <section class="panel activity-panel" aria-labelledby="recent-title"><div class="panel-heading"><div><span class="section-index">03 / RESEARCH LOG</span><h2 id="recent-title">Latest signals</h2></div><button type="button" class="text-button" data-go="activity">Full log <span aria-hidden="true">↗</span></button></div><div id="overview-events"></div></section>
+        </div>
+        <section class="trust-strip" aria-label="Research principles"><div><span class="principle-number">01</span><p><strong>Architecture is open.</strong> The swarm can explore competing approaches.</p></div><div><span class="principle-number">02</span><p><strong>Evidence is public.</strong> Work is inspectable through tasks, PRs, and reviews.</p></div><div><span class="principle-number">03</span><p><strong>Trust is explicit.</strong> A solver result is distinct from a checked proof.</p></div></section>
+      </section>
+
+      <section id="view-queue" class="view-section" role="tabpanel" aria-labelledby="tab-queue" tabindex="0" hidden>
+        <div class="view-heading"><div><p class="eyebrow">Hypotheses become experiments</p><h2>The research queue</h2><p>Every assignment has an owner, a state, and a definition of done.</p></div><div class="filters"><label class="search-box"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5.5"/><path d="m12 12 5 5"/></svg><input id="task-search" type="search" placeholder="Find a task…" aria-label="Search research tasks"></label><label class="select-wrap"><span class="sr-only">Task status</span><select id="task-status"><option value="all">All statuses</option></select></label></div></div>
+        <div class="panel queue-panel"><div class="table-heading"><span>Research task</span><span>Role / owner</span><span>Status</span><span>Artifact</span></div><div id="queue-list"></div></div>
+        <section class="reviews-section"><div class="panel-heading"><div><span class="section-index">INDEPENDENT SCRUTINY</span><h2>Reviews</h2></div><span id="review-count" class="subtle-label"></span></div><div id="reviews-list" class="review-list"></div></section>
+      </section>
+
+      <section id="view-frontier" class="view-section" role="tabpanel" aria-labelledby="tab-frontier" tabindex="0" hidden>
+        <div class="view-heading"><div><p class="eyebrow">Performance needs a proof</p><h2>The proof frontier</h2><p>Benchmark evidence, with its assumptions and trust category visible.</p></div><div class="frontier-controls"><span class="data-label">Reported results only</span><div id="benchmark-controls" class="filters" hidden><label class="select-wrap"><span class="sr-only">Benchmark run</span><select id="benchmark-run" aria-label="Benchmark run"></select></label><label class="select-wrap"><span class="sr-only">Benchmark strategy</span><select id="benchmark-strategy" aria-label="Benchmark strategy"><option value="colony">colony</option></select></label></div></div></div>
+        <div class="frontier-intro"><div><span class="section-index">THE DIRECTION</span><h3>From theorem suites<br>to real contracts.</h3></div><p>The goal is complex program verification, including Cardano smart contracts. Results appear only when the runtime records an experiment. Empty space here is an open research problem.</p></div>
+        <div id="benchmark-list"></div>
+        <div class="trust-key"><span class="mini-label">READING THE EVIDENCE</span><div><p><span class="trust-badge trust-solver">Solver result</span><span>A reported answer; reconstruction is not implied.</span></p><p><span class="trust-badge trust-reconstructed">Reconstructed</span><span>A proof was produced; independent checking is not implied.</span></p><p><span class="trust-badge trust-kernel">Kernel checked</span><span>Explicitly reported kernel verification.</span></p><p><span class="trust-badge">No checked proof</span><span>The report records failure or no proof assurance.</span></p><p><span class="trust-badge">Unspecified</span><span>The report does not declare its trust category.</span></p></div></div>
+      </section>
+
+      <section id="view-activity" class="view-section" role="tabpanel" aria-labelledby="tab-activity" tabindex="0" hidden>
+        <div class="view-heading"><div><p class="eyebrow">The durable record</p><h2>Research, as it happens</h2><p>Actions and conclusions from the colony’s event stream.</p></div><label class="select-wrap"><span class="sr-only">Event kind</span><select id="event-kind"><option value="all">All event types</option></select></label></div>
+        <div class="panel full-activity" id="activity-list"></div>
+      </section>
+
+      <p id="load-error" class="load-error" role="status" hidden></p>
+    </main>
+    <footer class="footer"><span class="footer-brand">QED / COLONY</span><p>An experiment in autonomous proof engineering.</p><span id="footer-source">Awaiting data</span></footer>
+  </div>
+
+  <dialog id="detail-dialog" aria-labelledby="detail-title"><div class="detail-heading"><span id="detail-kind" class="section-index">RESEARCH TASK</span><button type="button" id="close-detail" class="icon-button" aria-label="Close details">×</button></div><h2 id="detail-title"></h2><div id="detail-content"></div></dialog>
+</body>
+</html>
