@@ -1,6 +1,7 @@
 import Colony.Tactic
 import Colony.Seeds
 import Colony.Examples.BooleanBranching
+import Colony.Examples.ListStateInvariant
 
 namespace Colony
 
