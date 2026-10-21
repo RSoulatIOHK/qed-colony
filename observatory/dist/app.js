@@ -141,9 +141,12 @@
     $('queue-count').textContent = String(data.tasks.length);
     const active = data.agents.filter((agent) => runningStatuses.has(status(agent.status))).length;
     const open = data.tasks.filter((task) => !doneStatuses.has(status(task.status))).length;
-    $('phase-label').textContent = active ? 'Research underway' : open ? 'Work queued' : data.tasks.length ? 'Between experiments' : 'Bootstrapping';
+    const controller = controllerState();
+    $('phase-label').textContent = controller.fresh ? (active ? 'Agent working' : controller.phase) : (open ? 'Work queued · controller unconfirmed' : 'Controller unconfirmed');
+    $('phase-indicator').className = `phase-indicator ${controller.tone}`;
     $('map-count').textContent = data.agents.length || data.tasks.length ? `${data.agents.length} agent${data.agents.length === 1 ? '' : 's'} / ${data.tasks.length} task${data.tasks.length === 1 ? '' : 's'}` : 'Awaiting first agents';
     renderMap();
+    renderAutonomy();
     renderRoster();
     renderTasks();
     renderEvents();
@@ -151,6 +154,104 @@
     renderReviews();
     renderSource();
     if ($('detail-dialog').open && state.selection) renderDetails(state.selection.kind, state.selection.id, false);
+  }
+
+  function controllerState() {
+    const autonomy = state.data?.autonomy || {};
+    const service = autonomy.service || {};
+    const recorded = status(service.status);
+    const heartbeat = validDate(service.heartbeat);
+    const age = heartbeat ? (Date.now() - heartbeat.getTime()) / 1000 : Infinity;
+    const fresh = state.source === 'live' && !!heartbeat && age >= -30 && age <= 120 && service.stale !== true;
+    if (state.source.startsWith('snapshot')) return { label: heartbeat ? `Recorded: ${pretty(recorded)}` : 'Controller not recorded', tone: 'snapshot', fresh: false, phase: 'Saved snapshot' };
+    if (['stopped', 'disabled', 'not_started'].includes(recorded)) return { label: 'Controller stopped', tone: 'stopped', fresh: false, phase: 'Stopped' };
+    if (!heartbeat) return { label: 'Controller not reported', tone: 'unknown', fresh: false, phase: 'Unconfirmed' };
+    if (!fresh) return { label: 'Controller heartbeat stale', tone: 'stale', fresh: false, phase: 'Heartbeat stale' };
+    if (['budget_limited', 'waiting_budget', 'budget_exhausted'].includes(recorded) || autonomy.budget?.exhausted) return { label: 'Daily runtime limit reached', tone: 'waiting', fresh: true, phase: 'Waiting for daily reset' };
+    if (['error', 'failed', 'blocked', 'needs_review'].includes(recorded)) return { label: 'Controller needs attention', tone: 'stale', fresh: true, phase: 'Needs attention' };
+    if (['waiting', 'idle', 'waiting_ci', 'waiting_for_checks'].includes(recorded)) return { label: 'Controller waiting', tone: 'waiting', fresh: true, phase: service.active_cycle ? 'Waiting on a cycle' : 'Waiting for work' };
+    return { label: 'Controller active', tone: 'active', fresh: true, phase: 'Autonomous loop active' };
+  }
+
+  function duration(value) {
+    const total = Math.max(0, Math.round(Number(value) || 0));
+    if (total >= 3600) return `${Math.floor(total / 3600)}h ${Math.floor(total % 3600 / 60)}m`;
+    if (total >= 60) return `${Math.floor(total / 60)}m ${total % 60}s`;
+    return `${total}s`;
+  }
+
+  function renderAutonomy() {
+    const autonomy = state.data.autonomy || {};
+    const service = autonomy.service || {};
+    const budget = autonomy.budget || service.budget || {};
+    const controller = controllerState();
+    $('controller-label').textContent = controller.label;
+    $('controller-dot').className = `controller-dot ${controller.tone}`;
+    $('controller-message').textContent = state.source.startsWith('snapshot')
+      ? 'This saved state cannot confirm whether the controller is running now.'
+      : service.message || (controller.fresh ? 'The controller is reporting its actual state.' : 'Queued tasks and a reachable dashboard do not establish that the autonomous loop is running.');
+    $('controller-heartbeat').textContent = service.heartbeat ? `Heartbeat ${dateTime(service.heartbeat)}${service.active_cycle ? ` · cycle ${service.active_cycle}` : ''}` : 'No heartbeat recorded';
+    const modelPolicy = autonomy.model_policy || {};
+    $('controller-model-policy').hidden = !modelPolicy.default_model;
+    $('controller-model-policy').textContent = modelPolicy.default_model ? `Starts with ${modelPolicy.default_model} · ${modelPolicy.default_reasoning_effort || 'configured'} reasoning. ${modelPolicy.escalation || 'Escalation follows the recorded model policy.'}${modelPolicy.max_concurrency ? ` · ${modelPolicy.max_concurrency} concurrent worker${modelPolicy.max_concurrency === 1 ? '' : 's'}` : ''}` : '';
+    const limit = Number(budget.max_daily_seconds);
+    const charged = Number(budget.used_seconds) || 0;
+    const reserved = Number(budget.reserved_seconds) || 0;
+    const used = Math.max(0, charged - reserved);
+    const hasBudget = Number.isFinite(limit) && limit > 0;
+    $('budget-remaining').textContent = hasBudget ? duration(budget.remaining_seconds) : '—';
+    $('budget-limit').textContent = hasBudget ? `remaining of ${duration(limit)}` : 'No runtime limit reported';
+    $('budget-date').textContent = budget.local_date ? `${budget.local_date} · ${budget.timezone || 'local day'}` : 'No date recorded';
+    const percent = hasBudget ? Math.min(100, Math.max(0, charged / limit * 100)) : 0;
+    $('budget-fill').style.width = `${percent}%`;
+    $('budget-meter').setAttribute('aria-valuenow', String(Math.round(percent)));
+    $('budget-meter').setAttribute('aria-valuetext', hasBudget ? `${duration(used)} used, ${duration(reserved)} reserved, ${duration(budget.remaining_seconds)} remaining` : 'No budget reported');
+    $('budget-detail').textContent = hasBudget
+      ? `${duration(used)} used${reserved ? ` · ${duration(reserved)} reserved` : ''} · ${budget.attempts ?? 0}/${budget.max_daily_attempts ?? '—'} attempts${budget.resets_at ? ` · resets ${dateTime(budget.resets_at)}` : ''}. Shared by all agent roles.`
+      : 'Aggregate worker time, including implementation, planning, and review.';
+    const cycles = Array.isArray(autonomy.cycles) ? autonomy.cycles : [];
+    $('cycle-count').textContent = `${cycles.length} recorded${service.active_cycle ? ` · ${service.active_cycle} selected` : ''}`;
+    const container = $('autonomy-cycles');
+    container.replaceChildren();
+    if (!cycles.length) {
+      container.append(el('p', 'cycle-empty', 'No autonomous cycle has been recorded. Public PRs and their review and CI evidence will appear here.'));
+      return;
+    }
+    const terminal = new Set(['complete', 'completed', 'done', 'merged', 'failed', 'blocked', 'abandoned', 'needs_review']);
+    const ordered = [...cycles].sort((a, b) => Number(terminal.has(status(a.phase))) - Number(terminal.has(status(b.phase))) || string(b.updated_at || b.created_at).localeCompare(string(a.updated_at || a.created_at)));
+    ordered.slice(0, 4).forEach((cycle) => {
+      const card = el('article', 'cycle-card');
+      const top = el('div', 'cycle-top');
+      const task = state.data.tasks.find((item) => string(item.id) === string(cycle.task_id));
+      if (task) top.append(taskButton(task)); else top.append(el('strong', '', cycle.task_id || cycle.id || 'Recorded cycle'));
+      top.append(badge(cycle.phase));
+      card.append(top, el('span', 'task-meta', `${cycle.id || 'Cycle'} · updated ${dateTime(cycle.updated_at || cycle.created_at)}`));
+      if (cycle.summary || cycle.message) card.append(el('p', '', printable(cycle.summary || cycle.message)));
+      const evidence = el('div', 'cycle-evidence');
+      const pr = link('Pull request ↗', cycle.pr_url);
+      if (pr) evidence.append(pr);
+      const review = cycle.review && typeof cycle.review === 'object' ? cycle.review : {};
+      const verdict = cycle.review_verdict || review.verdict;
+      evidence.append(el('span', '', verdict ? `Review: ${pretty(verdict)}` : 'Review: not recorded'));
+      const reviewed = cycle.reviewed_sha || cycle.reviewed_head || review.head_sha;
+      if (reviewed) evidence.append(el('span', 'cycle-sha', `Reviewed ${string(reviewed).slice(0, 10)}`));
+      const head = cycle.head_sha || cycle.head_oid || cycle.head;
+      if (head) evidence.append(el('span', 'cycle-sha', `Head ${string(head).slice(0, 10)}`));
+      if (cycle.model) evidence.append(el('span', 'cycle-sha', `${cycle.model}${cycle.reasoning_effort ? ` · ${cycle.reasoning_effort}` : ''}`));
+      card.append(evidence);
+      if (cycle.model_reason) card.append(el('p', 'cycle-model-reason', printable(cycle.model_reason)));
+      const checks = Array.isArray(cycle.checks) ? cycle.checks : Array.isArray(cycle.ci_checks) ? cycle.ci_checks : [];
+      if (checks.length) {
+        const checkList = el('div', 'cycle-checks');
+        checks.forEach((check) => {
+          const label = `${check.name || check.context || 'CI'}: ${pretty(check.conclusion || check.state || check.status)}`;
+          checkList.append(link(label, check.detailsUrl || check.details_url || check.url, 'check-link') || el('span', '', label));
+        });
+        card.append(checkList);
+      } else card.append(el('p', 'cycle-ci-note', cycle.ci_status ? `CI: ${pretty(cycle.ci_status)}` : 'CI results not recorded.'));
+      if (cycle.last_error) card.append(el('p', 'cycle-error', printable(cycle.last_error)));
+      container.append(card);
+    });
   }
 
   function laneFor(item) {

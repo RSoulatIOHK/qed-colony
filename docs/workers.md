@@ -1,6 +1,6 @@
 # Bounded workers
 
-The pilot uses `codex exec` with the existing authenticated CLI and configured model. It does not need a new API key and does not choose a different model for you.
+Workers use `codex exec` with the existing authenticated CLI. The single-run adapter below inherits the configured model. The persistent supervisor uses adaptive routing: GPT-6 Luna at medium reasoning for an initial attempt, GPT-6 Sol and then GPT-6.1 Sol for bounded revisions, and a stronger reviewer for tactic changes. It records each selection and its reason. No new API key is required.
 
 ```sh
 python3 -m colony init
@@ -34,10 +34,10 @@ The model deadline starts before launching the CLI and includes prompt delivery.
 
 The controller sends SIGTERM to the process group on cancellation, then SIGKILL after a short grace period. It also cleans up remaining children after the CLI leader exits. This does not contain a process that deliberately creates a new session. Setup uses bounded Git calls; the deadline applies to CLI execution rather than Git setup. Task leases are renewed before launching and every 20 seconds during execution. `lease_seconds` must be between 120 seconds and 24 hours. `max_timeout_seconds` must be between 1 and 3600 seconds; each invocation's `--timeout` must stay within that limit.
 
-Four concurrent controllers are allowed by default through a SQLite reservation. The reservation is extended after setup to cover the model deadline and cleanup. There are no automatic retries, infinite loops, automatic PRs, or automatic merges in this bootstrap. A successful worker result enters `review`, not `done`. The controller retains the worktree and raw logs beneath ignored `.colony/` for inspection. The final research result is part of the task summary; check it before publishing a snapshot.
+The single-run adapter permits four concurrent workers by default through a SQLite reservation. The persistent supervisor defaults to one active worker and a shared daily budget, bounded revisions, public PRs, independent model review, required CI, and exact-head merging. The reservation is extended after setup to cover the model deadline and cleanup. A successful worker result enters `review`, not `done`. The controller retains the worktree and raw logs beneath ignored `.colony/` for inspection. The final research result is part of the task summary; check it before publishing a snapshot.
 
 The worker is instructed not to push, contact others, deploy, change policy, or expand its authority. GitHub environment tokens are removed from its inherited environment. These are useful pilot restrictions, **not a complete credential or process security boundary**: the existing user account, keychain, global CLI configuration, or plugins may expose capabilities. Production workers must run in disposable containers or VMs with scoped credentials and an independent publication broker.
 
-The read-only Observatory does not start workers. Task execution is an explicit controller operation. A controller killed without cleanup can leave a model process running while its lease/reservation later expires. Future unattended operation requires a supervisor or disposable execution environment that ends orphaned work, an externally enforced resource budget, tested recovery, independently owned acceptance configuration, and an approved integration policy.
+The read-only Observatory does not start workers. The persistent service drives execution and reports its heartbeat independently of the web server. On restart it verifies recorded process identities before stopping surviving CLI groups, marks interrupted attempts uncertain, and retains their budget reservation. This recovery cannot contain intentionally detached malicious processes; disposable execution environments and independently owned acceptance administration remain production milestones. See [autonomy](autonomy.md) and [the publication pipeline](pipeline.md).
 
 Official interface reference: [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/).

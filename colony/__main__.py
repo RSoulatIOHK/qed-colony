@@ -66,10 +66,19 @@ def main(argv=None):
     run.add_argument("--timeout", type=int, default=180)
     run.add_argument("--agent")
     run.add_argument("--sandbox", choices=("read-only", "workspace-write"), default="read-only")
+    supervise = commands.add_parser("supervise", help="Run the durable autonomous PR/review/CI loop")
+    supervise.add_argument("--root", help="Operational repository (default: config directory)")
+    supervise.add_argument("--port", type=int, default=7331)
+    supervise.add_argument("--once", action="store_true", help="Advance one durable controller step")
+    service = commands.add_parser("service", help="Manage the persistent user LaunchAgent")
+    service.add_argument("action", choices=("install", "start", "stop", "status", "uninstall"))
+    service.add_argument("--root", help="Operational repository (default: config directory)")
+    service.add_argument("--port", type=int, default=7331)
     args = parser.parse_args(argv)
     try:
         config = load_config(args.config)
         store = Store(args.database or config["database"]).initialize()
+        store.autonomy_policy = config.get("autonomy")
         if args.command == "init":
             seed_path = Path(args.seed or config["seed_file"])
             if not seed_path.is_file():
@@ -114,8 +123,52 @@ def main(argv=None):
             result = run_once(root=Path(args.config).resolve().parent, db_path=store.path,
                               role=args.role, timeout=args.timeout, agent_id=args.agent, sandbox=args.sandbox)
             print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+        elif args.command == "service":
+            from . import service as service_control
+            root = Path(args.root or Path(args.config).resolve().parent).resolve()
+            if args.action == "install":
+                result = service_control.install_service(root, Path(args.config).resolve(), store.path, port=args.port)
+            else:
+                result = getattr(service_control, args.action + "_service" if args.action != "status" else "service_status")(root)
+            print(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False))
+        elif args.command == "supervise":
+            import signal
+            import threading
+            from .server import make_server
+            from .supervisor import Supervisor
+            from .worker import cleanup_orphan_jobs
+            root = Path(args.root or Path(args.config).resolve().parent).resolve()
+            policy = dict(config.get("autonomy", {}), _database=str(store.path))
+            supervisor = Supervisor(root, store.path, policy, task_store=store)
+            supervisor.acquire_lock()
+            cleanup_orphan_jobs(root, store.path)
+            if args.once:
+                try:
+                    print(json.dumps(supervisor.tick(), indent=2))
+                finally:
+                    supervisor.release_lock()
+                return 0
+            stop = threading.Event()
+
+            def terminate(signum, frame):
+                stop.set()
+                raise KeyboardInterrupt
+
+            signal.signal(signal.SIGTERM, terminate)
+            server = make_server(store, "127.0.0.1", args.port, config["observatory_dir"], config.get("project"))
+            thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": 0.25}, daemon=True)
+            thread.start()
+            print("Persistent Observatory: http://127.0.0.1:%d" % args.port, flush=True)
+            try:
+                supervisor.run_forever(stop)
+            except KeyboardInterrupt:
+                stop.set()
+            finally:
+                server.shutdown()
+                server.server_close()
+                supervisor.release_lock()
         return 0
-    except (OSError, ValueError, KeyError, PermissionError) as error:
+    except (OSError, ValueError, KeyError, PermissionError, RuntimeError) as error:
         print("colony: %s" % error, file=sys.stderr)
         return 1
 

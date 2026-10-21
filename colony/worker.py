@@ -225,6 +225,156 @@ The controller will collect your artifacts and arrange independent review.
            criteria=criteria, mode=mode)
 
 
+def cleanup_orphan_jobs(root, db_path=None):
+    """Stop recorded surviving CLI groups before a restarted daemon schedules.
+
+    A PID is insufficient: compare its start time and unique output argument to
+    avoid signalling an unrelated process after PID reuse. This is recovery for
+    cooperative local workers, not containment of a hostile setsid child.
+    """
+    cleaned = 0
+    db_path = Path(db_path or Path(root) / ".colony" / "colony.db")
+    for record in (Path(root) / ".colony" / "runs").glob("*/process.json"):
+        try:
+            data = json.loads(record.read_text())
+            pid = int(data["pid"])
+            identity = data.get("started")
+            if not isinstance(identity, str) or not identity.strip():
+                continue
+            found = subprocess.run(["ps", "-p", str(pid), "-o", "lstart=", "-o", "args="],
+                                   capture_output=True, text=True, timeout=5)
+            stopped = False
+            if found.returncode != 0:
+                # A dead leader can still have live descendants in its group.
+                try:
+                    os.killpg(pid, 0)
+                except ProcessLookupError:
+                    stopped = True
+            if (found.returncode == 0 and found.stdout.strip().startswith(identity)
+                    and data["output_path"] in found.stdout and os.getpgid(pid) == pid):
+                os.killpg(pid, signal.SIGTERM)
+                time.sleep(0.2)
+                try:
+                    os.killpg(pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                cleaned += 1
+                stopped = True
+            if stopped:
+                if db_path.exists():
+                    try:
+                        _release_slot(db_path, record.parent.name)
+                    except sqlite3.OperationalError:
+                        pass  # An older database may have no worker slot table.
+                record.unlink()
+        except ProcessLookupError:
+            # A leader may disappear while its group still has descendants.
+            # Retain uncertain records/reservations for an explicit later check.
+            continue
+        except (OSError, ValueError, KeyError, subprocess.TimeoutExpired):
+            # Unverifiable process identity must not be guessed.
+            continue
+    return cleaned
+
+
+def execute_job(root, worktree, prompt, timeout, sandbox, agent_id, task_id=None,
+                output_schema=None, heartbeat=None, policy=None):
+    """Execute a controller-owned job without claiming or publishing a task."""
+    root, worktree = Path(root).resolve(), Path(worktree).resolve()
+    policy = policy or {}
+    if type(timeout) is not int or not 1 <= timeout <= 3600:
+        raise ValueError("Job timeout must be between 1 and 3600 seconds")
+    if sandbox not in {"read-only", "workspace-write"}:
+        raise ValueError("Unsupported worker sandbox")
+    if sandbox == "workspace-write" and not policy.get("allow_implementation", False):
+        raise PermissionError("Implementation sandbox requires controller policy")
+    binary = shutil.which("codex")
+    if not binary:
+        raise RuntimeError("Install and authenticate the Codex CLI before running a worker")
+    db_path = Path(policy.get("_database", root / ".colony" / "colony.db"))
+    store = Store(db_path).initialize()
+    run_id = uuid.uuid4().hex[:12]
+    directory = root / ".colony" / "runs" / run_id
+    directory.mkdir(parents=True, exist_ok=False)
+    result_path, process_path = directory / "result.txt", directory / "process.json"
+    model, effort = policy.get("model"), policy.get("reasoning_effort", "medium")
+    if model is not None and (not isinstance(model, str) or not model.strip()):
+        raise ValueError("Job model must be a nonempty model name")
+    if effort not in {"low", "medium", "high"}:
+        raise ValueError("Jobs support low, medium or high reasoning")
+    command = [binary, "exec", "--ephemeral", "--json", "--color", "never",
+               "--sandbox", sandbox, "--cd", str(worktree),
+               "-c", "model_reasoning_effort=" + json.dumps(effort),
+               "-c", "features.multi_agent=false",
+               "--output-last-message", str(result_path)]
+    if model:
+        command += ["--model", model]
+    if output_schema is not None:
+        if isinstance(output_schema, dict):
+            schema_path = directory / "schema.json"
+            schema_path.write_text(json.dumps(output_schema), encoding="utf-8")
+        else:
+            schema_path = Path(output_schema).resolve()
+        command += ["--output-schema", str(schema_path)]
+    command.append("-")
+    environment = dict(os.environ)
+    for secret in ("GH_TOKEN", "GITHUB_TOKEN", "GITHUB_ADMIN_TOKEN"):
+        environment.pop(secret, None)
+    metadata = {"model": model, "reasoning_effort": effort,
+                "model_reason": policy.get("model_reason", "Controller model policy"), "sandbox": sandbox}
+    process, reserved, started = None, False, time.monotonic()
+    store.register_agent(agent_id, "Colony " + agent_id, policy.get("role", "worker"))
+    try:
+        _reserve_slot(db_path, run_id, policy.get("max_concurrency", 1), timeout)
+        reserved = True
+        store.set_agent_state(agent_id, "working", task_id)
+        store.record_event("job.started", agent_id, "Started bounded model job", task_id, metadata)
+        process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, bufsize=0, start_new_session=True, env=environment)
+        identity = subprocess.run(["ps", "-p", str(process.pid), "-o", "lstart="],
+                                  capture_output=True, text=True, timeout=5).stdout.strip()
+        if not identity:
+            raise RuntimeError("Cannot record worker process identity for restart recovery")
+        process_path.write_text(json.dumps({"pid": process.pid, "started": identity,
+                                           "output_path": str(result_path)}))
+
+        def beat():
+            store.set_agent_state(agent_id, "working", task_id)
+            if heartbeat:
+                heartbeat()
+
+        exit_code, usage, final_text, failure = _stream_process(
+            process, prompt, directory / "events.jsonl", started, timeout, beat)
+        if result_path.is_file():
+            with result_path.open(encoding="utf-8", errors="replace") as stream:
+                final_text = stream.read(MAX_SUMMARY_CHARS)
+        if not failure and exit_code != 0:
+            failure = "Codex exited with code %s; private log retained" % exit_code
+        if not failure and not final_text.strip():
+            failure = "Worker returned no reviewable final artifact"
+        elapsed = round(time.monotonic() - started, 3)
+        summary = (failure or final_text.strip())[:MAX_SUMMARY_CHARS]
+        # Final artifacts may be published by the broker; machine paths are local.
+        for path, label in ((str(worktree), "<checkout>"), (str(root), "<repository>"), (str(Path.home()), "<home>")):
+            summary = summary.replace(path, label)
+        result = dict(metadata, status="failed" if failure else "completed", summary=summary,
+                      result_path=str(result_path), output_path=str(result_path), usage=usage,
+                      elapsed_seconds=elapsed, exit_code=exit_code)
+        store.record_event("job.finished", agent_id, "Model job " + result["status"], task_id,
+                           dict(metadata, elapsed_seconds=elapsed, usage=usage, cost_usd=None))
+        return result
+    finally:
+        if process is not None:
+            _stop_process(process)
+            for stream in (process.stdout, process.stdin):
+                if stream is not None and not stream.closed:
+                    stream.close()
+        process_path.unlink(missing_ok=True)
+        store.set_agent_state(agent_id, "idle")
+        if reserved:
+            _release_slot(db_path, run_id)
+
+
 def run_once(root: Path, db_path: Path, role: Optional[str] = None,
              timeout: int = 180, agent_id: Optional[str] = None,
              sandbox: str = "read-only") -> dict:

@@ -5,7 +5,7 @@
     "repo_url": "https://github.com/RSoulatIOHK/qed-colony",
     "mission": "An autonomous research colony building a local Lean tactic with kernel-checked proofs."
   },
-  "generated_at": "2026-10-21T08:28:26.563Z",
+  "generated_at": "2026-10-21T09:12:40.745Z",
   "mode": "snapshot",
   "agents": [
     {
@@ -44,9 +44,9 @@
       "id": "coordinator",
       "name": "Research coordinator",
       "role": "coordinator",
-      "status": "working",
-      "task_id": "BOOT4",
-      "last_seen": "2026-10-21T08:04:50.592Z"
+      "status": "idle",
+      "task_id": null,
+      "last_seen": "2026-10-21T08:36:14.448Z"
     },
     {
       "id": "frontier-scout",
@@ -62,7 +62,7 @@
       "id": "BOOT4",
       "title": "Integrate, review, and publish the first colony",
       "role": "coordinator",
-      "status": "running",
+      "status": "done",
       "priority": 250,
       "depends_on": [],
       "acceptance": [
@@ -70,13 +70,13 @@
         "Bounded research task and inspectable Observatory"
       ],
       "description": "Root coordinator is integrating the three implementation agents, runner, policy, and publication.",
-      "summary": "",
+      "summary": "Bootstrap accepted within documented pilot scope; unattended operation remains disabled",
       "branch": null,
-      "pr_url": null,
+      "pr_url": "https://github.com/RSoulatIOHK/qed-colony/pull/1",
       "created_at": "2026-10-21T08:04:50.574Z",
-      "updated_at": "2026-10-21T08:04:50.592Z",
-      "lease_owner": "coordinator",
-      "lease_until": "2026-10-21T09:04:50.592Z"
+      "updated_at": "2026-10-21T08:36:14.451Z",
+      "lease_owner": null,
+      "lease_until": null
     },
     {
       "id": "BOOT5",
@@ -178,6 +178,28 @@
       "pr_url": null,
       "created_at": "2026-10-21T08:17:42.891Z",
       "updated_at": "2026-10-21T08:18:37.608Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "E001",
+      "title": "Add bounded Boolean case splitting to the proof portfolio",
+      "role": "engineer",
+      "status": "ready",
+      "priority": 110,
+      "depends_on": [],
+      "acceptance": [
+        "Generic bounded Boolean fallback with complete backtracking and ordinary proof terms",
+        "New example module is imported and checked by lake build, including positive and invalid-goal regression checks",
+        "Existing seed statements and all protected acceptance files remain unchanged",
+        "Actual Lean checks and limitations are recorded; no benchmark superiority or Cardano verification claim"
+      ],
+      "description": "Implement a generic deterministic fallback for one Boolean parameter after the arithmetic portfolio fails and before structural induction. Split that parameter into false/true and attempt the existing simplification/arithmetic portfolio on every branch. Backtrack fully if either branch remains open. Keep all original theorem statements, seeds, comparator, evaluator, toolchain and CI unchanged. Add a small Lean module under Colony/Examples with positive checks for Boolean branching (for example a natural-valued conditional whose result must equal one of two branches), an ordinary arithmetic regression, and a deliberately invalid goal that the tactic must fail to close. Import the example module from Colony.lean so lake build checks it. No model calls at tactic runtime, names special-casing, new axioms, native_decide, sorry, or admit. Record exact local checks in a concise research note.",
+      "summary": "",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T09:12:25.037Z",
+      "updated_at": "2026-10-21T09:12:25.037Z",
       "lease_owner": null,
       "lease_until": null
     },
@@ -2477,6 +2499,100 @@
         "declarations": 1555,
         "bytes": 4371661,
         "export_seconds_approx": 1.2
+      }
+    },
+    {
+      "id": 176,
+      "at": "2026-10-21T08:31:34.317Z",
+      "kind": "verification.environment_fix",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Scoped CI could not locate lean4lean on PATH; expose the pinned toolchain bin before comparator. No kernel rejection occurred.",
+      "data": {
+        "failed_run": "https://github.com/RSoulatIOHK/qed-colony/actions/runs/39569569696"
+      }
+    },
+    {
+      "id": 177,
+      "at": "2026-10-21T08:33:04.744Z",
+      "kind": "review.recorded",
+      "actor": "build_control_plane",
+      "task_id": "BOOT4",
+      "message": "Independent final bootstrap review found no blockers within the documented pilot scope. Prior worker findings are addressed; runner and isolation limits are stated honestly. Linux comparator acceptance is a separate gate.",
+      "data": {
+        "review_id": 7
+      }
+    },
+    {
+      "id": 178,
+      "at": "2026-10-21T08:36:14.441Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "Eight seed proofs compared and independently replayed",
+      "data": {
+        "benchmark_id": 121
+      }
+    },
+    {
+      "id": 179,
+      "at": "2026-10-21T08:36:14.446Z",
+      "kind": "verification.passed",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "All eight prescribed seed proofs accepted by Lean and lean4lean; both CI jobs passed",
+      "data": {
+        "run_url": "https://github.com/RSoulatIOHK/qed-colony/actions/runs/39569941321"
+      }
+    },
+    {
+      "id": 180,
+      "at": "2026-10-21T08:36:14.448Z",
+      "kind": "task.review",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Bootstrap implemented, independently reviewed, and validated; PR #1 merged after passing checks",
+      "data": {
+        "from": "running",
+        "to": "review",
+        "branch": null,
+        "pr_url": "https://github.com/RSoulatIOHK/qed-colony/pull/1"
+      }
+    },
+    {
+      "id": 181,
+      "at": "2026-10-21T08:36:14.451Z",
+      "kind": "task.done",
+      "actor": "build_control_plane",
+      "task_id": "BOOT4",
+      "message": "Bootstrap accepted within documented pilot scope; unattended operation remains disabled",
+      "data": {
+        "from": "review",
+        "to": "done",
+        "branch": null,
+        "pr_url": "https://github.com/RSoulatIOHK/qed-colony/pull/1"
+      }
+    },
+    {
+      "id": 182,
+      "at": "2026-10-21T08:36:14.455Z",
+      "kind": "pr.merged",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Bootstrap PR #1 merged after independent agent review and passing CI",
+      "data": {
+        "url": "https://github.com/RSoulatIOHK/qed-colony/pull/1"
+      }
+    },
+    {
+      "id": 183,
+      "at": "2026-10-21T09:12:25.037Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "E001",
+      "message": "Add bounded Boolean case splitting to the proof portfolio",
+      "data": {
+        "role": "engineer"
       }
     }
   ],
@@ -5239,6 +5355,36 @@
       "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
       "id": 120,
       "at": "2026-10-21T08:13:04.155Z"
+    },
+    {
+      "name": "Eight seed proofs compared and independently replayed",
+      "track": "seed_proof_replay",
+      "kind": "verification",
+      "strategy": "colony",
+      "status": "kernel_checked",
+      "assurance": "lean_kernel",
+      "verification": "independently_checked",
+      "independent_replay": true,
+      "kernels": [
+        "Lean default kernel",
+        "lean4lean"
+      ],
+      "solved": 8,
+      "total": 8,
+      "wall_seconds": 5.0,
+      "axioms": [
+        "propext",
+        "Quot.sound",
+        "Classical.choice"
+      ],
+      "description": "Eight prescribed seed theorem statements and their dependency closures accepted in sandboxed Linux CI. Tiny Lean models; no compiled Cardano correspondence or external challenge administration claimed.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "measured_at": "2026-10-21T08:32:53Z",
+      "run_key": "ci-39569941321",
+      "source_revision": "e0492796f1ee3fe9c0490a57981ea1d8851c29db",
+      "url": "https://github.com/RSoulatIOHK/qed-colony/actions/runs/39569941321/job/119121302385",
+      "id": 121,
+      "at": "2026-10-21T08:36:14.441Z"
     }
   ],
   "reviews": [
@@ -5289,6 +5435,59 @@
       "summary": "The proof path is mathematically reasonable. Classify it as a reverseAcc library adapter, preserve the complete unchanged evaluation gate, give baselines equivalent lemma access, and require exact-declaration export for any independent-checking claim.",
       "id": 6,
       "at": "2026-10-21T08:21:42.494Z"
+    },
+    {
+      "actor": "build_control_plane",
+      "task_id": "BOOT4",
+      "status": "approved",
+      "summary": "Independent final bootstrap review found no blockers within the documented pilot scope. Prior worker findings are addressed; runner and isolation limits are stated honestly. Linux comparator acceptance is a separate gate.",
+      "id": 7,
+      "at": "2026-10-21T08:33:04.744Z"
     }
-  ]
+  ],
+  "autonomy": {
+    "service": {
+      "status": "stopped",
+      "pid": null,
+      "active_cycle": null,
+      "message": "Supervisor has not started",
+      "heartbeat": null,
+      "heartbeat_age_seconds": null,
+      "stale": true
+    },
+    "budget": {
+      "local_date": "2026-10-21",
+      "timezone": "Europe/Paris",
+      "max_daily_seconds": 3600.0,
+      "max_daily_attempts": 18,
+      "used_seconds": 0,
+      "reserved_seconds": 0,
+      "remaining_seconds": 3600.0,
+      "attempts": 0,
+      "remaining_attempts": 18,
+      "exhausted": false,
+      "resets_at": "2026-10-21T22:00:00.000Z"
+    },
+    "cycles": [],
+    "model_policy": {
+      "tiers": [
+        {
+          "model": "gpt-6-luna",
+          "reasoning_effort": "medium"
+        },
+        {
+          "model": "gpt-6-sol",
+          "reasoning_effort": "high"
+        },
+        {
+          "model": "gpt-6.1-sol",
+          "reasoning_effort": "high"
+        }
+      ],
+      "default_model": "gpt-6-luna",
+      "default_reasoning_effort": "medium",
+      "escalation": "Failed attempts and proof-sensitive reviews",
+      "max_concurrency": 1
+    }
+  }
 }
