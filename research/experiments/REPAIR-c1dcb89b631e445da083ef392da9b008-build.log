@@ -1,0 +1,80 @@
+⚠ [6/13] Replayed Colony.Examples.OptionBranching
+warning: Colony/Examples/OptionBranching.lean:13:5: Variable name `irrelevant` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _irrelevant
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/OptionBranching.lean:19:9: Variable name `choice` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _choice
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [7/13] Replayed Colony.Examples.ResultFlow
+warning: Colony/Examples/ResultFlow.lean:41:39: Variable name `irrelevant` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _irrelevant
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/ResultFlow.lean:53:9: Variable name `result` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _result
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/ResultFlow.lean:77:9: Variable name `state` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _state
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/ResultFlow.lean:77:29: Variable name `result` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _result
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [8/13] Replayed Colony.Examples.ListStateInvariant
+warning: Colony/Examples/ListStateInvariant.lean:35:9: Variable name `state` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _state
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/ListStateInvariant.lean:35:29: Variable name `command` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _command
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+⚠ [9/13] Replayed Colony.Examples.AccumulatorLength
+warning: Colony/Examples/AccumulatorLength.lean:18:6: `simp` already closes the goal
+
+Hint: Use `simp` instead of `simpa`:
+  [apply] simp [copyInto, ih, Nat.add_assoc, Nat.add_comm, Nat.add_left_comm]
+
+Note: This linter can be disabled with `set_option linter.unnecessarySimpa false`
+warning: Colony/Examples/AccumulatorLength.lean:20:9: Variable name `xs` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _xs
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Colony/Examples/AccumulatorLength.lean:20:12: Variable name `acc` is not explicitly referenced.
+
+Hint: The binding can be removed (if unused) or named `_` (if used implicitly). Alternatively, prefix the name with `_` to silence this warning:
+  [apply] _acc
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+ℹ [12/13] Replayed SeedProofs
+info: SeedProofs.lean:6:0: 'case_arithmetic_monotonicity' depends on axioms: [propext, Quot.sound]
+info: SeedProofs.lean:10:0: 'case_reverse_accumulator_length' depends on axioms: [propext, Quot.sound]
+info: SeedProofs.lean:14:0: 'case_count_accumulator_invariant' depends on axioms: [propext, Quot.sound]
+info: SeedProofs.lean:18:0: 'case_recursive_program_nonvacuity' depends on axioms: [propext]
+info: SeedProofs.lean:22:0: 'case_account_state_invariant' depends on axioms: [propext, Quot.sound]
+info: SeedProofs.lean:26:0: 'case_allocated_payments_cover_sales' depends on axioms: [propext, Quot.sound]
+info: SeedProofs.lean:30:0: 'case_allocated_payments_nonvacuity' depends on axioms: [propext, Quot.sound]
+info: SeedProofs.lean:34:0: 'case_shared_payment_attack_witness' depends on axioms: [propext, Quot.sound]
+Build completed successfully (13 jobs).
