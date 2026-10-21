@@ -70,3 +70,15 @@ paths or fabricated results. No Lean implementation or benchmark result is
 changed by this queue-only proposal. Each eventual worker must record actual
 commands, source revision, complete positive/negative outcomes, and failed
 experiments in its own artifact.
+
+## Subsequent measured result
+
+The strict persistent runner completed the same 56-row protocol at
+`3b11188d52ad5ff8c1f1885508b44c1d6e584f66` on 21 October 2026 at 15:17:17 UTC.
+The [complete report](../../benchmarks/results/blaster-nng4-3b11188d.json)
+records Colony 12/12, simp_all 7/12, omega 1/12 and grind 11/12. Every strategy
+passed its non-vacuity and invalid controls. The original fixed statements,
+exact `by colony` bodies and evaluator suite are unchanged. This closes the
+three initial failures; it does not establish broad mathematics coverage or a
+matched Lean Blaster comparison. The next jobs therefore test broader ordinary
+mathematics and fresh alias forms rather than repeating those solved targets.
