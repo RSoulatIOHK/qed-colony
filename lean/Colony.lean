@@ -3,6 +3,7 @@ import Colony.Seeds
 import Colony.Examples.BooleanBranching
 import Colony.Examples.OptionBranching
 import Colony.Examples.ListStateInvariant
+import Colony.Examples.AccumulatorLength
 
 namespace Colony
 
