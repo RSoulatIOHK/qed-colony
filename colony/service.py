@@ -120,7 +120,12 @@ def install_service(root, config_path, db_path, port=7331, *, home=None,
         "RunAtLoad": True,
         "KeepAlive": True,
         "ThrottleInterval": 30,
-        "ExitTimeOut": 20,
+        # A graceful stop drains already-started bounded calls. Give launchd
+        # enough time to let that finish before its forced termination deadline.
+        "ExitTimeOut": max(600, max(int(config.get("autonomy", {}).get(key, default))
+                                    for key, default in (("author_timeout_seconds", 600),
+                                                         ("review_timeout_seconds", 240),
+                                                         ("planner_timeout_seconds", 180))) + 120),
         "StandardOutPath": str(logs / "supervisor.stdout.log"),
         "StandardErrorPath": str(logs / "supervisor.stderr.log"),
         "ProcessType": "Background",

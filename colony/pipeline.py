@@ -5,9 +5,10 @@ import os
 from pathlib import Path
 from collections import Counter
 import time
+import threading
 import uuid
 
-from .autonomy_store import BudgetExceeded, DuplicateAttempt
+from .autonomy_store import BudgetExceeded, CapacityUnavailable, DuplicateAttempt
 from .github_broker import GitHubBroker, PublicationRejected, SRE_FILES, checks_state, safe_slug, validate_public_text
 from .model_policy import choose_model
 from .network import AuthenticationFailure, NetworkUnavailable, classify_model_failure, probe_model_connectivity
@@ -47,6 +48,8 @@ class Pipeline:
         self.tasks, self.autonomy, self.policy = task_store, autonomy, dict(policy)
         self.broker = broker or GitHubBroker(root, policy)
         self.executor = executor or execute_job
+        self._model_context = threading.local()
+        self._provider_lock = threading.RLock()
 
     def _update(self, cycle, phase=None, **data):
         return self.autonomy.update_cycle(cycle["id"], phase=phase, **data)
@@ -55,6 +58,10 @@ class Pipeline:
         self.tasks.record_event(kind, "controller", message, cycle.get("task_id"), data)
 
     def _provider_failed(self, cycle):
+        with self._provider_lock:
+            self._record_provider_failure(cycle)
+
+    def _record_provider_failure(self, cycle):
         current = self.autonomy.get_cycle(cycle["id"])
         count = int(current.get("provider_network_retry_count", 0)) + 1
         delay = retry_delay(count, self.policy.get("network_backoff_base_seconds", 5),
@@ -63,6 +70,12 @@ class Pipeline:
                      provider_next_retry_at=time.time() + delay)
 
     def _ensure_provider_available(self):
+        # A probe that started before another lane observed a fresh outage
+        # must not clear that newer failure with a stale successful result.
+        with self._provider_lock:
+            self._check_provider_available()
+
+    def _check_provider_available(self):
         # Persist the provider outage on the originating cycle, so all stages
         # and restarts share the guard without a separate mutable policy file.
         offline = [item for item in self.autonomy.list_cycles() if item.get("provider_network_offline")]
@@ -151,7 +164,10 @@ class Pipeline:
         return True if probe is None else probe()
 
     def _heartbeat(self, cycle):
-        self.autonomy.set_service("working", pid=os.getpid(), active_cycle=cycle["id"], message="Executing bounded model task")
+        # Parallel workers report their task leases, while only the main
+        # supervisor owns aggregate service status and active-cycle reporting.
+        if not getattr(self._model_context, "deferred", False):
+            self.autonomy.set_service("working", pid=os.getpid(), active_cycle=cycle["id"], message="Executing bounded model task")
         task = self.tasks.get_task(cycle["task_id"])
         if task and task["status"] == "running":
             self.tasks.heartbeat(task["id"], task["lease_owner"], lease_seconds=300)
@@ -220,6 +236,40 @@ class Pipeline:
         return self._update(cycle, "authoring", revision=revision + 1, feedback=feedback,
                             reviewed_sha=None, review=None, review_attempt=0, author_completed=False)
 
+    def prepare_model_cycle(self, cycle):
+        """Controller-thread preparation before submitting one model stage."""
+        if cycle.get("role") == "planner":
+            return self.prepare_plan(cycle=cycle) or cycle
+        if cycle.get("recovery_kind") == "triage" and not cycle.get("worktree"):
+            try:
+                return self._update(cycle, **self.broker.prepare_worktree(cycle))
+            except NetworkUnavailable:
+                current = self.autonomy.get_cycle(cycle["id"])
+                return schedule_retry(current, self._update,
+                                      base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                                      max_seconds=self.policy.get("network_backoff_max_seconds", 900))
+            except (AuthenticationFailure, PublicationRejected) as exc:
+                return self._terminal(cycle, "needs_review", str(exc))
+        return cycle
+
+    def advance_model(self, cycle):
+        """Run one prepared model stage, leaving all publication to the controller.
+
+        Worktrees and shared Git preparation must already have completed on the
+        supervisor thread. Thread-local deferral keeps legacy synchronous calls
+        intact without changing policy or allowing one worker to publish.
+        """
+        if cycle.get("phase") not in {"authoring", "reviewing", "triaging", "planning"}:
+            raise ValueError("Only a prepared model stage can run in a model lane")
+        if not cycle.get("worktree"):
+            raise ValueError("Model lane requires a controller-prepared worktree")
+        previous = getattr(self._model_context, "deferred", False)
+        self._model_context.deferred = True
+        try:
+            return self.advance(cycle)
+        finally:
+            self._model_context.deferred = previous
+
     def advance(self, cycle):
         """Advance one durable stage. Repeated publication/merge calls reconcile GitHub."""
         if cycle.get("role") == "planner" and cycle.get("phase") in {"queued", "planning"}:
@@ -275,7 +325,7 @@ class Pipeline:
             if phase in {"ci", "merging"}:
                 return self._ci(cycle, task)
             return cycle
-        except BudgetExceeded:
+        except (BudgetExceeded, CapacityUnavailable):
             raise
         except NetworkUnavailable:
             current = self.autonomy.get_cycle(cycle["id"])
@@ -348,8 +398,10 @@ class Pipeline:
                 return self._terminal(cycle, "needs_review", "Bounded blocker triage failed; controller escalation required")
             payload = json.loads(self._output(result, cycle))
             cycle = self._update(cycle, "triage_handoff", triage_result=payload)
+            if getattr(self._model_context, "deferred", False):
+                return cycle
             return self._triage(cycle)
-        except BudgetExceeded:
+        except (BudgetExceeded, CapacityUnavailable):
             raise
         except NetworkUnavailable:
             current = self.autonomy.get_cycle(cycle["id"])
@@ -549,6 +601,8 @@ specific actionable findings. A successful author process is not evidence of pro
         validate_public_text(json.dumps(review))
         # Save the review before its network publication. Restart can repost idempotently.
         cycle = self._update(cycle, "review_publication", review=review, reviewed_sha=cycle["head_sha"])
+        if getattr(self._model_context, "deferred", False):
+            return cycle
         return self._publish_review(cycle)
 
     def _publish_review(self, cycle):
@@ -610,32 +664,48 @@ specific actionable findings. A successful author process is not evidence of pro
             return self._ci(cycle, task)
         return cycle
 
-    def plan(self, cycle=None):
-        """Generate bounded new work from repository evidence when the queue empties."""
+    def prepare_plan(self, cycle=None):
+        """Create/reuse one planner worktree on the serialized controller thread."""
         dispatched = {item["task_id"] for item in self.autonomy.list_cycles()}
         if any(item["status"] in {"ready", "running"} and item["id"] not in dispatched
                for item in self.tasks.snapshot()["tasks"]):
-            return {"status": "waiting", "tasks": []}
-        self._require_budget(int(self.policy.get("planner_timeout_seconds", 180)))
+            return None
         if cycle is None:
             cycle = next((item for item in self.autonomy.list_cycles()
                           if item["role"] == "planner" and item["phase"] in {"queued", "planning", "waiting_network"}), None)
+        if cycle is not None and cycle["phase"] == "waiting_network":
+            return cycle
+        self._require_budget(int(self.policy.get("planner_timeout_seconds", 180)))
         if cycle is None:
             cycle = self.autonomy.create_cycle("PLAN-" + uuid.uuid4().hex[:12], "planner")
         try:
             context = {} if cycle.get("worktree") else self.broker.prepare_worktree(cycle)
         except NetworkUnavailable:
             current = self.autonomy.get_cycle(cycle["id"])
-            schedule_retry(current, self._update,
-                           base_seconds=self.policy.get("network_backoff_base_seconds", 5),
-                           max_seconds=self.policy.get("network_backoff_max_seconds", 900))
-            return {"status": "waiting_network", "tasks": []}
+            return schedule_retry(current, self._update,
+                                  base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                                  max_seconds=self.policy.get("network_backoff_max_seconds", 900))
         except AuthenticationFailure as exc:
-            self._update(cycle, "needs_review", last_error=str(exc))
-            return {"status": "needs_review", "tasks": []}
-        cycle = self._update(cycle, "planning", revision=0, **context)
+            return self._update(cycle, "needs_review", last_error=str(exc))
+        return self._update(cycle, "planning", revision=0, **context)
+
+    def plan(self, cycle=None):
+        """Synchronous compatibility wrapper; parallel lanes run prepared plans."""
+        if not getattr(self._model_context, "deferred", False):
+            cycle = self.prepare_plan(cycle=cycle)
+        if cycle is None:
+            return {"status": "waiting", "tasks": []}
+        if cycle["phase"] != "planning":
+            return {"status": cycle["phase"], "tasks": []}
+        return self._plan_model(cycle)
+
+    def _plan_model(self, cycle):
+        """Infer and validate bounded tasks without preparing or publishing Git."""
+        snapshot = self.tasks.snapshot()["tasks"]
         recent = [{"id": item["id"], "title": item["title"], "status": item["status"]}
-                  for item in self.tasks.snapshot()["tasks"][-30:]]
+                  for item in snapshot[-30:]]
+        active = [{key: item[key] for key in ("id", "title", "role", "status")}
+                  for item in snapshot if item["status"] not in {"done", "failed"}]
         prompt = """You are QED Colony's READ ONLY research planner. Read AGENTS.md, docs/roadmap.md,
 lean/Colony/Tactic.lean, research experiments, and current task history below.
 Propose 1 to 3 small independent tasks that materially advance the local Lean
@@ -656,8 +726,13 @@ Tasks must fit one bounded model attempt, contain precise acceptance criteria,
 and require no user action or other tasks. Research tasks produce complete public
 artifacts; do not call implementation a research artifact. No edits, publication,
 spawning agents or contact. Return the specified JSON schema.
+Do not duplicate any active, ready, running, or review objective listed below.
+For parallel independence prefer separate modules/files. Each task description
+must name its intended files or artifact and any shared integration surface;
+do not propose work that depends on another active task completing first.
 Recent tasks: %s
-""" % (", ".join(sorted(SRE_FILES)), json.dumps(recent))
+Active unfinished tasks (including parked work): %s
+""" % (", ".join(sorted(SRE_FILES)), json.dumps(recent), json.dumps(active))
         try:
             result = self._job(cycle, "planner:0", prompt,
                                int(self.policy.get("planner_timeout_seconds", 180)), "read-only", PLAN_SCHEMA)

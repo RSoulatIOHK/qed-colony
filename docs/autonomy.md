@@ -51,8 +51,22 @@ publication or merge actions.
 The supervisor takes an exclusive `flock` beside its database before dispatching
 anything. The operating system releases this lock when the process exits. The
 lock file is deliberately not deleted: unlinking a live lock would permit two
-controllers to acquire different inodes for the same database. The initial
-controller dispatches one cycle at a time.
+controllers to acquire different inodes for the same database.
+
+The persistent controller dispatches up to four independent model stages in
+parallel, as configured by `autonomy.max_concurrency`. Each cycle has its own
+worktree and at most one in-flight stage. A candidate's review starts only after
+its author finishes and the controller publishes that exact revision. Worktree
+preparation, public PR updates, review publication, CI polling, and merges remain
+serialized controller operations and continue while unrelated model calls run.
+Free slots can admit already-scoped ready work while another cycle is active.
+The planner can replenish independent work without duplicating an active planner.
+Dependent or blocked tasks do not become runnable merely because a slot is free.
+
+A graceful foreground stop stops admission, drains bounded calls, and then
+releases the singleton. Abrupt termination retains the existing conservative
+restart behavior below. `supervise --once` advances one durable step; it does not
+leave a background thread running after the command exits.
 
 Each model invocation first reserves an attempt with a unique stage label,
 such as `author:1` or `review:<revision>`. A restart marks an unfinished attempt
@@ -79,11 +93,12 @@ operational limits include:
   "max_daily_seconds": 28800,
   "max_daily_attempts": 144,
   "timezone": "Europe/Paris",
+  "max_concurrency": 4,
   "poll_seconds": 30
 }
 ```
 
-The current experimental allocation is eight worker-hours and 144 attempts per Paris calendar day, not a monetary price. Existing usage is retained when limits change. The
+The current experimental allocation is eight aggregate worker-hours and 144 attempts per Paris calendar day, not a monetary price. Four agents each working for one hour consume four worker-hours. Existing usage is retained when limits change. The
 selected model, reasoning effort, tokens, and measured elapsed time should be
 recorded with the attempt. Model selection policy can use cheaper models for
 routine work and stronger models for difficult research or review while sharing
@@ -124,7 +139,10 @@ Static Observatory exports remain explicitly static.
 
 `get_budget(policy)` returns the local date, timezone, reset timestamp, used and
 reserved seconds, remaining seconds, attempt count, remaining attempts, limits,
-and an `exhausted` flag. Cycles contain fixed `id`, `task_id`, `role`, `phase`,
+and an `exhausted` flag. It also reports active reserved/running attempts, their
+cycle IDs, the concurrency limit, and uncertain workers. These reservations are
+distinct from the Observatory's count of workers with recent heartbeats; a
+reservation alone does not prove that a model process has launched. Cycles contain fixed `id`, `task_id`, `role`, `phase`,
 `created_at`, and `updated_at` fields plus the pipeline's context. Pipeline
 context is private operational state: the public Observatory must select safe
 fields instead of exporting local worktree paths or private worker logs.
@@ -154,8 +172,11 @@ acquire_lock() -> supervisor
 release_lock()
 ```
 
-The injected pipeline exposes `advance(cycle)` and `plan()`. It owns durable
-phase transitions and must reserve every model call. `BudgetExceeded` keeps the
+The synchronous pipeline exposes `advance(cycle)` and `plan()`. Parallel dispatch
+uses controller-side `prepare_model_cycle(cycle)` and `prepare_plan(cycle=None)`,
+then calls `advance_model(cycle)` in an execution lane. The pipeline owns durable
+phase transitions and must reserve every model call. `CapacityUnavailable`
+defers admission without creating an attempt. `BudgetExceeded` keeps the
 cycle at its current phase. `DuplicateAttempt` prevents accidental reuse of an
 already executed stage. Unexpected controller errors put the active cycle into
 `needs_review` instead of repeatedly running a potentially mutating operation.

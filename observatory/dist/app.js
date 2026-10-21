@@ -173,6 +173,8 @@
     if (!fresh) return { label: 'Controller heartbeat stale', tone: 'stale', fresh: false, phase: 'Heartbeat stale' };
     if (['budget_limited', 'waiting_budget', 'budget_exhausted'].includes(recorded)) return { label: 'Daily runtime limit reached', tone: 'waiting', fresh: true, phase: 'Waiting for daily reset' };
     if (['error', 'failed', 'blocked', 'needs_review'].includes(recorded)) return { label: 'Controller needs attention', tone: 'stale', fresh: true, phase: 'Needs attention' };
+    if (recorded === 'capacity_limited') return { label: 'Model lanes occupied', tone: 'waiting', fresh: true, phase: 'Waiting for a model lane' };
+    if (recorded === 'draining') return { label: 'Finishing active workers', tone: 'waiting', fresh: true, phase: 'Stopping admission' };
     if (['waiting', 'idle', 'waiting_ci', 'waiting_for_checks'].includes(recorded)) return { label: 'Controller waiting', tone: 'waiting', fresh: true, phase: service.active_cycle ? 'Waiting on a cycle' : 'Waiting for work' };
     return { label: 'Controller active', tone: 'active', fresh: true, phase: 'Autonomous loop active' };
   }
@@ -196,8 +198,14 @@
       : service.message || (controller.fresh ? 'The controller is reporting its actual state.' : 'Queued tasks and a reachable dashboard do not establish that the autonomous loop is running.');
     $('controller-heartbeat').textContent = service.heartbeat ? `Heartbeat ${dateTime(service.heartbeat)}${service.active_cycle ? ` · cycle ${service.active_cycle}` : ''}` : 'No heartbeat recorded';
     const modelPolicy = autonomy.model_policy || {};
+    const workers = workerActivity();
+    const concurrency = Number(budget.concurrency_limit || modelPolicy.max_concurrency) || 1;
+    const activeCycleIDs = new Set(Array.isArray(budget.active_cycle_ids) ? budget.active_cycle_ids : []);
+    $('controller-parallelism').textContent = state.source === 'live' && controller.fresh
+      ? `${workers.active.length} model workers running · ${budget.active_attempts ?? '—'} calls reserved/running · up to ${concurrency} in parallel${budget.uncertain_workers ? ` · ${budget.uncertain_workers} worker outcomes need reconciliation` : ''}`
+      : 'Current model workers unconfirmed. Saved counts describe their recorded time.';
     $('controller-model-policy').hidden = !modelPolicy.default_model;
-    $('controller-model-policy').textContent = modelPolicy.default_model ? `Starts with ${modelPolicy.default_model} · ${modelPolicy.default_reasoning_effort || 'configured'} reasoning. ${modelPolicy.escalation || 'Escalation follows the recorded model policy.'}${modelPolicy.max_concurrency ? ` · ${modelPolicy.max_concurrency} concurrent worker${modelPolicy.max_concurrency === 1 ? '' : 's'}` : ''}` : '';
+    $('controller-model-policy').textContent = modelPolicy.default_model ? `Starts with ${modelPolicy.default_model} · ${modelPolicy.default_reasoning_effort || 'configured'} reasoning. ${modelPolicy.escalation || 'Escalation follows the recorded model policy.'}` : '';
     const limit = Number(budget.max_daily_seconds);
     const charged = Number(budget.used_seconds) || 0;
     const reserved = Number(budget.reserved_seconds) || 0;
@@ -214,7 +222,7 @@
       ? `${duration(used)} used${reserved ? ` · ${duration(reserved)} reserved` : ''} · ${budget.attempts ?? 0}/${budget.max_daily_attempts ?? '—'} attempts${budget.resets_at ? ` · resets ${dateTime(budget.resets_at)}` : ''}. Shared by all agent roles.`
       : 'Aggregate worker time, including implementation, planning, and review.';
     const cycles = Array.isArray(autonomy.cycles) ? autonomy.cycles : [];
-    $('cycle-count').textContent = `${cycles.length} recorded${service.active_cycle ? ` · ${service.active_cycle} selected` : ''}`;
+    $('cycle-count').textContent = `${cycles.length} recorded · ${activeCycleIDs.size} with reserved/running calls`;
     const container = $('autonomy-cycles');
     container.replaceChildren();
     if (!cycles.length) {
@@ -222,7 +230,7 @@
       return;
     }
     const terminal = new Set(['complete', 'completed', 'done', 'merged', 'failed', 'blocked', 'abandoned', 'needs_review']);
-    const ordered = [...cycles].sort((a, b) => Number(terminal.has(status(a.phase))) - Number(terminal.has(status(b.phase))) || string(b.updated_at || b.created_at).localeCompare(string(a.updated_at || a.created_at)));
+    const ordered = [...cycles].sort((a, b) => Number(activeCycleIDs.has(b.id)) - Number(activeCycleIDs.has(a.id)) || Number(terminal.has(status(a.phase))) - Number(terminal.has(status(b.phase))) || string(b.updated_at || b.created_at).localeCompare(string(a.updated_at || a.created_at)));
     ordered.slice(0, 4).forEach((cycle) => {
       const card = el('article', 'cycle-card');
       const top = el('div', 'cycle-top');
@@ -231,6 +239,7 @@
       const integrationHold = cycle.governance_required === true && cycle.governance_status === 'awaiting_controller_integration' && cycle.ci_status === 'passed';
       top.append(integrationHold ? el('span', 'status-badge status-integration', 'Awaiting controller integration') : badge(cycle.phase));
       card.append(top, el('span', 'task-meta', `${cycle.id || 'Cycle'} · updated ${dateTime(cycle.updated_at || cycle.created_at)}`));
+      if (activeCycleIDs.has(cycle.id)) card.append(el('p', 'cycle-running-note', 'Model call reserved/running'));
       if (integrationHold) card.append(el('p', 'cycle-integration-note', 'The reviewed governance PR passed CI and is ready for a controller integration decision.'));
       if (cycle.summary || cycle.message) card.append(el('p', '', printable(cycle.summary || cycle.message)));
       const evidence = el('div', 'cycle-evidence');
@@ -379,6 +388,7 @@
     if (state.source.startsWith('snapshot')) return 'Saved snapshot · current workers unconfirmed';
     if (state.source !== 'live') return 'Offline · current workers and controller unconfirmed';
     if (!controller.fresh) return controller.label;
+    if (activeWorkers > 1) return `${activeWorkers} model workers running in parallel`;
     const autonomy = state.data.autonomy || {};
     const service = autonomy.service || {};
     if (['budget_limited', 'waiting_budget', 'budget_exhausted'].includes(status(service.status))) return 'Controller waiting for the daily runtime reset';

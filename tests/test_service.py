@@ -98,6 +98,15 @@ class ServiceTests(unittest.TestCase):
         self.assertTrue(start_service(self.root, home=self.home)["started"])
         self.assertEqual(self.calls[-1][0][1], "kickstart")
 
+    def test_launchd_allows_bounded_workers_to_drain_on_stop(self):
+        config = json.loads(self.config.read_text())
+        config["autonomy"].update(max_concurrency=4, author_timeout_seconds=900)
+        self.config.write_text(json.dumps(config))
+        result = self.install()
+        with Path(result["plist"]).open("rb") as stream:
+            spec = plistlib.load(stream)
+        self.assertGreaterEqual(spec["ExitTimeOut"], 900 + 120)
+
     def test_status_uses_launchd_pid_instead_of_plist_presence(self):
         result = self.install()
         running = service_status(self.root, home=self.home)

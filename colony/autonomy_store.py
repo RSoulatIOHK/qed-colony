@@ -29,6 +29,10 @@ class BudgetExceeded(RuntimeError):
     """Launching this model attempt would exceed the configured daily cap."""
 
 
+class CapacityUnavailable(RuntimeError):
+    """No model lane is available; no attempt or runtime is charged."""
+
+
 class DuplicateAttempt(RuntimeError):
     """A stage already has a durable attempt, including an interrupted attempt."""
 
@@ -47,6 +51,13 @@ def _limits(policy):
         raise ValueError("max_daily_attempts must be a nonnegative integer")
     zone = ZoneInfo(policy["timezone"])
     return float(seconds), attempts, zone
+
+
+def _concurrency_limit(policy):
+    limit = (policy or {}).get("max_concurrency", 1)
+    if type(limit) is not int or not 1 <= limit <= 16:
+        raise ValueError("max_concurrency must be an integer between 1 and 16")
+    return limit
 
 
 class AutonomyStore:
@@ -165,6 +176,7 @@ class AutonomyStore:
 
     def _budget(self, conn, policy, now):
         seconds, attempts, zone = _limits(policy)
+        limit = _concurrency_limit(policy)
         local_date = dt.datetime.fromtimestamp(now, zone).date().isoformat()
         row = conn.execute("""SELECT COUNT(*) AS attempts,COALESCE(SUM(charged_seconds),0) AS seconds,
             COALESCE(SUM(CASE WHEN status='running' THEN charged_seconds ELSE 0 END),0) AS reserved
@@ -172,11 +184,18 @@ class AutonomyStore:
         remaining = max(0.0, seconds - row["seconds"])
         remaining_attempts = max(0, attempts - row["attempts"])
         tomorrow = dt.datetime.combine(dt.datetime.fromtimestamp(now, zone).date() + dt.timedelta(days=1), dt.time(), zone)
+        # Capacity spans budget days: a call started before midnight still
+        # occupies its lane. Uncertain process slots never expire by time.
+        active = conn.execute("SELECT cycle_id FROM autonomy_attempts WHERE status='running' ORDER BY id").fetchall()
+        worker_table = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='worker_runs'").fetchone()
+        uncertain = conn.execute("SELECT COUNT(*) FROM worker_runs WHERE status='uncertain'").fetchone()[0] if worker_table else 0
         return {"local_date": local_date, "timezone": str(zone), "max_daily_seconds": seconds,
                 "max_daily_attempts": attempts, "used_seconds": row["seconds"],
                 "reserved_seconds": row["reserved"], "remaining_seconds": remaining,
                 "attempts": row["attempts"], "remaining_attempts": remaining_attempts,
                 "exhausted": remaining <= 0 or remaining_attempts <= 0,
+                "active_attempts": len(active), "active_cycle_ids": list(dict.fromkeys(item["cycle_id"] for item in active)),
+                "uncertain_workers": uncertain, "concurrency_limit": limit,
                 "resets_at": timestamp(tomorrow.timestamp())}
 
     def get_budget(self, policy=None):
@@ -192,11 +211,17 @@ class AutonomyStore:
         with self._connection(write=True) as conn:
             if conn.execute("SELECT 1 FROM autonomy_cycles WHERE id=?", (cycle_id,)).fetchone() is None:
                 raise KeyError(cycle_id)
-            if conn.execute("SELECT 1 FROM autonomy_attempts WHERE cycle_id=? AND stage=?", (cycle_id, stage)).fetchone():
+            previous = conn.execute("SELECT status FROM autonomy_attempts WHERE cycle_id=? AND stage=?", (cycle_id, stage)).fetchone()
+            if previous and previous["status"] == "running":
+                raise CapacityUnavailable("This cycle stage is already running")
+            if previous:
                 raise DuplicateAttempt("Stage already attempted: %s" % stage)
             budget = self._budget(conn, policy, now)
             if budget["remaining_attempts"] <= 0 or budget["remaining_seconds"] < timeout_seconds:
                 raise BudgetExceeded("Daily model budget cannot reserve %s seconds; resets %s" % (timeout_seconds, budget["resets_at"]))
+            if (cycle_id in budget["active_cycle_ids"] or
+                    budget["active_attempts"] + budget["uncertain_workers"] >= budget["concurrency_limit"]):
+                raise CapacityUnavailable("Model concurrency allocation is occupied")
             cursor = conn.execute("""INSERT INTO autonomy_attempts
                 (cycle_id,stage,local_date,timezone,timeout_seconds,charged_seconds,status,started_at)
                 VALUES(?,?,?,?,?,?,'running',?)""",
