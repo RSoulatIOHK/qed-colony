@@ -5,8 +5,12 @@
 Base revision: `702a19c205d6304b5a97eb81fb6876ef119e5567`.
 Starting revision for this follow-up: `e4476f7b093b3d31655f4318aa7e19c04e7e8af8`.
 This report supersedes the bound and theorem claims in
-`AUTO-7e87e900e8-bounded-list-process.md`. The experiment changes only
-`Colony.Tactic` and the focused `BoundedListProcess` example. The procedure's
+`AUTO-7e87e900e8-bounded-list-process.md`. At the checked state recorded here,
+the experiment changed `Colony.Tactic`, the focused `BoundedListProcess`
+example, and the umbrella `Colony.lean` import list. That umbrella change
+exceeded the task's module scope. The subsequent correction and fresh checks
+are recorded in `AUTO-7e87e900e8-bounded-list-scope-correction.md`.
+The procedure's
 `ListCommand`, `step`, and `process` definitions and the existing
 `ListStateInvariant` example are unchanged.
 
@@ -96,8 +100,9 @@ SHA-256 of the checked source files:
   trace option to an imported example. `initialize` did; the final trace and
   source use that registration.
 
-`Colony.lean` already imports the focused example, so enabling the trace there
-also prints these diagnostics during the umbrella build. No global simp
+At this historical checked state, `Colony.lean` imported the focused example,
+so enabling the trace there also printed these diagnostics during the umbrella
+build. The scope correction removes that import. No global simp
 attribute was added. The helper explicitly runs `simp_all` with `process` and
 `step`, while existing shared imports include `Std.Tactic` and its available
 simplifier lemmas. The success therefore measures this exact imported

@@ -1,5 +1,11 @@
 # AUTO-7e87e900e8: bounded list procedure recursion
 
+Historical experiment record: the theorem and bound claims below were superseded
+by `AUTO-7e87e900e8-bounded-list-review-followup.md`. The umbrella import described
+here exceeded the task scope and is removed by the correction recorded in
+`AUTO-7e87e900e8-bounded-list-scope-correction.md`; use that report for current
+source identity and check results.
+
 ## Scope and result
 
 Base revision: `702a19c205d6304b5a97eb81fb6876ef119e5567`.
