@@ -27,8 +27,10 @@ was changed.
 
 ## Source identity and Lean results
 
-- Base/source revision before this isolated change: Git
-  `6d4efea988ed6a34038a64bb4c8280290cd15700`.
+- Base revision: Git `6d4efea988ed6a34038a64bb4c8280290cd15700`.
+- Tested candidate source revision: Git
+  `96df2af086ed6ff122fda3a22e8b533b6e1e7128`. The build and axiom
+  query below were rerun at this revision before this record-only correction.
 - `lean/Colony/Examples/AccumulatorLength.lean` SHA-256:
   `554ab22df0c7f032334f071c402b726dcdfe9ba0f016272603efe5944f6068d0`.
 - `lean/Colony.lean` SHA-256:
@@ -40,14 +42,32 @@ was changed.
   proof portfolio could not close this goal`. The theorem body was then changed
   to retain the same failed tactic attempt under `fail_if_success` and to prove
   the statement by induction.
-- Final exact build command: `cd lean && lake build Colony`; exit 0,
-  `Build completed successfully (9 jobs).` The new example compiled; Lean also
-  emitted existing unused-parameter warnings in `ListStateInvariant`, and
-  unused-parameter/unnecessary-`simpa` warnings in this example.
-- Exact axiom query command:
-  `printf 'import Colony\n#print axioms Colony.Examples.copyInto_length\n' | cd lean && lake env lean --stdin`
-  (run from the `lean/` project directory as
-  `printf 'import Colony\n#print axioms Colony.Examples.copyInto_length\n' | lake env lean --stdin`); exit 0. Output:
+- Reproduced that failure at the tested candidate source revision without
+  modifying the source file. From `lean/`, this command replaces only the
+  positive proof body in a stream sent to Lean:
+
+  ```sh
+  python3 - <<'PY' | lake env lean --stdin
+  from pathlib import Path
+  source = Path('Colony/Examples/AccumulatorLength.lean').read_text()
+  start = source.index('  fail_if_success colony\n', source.index('theorem copyInto_length'))
+  end = source.index('\nexample ', start)
+  print(source[:start] + '  colony\n' + source[end:])
+  PY
+  ```
+
+  It exited 1 with `<stdin>:14:2: error: colony: the initial proof portfolio
+  could not close this goal`.
+- Final exact build command, from the `lean/` project directory:
+  `lake build Colony`; exit 0, `Build completed successfully (9 jobs).`
+  Lake replayed the compiled example and its warnings. It also replayed
+  existing unused-parameter warnings in `ListStateInvariant`.
+- Fresh elaboration command from `lean/`:
+  `lake env lean Colony/Examples/AccumulatorLength.lean`; exit 0, with
+  unnecessary-`simpa` and unused-parameter warnings in this example.
+- Exact axiom query command, from the `lean/` project directory:
+  `printf 'import Colony\n#print axioms Colony.Examples.copyInto_length\n' | lake env lean --stdin`;
+  exit 0. Output:
   `'Colony.Examples.copyInto_length' depends on axioms: [propext]`.
 - `git diff --check`: exit 0.
 
