@@ -10,6 +10,7 @@ private def arithmeticPortfolio : TacticM Unit := do
   evalTactic (← `(tactic| first
     | (solve | omega)
     | (solve | simp_all <;> omega)
+    | (solve | ac_rfl)
     | (solve | decide)))
 
 private def booleanPortfolio (subject : Ident) : TacticM Unit := do
