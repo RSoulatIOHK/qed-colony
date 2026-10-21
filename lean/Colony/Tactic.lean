@@ -12,6 +12,11 @@ private def arithmeticPortfolio : TacticM Unit := do
     | (solve | simp_all <;> omega)
     | (solve | decide)))
 
+private def orderedProductPortfolio : TacticM Unit := do
+  -- Nat multiplication is monotone in its left argument for every right factor.
+  -- `assumption` must find the premise; this step cannot manufacture a bound.
+  evalTactic (← `(tactic| solve | apply Nat.mul_le_mul_right; assumption))
+
 private def booleanPortfolio (subject : Ident) : TacticM Unit := do
   evalTactic (← `(tactic| cases $subject:ident))
   let branches ← getGoals
@@ -82,6 +87,10 @@ elab "colony" : tactic => do
   let initial ← saveState
   try
     arithmeticPortfolio
+    return
+  catch _ => initial.restore
+  try
+    orderedProductPortfolio
     return
   catch _ => initial.restore
   let booleanSolved ← withMainContext do
