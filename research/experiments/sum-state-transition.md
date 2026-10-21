@@ -13,17 +13,18 @@ and an axiom report.
 ## Exact source identity
 
 - Base revision: `3a7c71e41ba1a29df363e8847fbe5a01e3a96bf8`.
-- Candidate HEAD: `70206c905854b68e225276ea8dfa55b145ec6496`.
-- The final checks ran on that HEAD plus one uncommitted example correction; no
-  new revision was created. Git blob IDs from `git hash-object` identify the
-  exact tested Lean source: `lean/Colony/Tactic.lean`
+- Final implementation HEAD: `26413e2ef83891813724db88a4f50e4830f689bd`.
+- The successful corrected-source checks below used Lean source blobs that
+  match this final revision. `git ls-tree` at that revision and working-tree
+  `git hash-object` agree on the exact tested Lean source: `lean/Colony/Tactic.lean`
   `229f0f61794083d8a564da80d1f31cdce1531c32`, `lean/Colony.lean`
   `0c4dfde06d5fdf811e67a5ef3949cd963f914d14`, and
   `lean/Colony/Examples/SumStateTransition.lean`
   `3c55f2c178c33fe952048389e9513a3433303b1f`.
-- The committed candidate example has blob
-  `feb91c1fd80b82440ef6c1446cdfbe7f2f7e4365`; it contains the erroneous
-  `result` reference under a `_result` binder.
+- Historical candidate `70206c905854b68e225276ea8dfa55b145ec6496` has example
+  blob `feb91c1fd80b82440ef6c1446cdfbe7f2f7e4365`; it contains the erroneous
+  `result` reference under a `_result` binder. The final revision includes the
+  corrected example blob `3c55f2c178c33fe952048389e9513a3433303b1f`.
 - Toolchain: repository `lean/lean-toolchain`, `leanprover/lean4:v4.35.0`.
 
 ## Result and commands
@@ -37,23 +38,28 @@ The `step 4 true = .inl 5` and `step 4 false = .inr 6` witnesses close by `rfl`.
 The `fail_if_success` guard now refers to its bound `_result`; the `.inl 0`
 counterexample independently establishes that the guarded bound is false.
 
-- `git show HEAD:lean/Colony/Examples/SumStateTransition.lean | lake env lean --stdin`
-  from `lean/`: exit 0 on the committed candidate; its only axiom report was
+- Historical check, when HEAD was `70206c905854b68e225276ea8dfa55b145ec6496`:
+  `git show HEAD:lean/Colony/Examples/SumStateTransition.lean | lake env lean --stdin`
+  from `lean/`: exit 0 on that earlier candidate; its only axiom report was
   `payload_successor_exceeds_itself: [propext, Quot.sound]`. This result did
   **not** validate the old negative guard, which failed elaboration on the
   unbound `result` name.
-- `lake build` from `lean/` on the corrected working tree: exit 0, 13 jobs,
+- `lake build` from `lean/` on the corrected source blobs listed above,
+  matching final HEAD `26413e2ef83891813724db88a4f50e4830f689bd`:
+  exit 0, 13 jobs,
   `Build completed successfully (13 jobs).` The example reported no warnings;
   warnings from the Option, list, and accumulator examples were replayed.
 - `lake env lean Colony/Examples/SumStateTransition.lean` from `lean/` on the
-  same source: exit 0. It printed the two axiom reports below and no errors.
+  same final source blobs: exit 0. It printed the two axiom reports below and
+  no errors. Both Lean commands were rerun successfully during this evidence
+  correction at final implementation HEAD, with only this note being edited.
 - `git diff --check`: exit 0. A forbidden-token scan over the tactic and
   example found no `sorry`, `admit`, or axiom declaration.
 
 ## Failed attempts
 
-- The previous example's negative guard used `result` while binding `_result`.
-  The committed candidate's successful elaboration was therefore a false
+- The historical `70206c9` example's negative guard used `result` while binding
+  `_result`. That earlier candidate's successful elaboration was therefore a false
   negative test; the guard is corrected above.
 - An initial `true_result_advances_count` theorem used
   `h : result = step count true` and tried `by colony`. `lake build` exited 1:
