@@ -1,0 +1,61 @@
+{
+  "task": "AUTO-f0c580b6be",
+  "base_revision": "097a4117c7f7038f8d448217d7836a0d95d41bbe",
+  "source_revision": "705c481d01afb2be1c2b65689851cc3a28c89cdd",
+  "source_sha256": {
+    "lean/Colony/Tactic.lean": "70ac2c6396593584b7ae0b583130a1079caf3a40d4a871dd8763475a0102772f",
+    "lean/Colony/Examples/ArithmeticRewriteProbe.lean": "ce5be3e704f5d4d2570eaf5f940b3c4d5b617c3d348bfa25ed227658e3133f29",
+    "research/experiments/AUTO-f0c580b6be-check.py": "3efaa533dd7465d7ee11de961a77f666345d63736a5a60b23ed91b4ba4e71e87"
+  },
+  "version": {
+    "cwd": "lean",
+    "command": [
+      "lake",
+      "env",
+      "lean",
+      "--version"
+    ],
+    "returncode": 0,
+    "output": "Lean (version 4.35.0, arm64-apple-darwin24.6.0, commit eb6cafb7290e8bd5f2937522d8d804f58f02bafc, Release)\n"
+  },
+  "rewrite_bound": "Two fixed candidates per arithmetic call; one rw application per candidate; no recursive rewriting.",
+  "checks": {
+    "baseline": {
+      "cwd": "lean",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "--stdin"
+      ],
+      "returncode": 1,
+      "output": "<stdin>:210:66: error: colony: the initial proof portfolio could not close this goal\n",
+      "stdin": "import Lean\nimport Std.Tactic\nimport Colony.Procedures.ListState\n\nopen Lean Elab Tactic Meta\n\nnamespace Colony\n\nprivate def arithmeticPortfolio : TacticM Unit := do\n  evalTactic (\u2190 `(tactic| first\n    | (solve | omega)\n    | (solve | simp_all <;> omega)\n    | (solve | decide)))\n\nprivate def booleanPortfolio (subject : Ident) : TacticM Unit := do\n  evalTactic (\u2190 `(tactic| cases $subject:ident))\n  let branches \u2190 getGoals\n  for branch in branches do\n    setGoals [branch]\n    arithmeticPortfolio\n  setGoals []\n\nprivate def optionPortfolio (subject : Ident) : TacticM Unit := do\n  evalTactic (\u2190 `(tactic| cases $subject:ident))\n  let branches \u2190 getGoals\n  for branch in branches do\n    setGoals [branch]\n    arithmeticPortfolio\n  setGoals []\n\n/-- Split exactly one candidate; branch solvers do not call `colony` recursively.\nThe caller restores the complete candidate snapshot if any branch fails. -/\nprivate def exceptPortfolio (subject : Ident) : TacticM Unit := do\n  evalTactic (\u2190 `(tactic| cases $subject:ident))\n  let branches \u2190 getGoals\n  for branch in branches do\n    setGoals [branch]\n    evalTactic (\u2190 `(tactic| first\n      | (solve | simp_all <;> omega)\n      | (solve | simp_all <;> decide)\n      | (solve | omega)))\n    unless (\u2190 getGoals).isEmpty do\n      throwError \"colony: an Except branch remains unsolved\"\n  setGoals []\n\nprivate def listProcessInduction (subject : Ident) (generalized : Array Ident) : TacticM Unit := do\n  evalTactic (\u2190 `(tactic| induction $subject:ident generalizing $[$generalized:ident]*))\n  let branches \u2190 getGoals\n  for branch in branches do\n    setGoals [branch]\n    try\n      evalTactic (\u2190 `(tactic| solve |\n        simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))\n    catch _ =>\n      let command \u2190 withMainContext do\n        let context \u2190 getLCtx\n        let mut found : Option Ident := none\n        for decl in context do\n          unless decl.isImplementationDetail do\n            if (\u2190 whnf decl.type).isConstOf ``Colony.Procedure.ListCommand then\n              found := some (mkIdent decl.userName)\n        return found\n      match command with\n      | none => throwError \"colony: induction branch lacks a command constructor\"\n      | some command =>\n        evalTactic (\u2190 `(tactic| cases $command:ident))\n        let splitBranches \u2190 getGoals\n        for splitBranch in splitBranches do\n          setGoals [splitBranch]\n          evalTactic (\u2190 `(tactic| solve |\n            simp_all [Colony.Procedure.process, Colony.Procedure.step] <;> omega))\n  setGoals []\n\n/--\nThe initial deterministic proof portfolio: simplification, Presburger arithmetic,\nclosed decision procedures, and one structural induction on a list or natural.\nEvery successful branch constructs an ordinary Lean proof term. This is a seed\nimplementation, not the intended final architecture.\n-/\nelab \"colony\" : tactic => do\n  evalTactic (\u2190 `(tactic| intros))\n  let initial \u2190 saveState\n  try\n    arithmeticPortfolio\n    return\n  catch _ => initial.restore\n  let booleanSolved \u2190 withMainContext do\n    let context \u2190 getLCtx\n    for decl in context do\n      unless decl.isImplementationDetail do\n        if (\u2190 whnf decl.type).isConstOf ``Bool then\n          let candidateState \u2190 saveState\n          try\n            booleanPortfolio (mkIdent decl.userName)\n            return true\n          catch _ => candidateState.restore\n    return false\n  if booleanSolved then\n    return\n  let optionSolved \u2190 withMainContext do\n    let context \u2190 getLCtx\n    for decl in context do\n      unless decl.isImplementationDetail do\n        let type \u2190 whnf decl.type\n        if type.isAppOf ``Option then\n          let candidateState \u2190 saveState\n          try\n            optionPortfolio (mkIdent decl.userName)\n            return true\n          catch _ => candidateState.restore\n    return false\n  if optionSolved then\n    return\n  -- Context order is deterministic. Failed candidates do not accumulate splits:\n  -- every attempt starts from its own saved, unsplit tactic state.\n  let exceptSolved \u2190 withMainContext do\n    let context \u2190 getLCtx\n    for decl in context do\n      unless decl.isImplementationDetail do\n        let type \u2190 whnf decl.type\n        if type.isAppOf ``Except then\n          let candidateState \u2190 saveState\n          try\n            exceptPortfolio (mkIdent decl.userName)\n            return true\n          catch _ => candidateState.restore\n    return false\n  if exceptSolved then\n    return\n  let commandSolved \u2190 withMainContext do\n    let context \u2190 getLCtx\n    for decl in context do\n      unless decl.isImplementationDetail do\n        if (\u2190 whnf decl.type).isConstOf ``Colony.Procedure.ListCommand then\n          let candidateState \u2190 saveState\n          try\n            evalTactic (\u2190 `(tactic| cases $(mkIdent decl.userName):ident))\n            let branches \u2190 getGoals\n            for branch in branches do\n              setGoals [branch]\n              evalTactic (\u2190 `(tactic| solve |\n                simp_all [Colony.Procedure.step] <;> omega))\n            setGoals []\n            return true\n          catch _ =>\n            candidateState.restore\n            return false\n    return false\n  if commandSolved then\n    return\n  let listInductionSolved \u2190 withMainContext do\n    let context \u2190 getLCtx\n    let mut candidates : Array LocalDecl := #[]\n    for decl in context do\n      unless decl.isImplementationDetail do\n        let type \u2190 whnf decl.type\n        if type.isAppOf ``List then\n          let args := type.getAppArgs\n          if args.size == 1 && args[0]!.isConstOf ``Colony.Procedure.ListCommand then\n            candidates := candidates.push decl\n    if candidates.size != 1 then\n      return false\n    let candidateState \u2190 saveState\n    let mut generalized : Array Ident := #[]\n    for decl in context do\n      unless decl.isImplementationDetail || decl.userName == candidates[0]!.userName do\n        unless (\u2190 isProp decl.type) do\n          generalized := generalized.push (mkIdent decl.userName)\n    try\n      listProcessInduction (mkIdent candidates[0]!.userName) generalized\n      return true\n    catch _ =>\n      candidateState.restore\n      return false\n  if listInductionSolved then\n    return\n  try\n    let bridge := mkIdent (.str (.mkSimple \"Colony\") \"reverseAcc_bridge\")\n    evalTactic (\u2190 `(tactic| solve |\n      simp only [$bridge:ident, List.append_nil, List.reverse_reverse]))\n    return\n  catch _ => initial.restore\n  withMainContext do\n    let context \u2190 getLCtx\n    for decl in context do\n      unless decl.isImplementationDetail do\n        let type \u2190 whnf decl.type\n        if type.isAppOf ``List || type.isConstOf ``Nat then\n          let subject := mkIdent decl.userName\n          let mut generalized : Array Ident := #[]\n          for other in context do\n            unless other.isImplementationDetail || other.fvarId == decl.fvarId do\n              unless (\u2190 isProp other.type) do\n                generalized := generalized.push (mkIdent other.userName)\n          try\n            if generalized.isEmpty then\n              evalTactic (\u2190 `(tactic| solve |\n                induction $subject:ident <;> (simp_all <;> omega)))\n            else\n              evalTactic (\u2190 `(tactic| solve |\n                induction $subject:ident generalizing $[$generalized:ident]* <;>\n                  (simp_all <;> omega)))\n            return\n          catch _ => initial.restore\n    throwError \"colony: the initial proof portfolio could not close this goal\"\n\nend Colony\n\nnamespace Colony.Examples\ntheorem nat_mul_comm_regression (a b : Nat) : a * b = b * a := by colony\nend Colony.Examples\n",
+      "stdin_sha256": "4d8a1c8106246d0263e7a38cd9da2d797608270eb876fbbdda6eab1fa33d33b9"
+    },
+    "positive_and_guard": {
+      "cwd": "lean",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "Colony/Examples/ArithmeticRewriteProbe.lean"
+      ],
+      "returncode": 0,
+      "output": "'Colony.Examples.nat_mul_comm_regression' does not depend on any axioms\n'Colony.Examples.nat_mul_comm_nonvacuity' depends on axioms: [propext, Quot.sound]\n'Colony.Examples.shifted_mul_comm_false' depends on axioms: [propext, Quot.sound]\n"
+    },
+    "invalid_direct": {
+      "cwd": "lean",
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "--stdin"
+      ],
+      "returncode": 1,
+      "output": "<stdin>:2:67: error: colony: the initial proof portfolio could not close this goal\n",
+      "stdin": "import Colony.Tactic\ntheorem invalid_shifted_mul : \u2200 a b : Nat, a * b = b * a + 1 := by colony\n",
+      "stdin_sha256": "10d4ebd520e490ed31064028c81bcfac739c6022a94531c360a87832b54e8ea3"
+    }
+  }
+}

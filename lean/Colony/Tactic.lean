@@ -6,6 +6,10 @@ open Lean Elab Tactic Meta
 
 namespace Colony
 
+/-- Each arithmetic call tries two rewrite candidates in fixed order, each with
+one `rw` application and its automatic reflexivity check. `first` restores the
+state after a failed candidate, and `solve` requires complete closure. There is
+no rewrite recursion, saturation, or dispatch on the theorem being proved. -/
 private def arithmeticPortfolio : TacticM Unit := do
   evalTactic (← `(tactic| first
     | (solve | omega)
