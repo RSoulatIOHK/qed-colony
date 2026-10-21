@@ -62,13 +62,13 @@ class RecoverySchedulingTests(unittest.TestCase):
         self.assertEqual(assigned["recovery_owner"], "blocker-triage")
         self.assertEqual(assigned["recovery_status"], "triage_queued")
         triage = assigned["recovery_triage_cycle_id"]
-        self.assertEqual(self.pipeline.advanced, [ci["id"]])
+        self.assertEqual(self.pipeline.advanced, [ci["id"], triage])
         self.assertEqual(self.autonomy.list_attempts(), [])
         self.pipeline.errors[triage] = BudgetExceeded("No model reservation available")
         self.assertEqual(self.supervisor.tick()["status"], "budget_limited")
         self.assertEqual(self.autonomy.get_cycle(triage)["phase"], "triaging")
         self.supervisor.tick()
-        self.assertEqual(self.pipeline.advanced, [ci["id"], triage, ci["id"]])
+        self.assertEqual(self.pipeline.advanced, [ci["id"], triage] * 3)
 
     def test_round_robin_persists_across_restart_without_ci_starvation(self):
         ci = self.cycle("CI", "ci")
@@ -78,13 +78,13 @@ class RecoverySchedulingTests(unittest.TestCase):
         ordinary = self.cycle("ORDINARY", "queued")
         for _ in range(3):
             self.supervisor.tick()
-        expected = [ci["id"], triage, ordinary["id"]]
-        self.assertEqual(self.pipeline.advanced, expected)
+        self.assertEqual(self.pipeline.advanced, [ci["id"], triage, ci["id"], ordinary["id"], ci["id"], triage])
         self.supervisor.release_lock()
         restarted = self.make_supervisor()
         for _ in range(3):
             restarted.tick()
-        self.assertEqual(self.pipeline.advanced, expected + expected)
+        self.assertEqual(self.pipeline.advanced[1::2], [triage, ordinary["id"]] * 3)
+        self.assertEqual(self.pipeline.advanced[::2], [ci["id"]] * 6)
 
     def test_dispatch_error_parks_selected_cycle_instead_of_oldest_cycle(self):
         oldest = self.cycle("OLDEST", "ci", last_scheduled_order=20)
@@ -92,7 +92,7 @@ class RecoverySchedulingTests(unittest.TestCase):
         self.pipeline.errors[selected["id"]] = RuntimeError("Dispatch failed")
         result = self.supervisor.tick()
         self.assertEqual(result["status"], "needs_review")
-        self.assertEqual(self.pipeline.advanced, [selected["id"]])
+        self.assertEqual(self.pipeline.advanced, [oldest["id"], selected["id"]])
         self.assertEqual(self.autonomy.get_cycle(selected["id"])["phase"], "needs_review")
         self.assertEqual(self.autonomy.get_cycle(oldest["id"])["phase"], "ci")
         errors = [event for event in self.tasks.snapshot()["events"] if event["kind"] == "autonomy.error"]
