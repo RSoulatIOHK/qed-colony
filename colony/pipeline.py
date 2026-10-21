@@ -10,9 +10,11 @@ import uuid
 from .autonomy_store import BudgetExceeded, DuplicateAttempt
 from .github_broker import GitHubBroker, PublicationRejected, SRE_FILES, checks_state, safe_slug, validate_public_text
 from .model_policy import choose_model
+from .network import AuthenticationFailure, NetworkUnavailable, classify_model_failure, probe_model_connectivity
+from .network_recovery import retry_delay, schedule_retry
 from .operations import OPS_SCHEMA, enqueue_followups, parse_operations_output, render_operations_report
 from .recovery import TRIAGE_SCHEMA, apply_triage_result
-from .worker import execute_job
+from .worker import WorkerProcessUncertain, execute_job
 
 
 REVIEW_SCHEMA = {
@@ -52,7 +54,39 @@ class Pipeline:
     def _event(self, cycle, kind, message, **data):
         self.tasks.record_event(kind, "controller", message, cycle.get("task_id"), data)
 
+    def _provider_failed(self, cycle):
+        current = self.autonomy.get_cycle(cycle["id"])
+        count = int(current.get("provider_network_retry_count", 0)) + 1
+        delay = retry_delay(count, self.policy.get("network_backoff_base_seconds", 5),
+                            self.policy.get("network_backoff_max_seconds", 900))
+        self._update(current, provider_network_offline=True, provider_network_retry_count=count,
+                     provider_next_retry_at=time.time() + delay)
+
+    def _ensure_provider_available(self):
+        # Persist the provider outage on the originating cycle, so all stages
+        # and restarts share the guard without a separate mutable policy file.
+        offline = [item for item in self.autonomy.list_cycles() if item.get("provider_network_offline")]
+        if not offline:
+            return
+        if time.time() < max(item.get("provider_next_retry_at", 0) for item in offline):
+            raise NetworkUnavailable("Model provider retry backoff is active")
+        try:
+            probe_model_connectivity()
+        except NetworkUnavailable:
+            for item in offline:
+                self._provider_failed(item)
+            raise
+        for item in offline:
+            self._update(item, provider_network_offline=False, provider_next_retry_at=None)
+
     def _job(self, cycle, stage, prompt, timeout, sandbox, schema=None):
+        self._ensure_provider_available()
+        if stage.startswith("author:"):
+            stage += ":net%s" % int(cycle.get("author_network_retry_count", 0))
+        elif stage.startswith("review:"):
+            stage += ":net%s" % int(cycle.get("review_network_retry_count", 0))
+        elif stage.startswith("planner:"):
+            stage += ":net%s" % int(cycle.get("planner_network_retry_count", 0))
         attempt = self.autonomy.reserve_attempt(cycle["id"], stage, timeout, self.policy)
         revision = int(cycle.get("review_attempt", 0)) if stage.startswith("review:") else int(cycle.get("revision", 0))
         selection = choose_model(self.policy, cycle["role"], stage.split(":")[0], revision=revision,
@@ -70,13 +104,47 @@ class Pipeline:
                                    task_id=cycle["task_id"] if stage.startswith("author:") else None,
                                    output_schema=schema,
                                    heartbeat=lambda: self._heartbeat(cycle), policy=policy)
-        except Exception:
+        except WorkerProcessUncertain:
+            self.autonomy.finish_attempt(attempt, time.monotonic() - started, status="interrupted")
+            return {"status": "uncertain", "summary": "Worker process outcome requires operator reconciliation"}
+        except Exception as error:
             self.autonomy.finish_attempt(attempt, time.monotonic() - started, status="failed")
+            failure = error if isinstance(error, (NetworkUnavailable, AuthenticationFailure)) else classify_model_failure(error)
+            if failure:
+                if isinstance(failure, NetworkUnavailable):
+                    self._provider_failed(cycle)
+                field = ("author_network_retry_count" if stage.startswith("author:") else
+                         "review_network_retry_count" if stage.startswith("review:") else
+                         "planner_network_retry_count" if stage.startswith("planner:") else None)
+                if field:
+                    self._update(cycle, **{field: int(cycle.get(field, 0)) + 1})
+                raise failure from error
             raise
+        uncertain = result.get("status") in {"interrupted", "uncertain", "running"}
         self.autonomy.finish_attempt(attempt, float(result.get("elapsed_seconds", time.monotonic() - started)),
                                      usage=result.get("usage", {}),
-                                     status="completed" if result.get("status") == "completed" else "failed")
+                                     status="interrupted" if uncertain else
+                                     "completed" if result.get("status") == "completed" else "failed")
+        # Uncertain process identity takes precedence over a network-looking
+        # summary. Retain the complete reservation and require reconciliation.
+        if uncertain:
+            return result
+        if result.get("status") != "completed":
+            failure = classify_model_failure(result.get("summary"))
+            if failure:
+                if isinstance(failure, NetworkUnavailable):
+                    self._provider_failed(cycle)
+                field = ("author_network_retry_count" if stage.startswith("author:") else
+                         "review_network_retry_count" if stage.startswith("review:") else
+                         "planner_network_retry_count" if stage.startswith("planner:") else None)
+                if field:
+                    self._update(cycle, **{field: int(cycle.get(field, 0)) + 1})
+                raise failure
         return result
+
+    def probe_connectivity(self):
+        probe = getattr(self.broker, "probe_connectivity", None)
+        return True if probe is None else probe()
 
     def _heartbeat(self, cycle):
         self.autonomy.set_service("working", pid=os.getpid(), active_cycle=cycle["id"], message="Executing bounded model task")
@@ -150,6 +218,8 @@ class Pipeline:
 
     def advance(self, cycle):
         """Advance one durable stage. Repeated publication/merge calls reconcile GitHub."""
+        if cycle.get("role") == "planner" and cycle.get("phase") in {"queued", "planning"}:
+            return self.plan(cycle=cycle)
         if cycle.get("recovery_kind") == "triage":
             return self._triage(cycle)
         task = self.tasks.get_task(cycle["task_id"])
@@ -178,15 +248,22 @@ class Pipeline:
                 return self._update(cycle, "authoring", revision=0, **context)
             if phase == "authoring":
                 return self._author(cycle, task)
+            if phase == "planning" and cycle.get("role") == "planner":
+                return self.plan(cycle=cycle)
             if phase == "publishing":
                 if not self.policy.get("automatic_publication", False):
                     return self._terminal(cycle, "needs_review", "Automatic publication is disabled")
                 sha = self.broker.commit(cycle, task)
-                cycle = self._update(cycle, head_sha=sha)
+                publication = {"head_sha": sha}
+                if cycle.get("publish_candidate_sha") != sha:
+                    publication.update(publish_candidate_sha=sha,
+                        publish_previous_head_sha=cycle.get("published_head_sha") or
+                        (cycle.get("head_sha") if cycle.get("pr_number") else None))
+                cycle = self._update(cycle, **publication)
                 pr = self.broker.publish(cycle, task, cycle.get("summary", "Candidate ready for independent review"))
                 self.tasks.set_task_artifacts(task["id"], branch=cycle["branch"], pr_url=pr["url"])
                 self._event(cycle, "pr.published", "Candidate published for review", pr_url=pr["url"], head_sha=sha)
-                return self._update(cycle, "reviewing", pr_number=pr["number"], pr_url=pr["url"])
+                return self._update(cycle, "reviewing", pr_number=pr["number"], pr_url=pr["url"], published_head_sha=sha)
             if phase == "reviewing":
                 return self._review(cycle, task)
             if phase == "review_publication":
@@ -196,6 +273,13 @@ class Pipeline:
             return cycle
         except BudgetExceeded:
             raise
+        except NetworkUnavailable:
+            current = self.autonomy.get_cycle(cycle["id"])
+            return schedule_retry(current, self._update,
+                                  base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                                  max_seconds=self.policy.get("network_backoff_max_seconds", 900))
+        except AuthenticationFailure as exc:
+            return self._terminal(cycle, "needs_review", "Remote authentication requires operator attention: " + str(exc))
         except DuplicateAttempt:
             return self._terminal(cycle, "needs_review", "A completed or interrupted stage cannot run twice")
         except PublicationRejected as exc:
@@ -263,6 +347,11 @@ class Pipeline:
             return self._triage(cycle)
         except BudgetExceeded:
             raise
+        except NetworkUnavailable:
+            current = self.autonomy.get_cycle(cycle["id"])
+            return schedule_retry(current, self._update,
+                                  base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                                  max_seconds=self.policy.get("network_backoff_max_seconds", 900))
         except Exception as error:
             # No second diagnosis for an uncertain or malformed stage.
             return self._terminal(cycle, "needs_review", "Blocker triage stopped: " + type(error).__name__)
@@ -325,6 +414,7 @@ class Pipeline:
                 recovery_next_action="Reconcile remote closure and integrated acceptance; no model work is repeated")
 
     def _author(self, cycle, task):
+        self._ensure_provider_available()
         timeout = int(self.policy.get("author_timeout_seconds", 600))
         if cycle.get("recovery_kind") == "repair":
             timeout = min(480, timeout)
@@ -332,6 +422,7 @@ class Pipeline:
         agent_id = "colony-author-" + cycle["id"][:10]
         self.tasks.register_agent(agent_id, "Colony author", task["role"])
         lease = timeout + 120
+        self.tasks.recover_expired()
         current = self.tasks.get_task(task["id"])
         if current["status"] == "ready":
             current = self.tasks.claim(agent_id, task_id=task["id"], lease_seconds=lease)
@@ -387,6 +478,8 @@ Return a concise complete result with actual checks and remaining limitations.
                            "workspace-write" if implementation else "read-only",
                            OPS_SCHEMA if task["role"] == "operations" else None)
         if result.get("status") != "completed":
+            if result.get("status") in {"interrupted", "uncertain", "running"}:
+                return self._terminal(cycle, "needs_review", "Author process outcome is uncertain; operator reconciliation required")
             self.tasks.transition(task["id"], "failed", agent_id, summary="Bounded author attempt failed")
             return self._revise(cycle, "Author attempt failed: " + str(result.get("summary", "unknown failure"))[:1500])
         output = validate_public_text(self._output(result, cycle))
@@ -434,6 +527,8 @@ specific actionable findings. A successful author process is not evidence of pro
         result = self._job(cycle, "review:%s:%s" % (cycle["head_sha"], cycle.get("review_attempt", 0)), prompt,
                            timeout, "read-only", REVIEW_SCHEMA)
         if result.get("status") != "completed":
+            if result.get("status") in {"interrupted", "uncertain", "running"}:
+                return self._terminal(cycle, "needs_review", "Reviewer process outcome is uncertain; operator reconciliation required")
             attempt = int(cycle.get("review_attempt", 0))
             limit = 0 if cycle.get("recovery_kind") == "repair" else int(self.policy.get("max_revisions", 2))
             if attempt < limit:
@@ -511,15 +606,29 @@ specific actionable findings. A successful author process is not evidence of pro
             return self._ci(cycle, task)
         return cycle
 
-    def plan(self):
+    def plan(self, cycle=None):
         """Generate bounded new work from repository evidence when the queue empties."""
         dispatched = {item["task_id"] for item in self.autonomy.list_cycles()}
         if any(item["status"] in {"ready", "running"} and item["id"] not in dispatched
                for item in self.tasks.snapshot()["tasks"]):
             return {"status": "waiting", "tasks": []}
         self._require_budget(int(self.policy.get("planner_timeout_seconds", 180)))
-        cycle = self.autonomy.create_cycle("PLAN-" + uuid.uuid4().hex[:12], "planner")
-        context = self.broker.prepare_worktree(cycle)
+        if cycle is None:
+            cycle = next((item for item in self.autonomy.list_cycles()
+                          if item["role"] == "planner" and item["phase"] in {"queued", "planning", "waiting_network"}), None)
+        if cycle is None:
+            cycle = self.autonomy.create_cycle("PLAN-" + uuid.uuid4().hex[:12], "planner")
+        try:
+            context = {} if cycle.get("worktree") else self.broker.prepare_worktree(cycle)
+        except NetworkUnavailable:
+            current = self.autonomy.get_cycle(cycle["id"])
+            schedule_retry(current, self._update,
+                           base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                           max_seconds=self.policy.get("network_backoff_max_seconds", 900))
+            return {"status": "waiting_network", "tasks": []}
+        except AuthenticationFailure as exc:
+            self._update(cycle, "needs_review", last_error=str(exc))
+            return {"status": "needs_review", "tasks": []}
         cycle = self._update(cycle, "planning", revision=0, **context)
         recent = [{"id": item["id"], "title": item["title"], "status": item["status"]}
                   for item in self.tasks.snapshot()["tasks"][-30:]]
@@ -545,8 +654,21 @@ artifacts; do not call implementation a research artifact. No edits, publication
 spawning agents or contact. Return the specified JSON schema.
 Recent tasks: %s
 """ % (", ".join(sorted(SRE_FILES)), json.dumps(recent))
-        result = self._job(cycle, "planner:0", prompt,
-                           int(self.policy.get("planner_timeout_seconds", 180)), "read-only", PLAN_SCHEMA)
+        try:
+            result = self._job(cycle, "planner:0", prompt,
+                               int(self.policy.get("planner_timeout_seconds", 180)), "read-only", PLAN_SCHEMA)
+        except NetworkUnavailable:
+            current = self.autonomy.get_cycle(cycle["id"])
+            schedule_retry(current, self._update,
+                           base_seconds=self.policy.get("network_backoff_base_seconds", 5),
+                           max_seconds=self.policy.get("network_backoff_max_seconds", 900))
+            return {"status": "waiting_network", "tasks": []}
+        except AuthenticationFailure as exc:
+            self._update(cycle, "needs_review", last_error=str(exc))
+            return {"status": "needs_review", "tasks": []}
+        if result.get("status") in {"interrupted", "uncertain", "running"}:
+            self._update(cycle, "needs_review", last_error="Planner process outcome is uncertain; operator reconciliation required")
+            return {"status": "needs_review", "tasks": []}
         if result.get("status") != "completed":
             self._update(cycle, "failed", last_error="Bounded planner attempt failed")
             return {"status": "failed", "tasks": []}

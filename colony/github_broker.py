@@ -14,6 +14,8 @@ import subprocess
 import tempfile
 import time
 
+from .network import classify_connectivity_error, NetworkUnavailable
+
 
 class PublicationRejected(RuntimeError):
     pass
@@ -88,16 +90,28 @@ class GitHubBroker:
             raise ValueError("Invalid base branch")
         self.runner = runner or subprocess.run
 
-    def _run(self, args, cwd=None, binary=False):
-        result = self.runner(args, cwd=str(cwd or self.root), check=True,
-                             capture_output=True, text=not binary, timeout=120)
+    def _run(self, args, cwd=None, binary=False, remote=False):
+        try:
+            result = self.runner(args, cwd=str(cwd or self.root), check=True,
+                                 capture_output=True, text=not binary, timeout=120)
+        except Exception as error:
+            classified = classify_connectivity_error(error, remote=remote)
+            if classified:
+                raise classified from error
+            raise
         return result.stdout if binary else result.stdout.strip()
 
     def git(self, cwd, *args, binary=False):
-        return self._run(["git", "-c", "core.hooksPath=/dev/null", "-C", str(cwd), *args], binary=binary)
+        remote = bool(args and args[0] in {"fetch", "push", "pull", "ls-remote"})
+        return self._run(["git", "-c", "core.hooksPath=/dev/null", "-C", str(cwd), *args], binary=binary,
+                         remote=remote)
 
     def gh(self, *args):
-        return self._run(["gh", *args] if args[0] == "api" else ["gh", *args, "--repo", self.repository])
+        return self._run(["gh", *args] if args[0] == "api" else ["gh", *args, "--repo", self.repository], remote=True)
+
+    def probe_connectivity(self):
+        self.gh("api", "rate_limit")
+        return True
 
     def prepare_worktree(self, cycle):
         branch = "codex/colony-%s-%s" % (safe_slug(cycle["task_id"]), cycle["id"][:12])
@@ -190,7 +204,28 @@ class GitHubBroker:
         return values[0] if values else None
 
     def publish(self, cycle, task, summary):
-        self.git(cycle["worktree"], "push", "--set-upstream", "origin", cycle["branch"])
+        head = self.git(cycle["worktree"], "rev-parse", "HEAD")
+        remote = self.git(self.root, "ls-remote", "origin", "refs/heads/" + cycle["branch"])
+        remote_head = remote.split()[0] if remote else None
+        expected = cycle.get("publish_previous_head_sha")
+        if expected is not None and not re.fullmatch(r"[0-9a-f]{40}", expected):
+            raise PublicationRejected("Invalid recorded prior controller head")
+        if remote_head != head and remote_head != expected:
+            raise PublicationRejected("Remote controller branch differs from its recorded prior head")
+        if remote_head != head:
+            try:
+                # An exact lease also protects an absent branch (empty expected
+                # SHA). Never overwrite movement after the ls-remote snapshot.
+                lease = "--force-with-lease=refs/heads/%s:%s" % (cycle["branch"], expected or "")
+                self.git(cycle["worktree"], "push", lease, "--set-upstream", "origin",
+                         "HEAD:refs/heads/" + cycle["branch"])
+            except NetworkUnavailable:
+                observed = self.git(self.root, "ls-remote", "origin", "refs/heads/" + cycle["branch"])
+                observed_head = observed.split()[0] if observed else None
+                if observed_head != head:
+                    if observed_head != expected:
+                        raise PublicationRejected("Remote branch moved outside the controller during push")
+                    raise
         existing = self.find_pr(cycle["branch"])
         if existing:
             return existing
@@ -272,8 +307,9 @@ class GitHubBroker:
 
     def comment_review(self, number, review, head_sha, cycle_id):
         marker = "<!-- colony-review:%s:%s -->" % (cycle_id, head_sha)
-        comments = json.loads(self.gh("api", "repos/%s/issues/%s/comments" % (self.repository, int(number))))
-        if any(marker in item.get("body", "") for item in comments):
+        pages = json.loads(self.gh("api", "--paginate", "--slurp",
+            "repos/%s/issues/%s/comments?per_page=100" % (self.repository, int(number))))
+        if any(marker in item.get("body", "") for page in pages for item in page):
             return
         text = ("### Colony model review\n\nSeparate read-only model context, published by the controller's "
                 "GitHub account. This is a model review, not a GitHub approval by another person.\n\n"

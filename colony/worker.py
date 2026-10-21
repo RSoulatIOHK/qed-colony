@@ -18,12 +18,17 @@ from typing import Optional
 import uuid
 
 from .store import Store
+from .network import AuthenticationFailure, NetworkUnavailable, classify_model_failure
 
 
 MAX_LOG_BYTES = 8 * 1024 * 1024
 MAX_SUMMARY_CHARS = 16000
 MAX_EVENT_BYTES = 1024 * 1024
 PIPE_CHUNK_BYTES = 64 * 1024
+
+
+class WorkerProcessUncertain(RuntimeError):
+    """Worker cleanup could not verify termination; preserve its reservation."""
 
 
 def _git(root, *arguments):
@@ -79,7 +84,7 @@ def _reserve_slot(db_path, run_id, max_concurrency, timeout):
         )""")
         now = time.time()
         conn.execute("UPDATE worker_runs SET status='expired' WHERE status='active' AND expires<?", (now,))
-        active = conn.execute("SELECT COUNT(*) FROM worker_runs WHERE status='active'").fetchone()[0]
+        active = conn.execute("SELECT COUNT(*) FROM worker_runs WHERE status IN ('active','uncertain')").fetchone()[0]
         if active >= max_concurrency:
             raise RuntimeError("Worker concurrency cap reached (%s)" % max_concurrency)
         # Covers setup, bounded inference, process termination, and recording.
@@ -89,6 +94,12 @@ def _reserve_slot(db_path, run_id, max_concurrency, timeout):
 def _release_slot(db_path, run_id):
     with sqlite3.connect(str(db_path), timeout=15) as conn:
         conn.execute("UPDATE worker_runs SET status='finished' WHERE id=?", (run_id,))
+
+
+def _mark_uncertain_slot(db_path, run_id):
+    with sqlite3.connect(str(db_path), timeout=15) as conn:
+        conn.execute("UPDATE worker_runs SET status='uncertain' WHERE id=? AND status IN ('active','expired','uncertain')",
+                     (run_id,))
 
 
 def _refresh_slot(db_path, run_id, timeout):
@@ -109,7 +120,11 @@ def _consume_event(line, usage, final_text):
         usage = event["usage"]
     failure = None
     if event.get("type") in {"turn.failed", "error"}:
-        failure = "Worker reported an error; inspect its private local log"
+        details = json.dumps({"error": event.get("error"), "message": event.get("message")})[:MAX_EVENT_BYTES]
+        classified = classify_model_failure(details)
+        failure = ("Model provider connectivity failed" if isinstance(classified, NetworkUnavailable) else
+                   "Model provider authentication requires operator attention" if isinstance(classified, AuthenticationFailure) else
+                   "Worker reported an error; inspect its private local log")
     item = event.get("item")
     if (event.get("type") == "item.completed" and isinstance(item, dict)
             and item.get("type") == "agent_message" and isinstance(item.get("text"), str)):
@@ -236,6 +251,11 @@ def cleanup_orphan_jobs(root, db_path=None):
     db_path = Path(db_path or Path(root) / ".colony" / "colony.db")
     for record in (Path(root) / ".colony" / "runs").glob("*/process.json"):
         try:
+            if db_path.exists():
+                try:
+                    _mark_uncertain_slot(db_path, record.parent.name)
+                except sqlite3.OperationalError:
+                    pass  # Older databases may have no worker reservation table.
             data = json.loads(record.read_text())
             pid = int(data["pid"])
             identity = data.get("started")
@@ -365,7 +385,17 @@ def execute_job(root, worktree, prompt, timeout, sandbox, agent_id, task_id=None
         return result
     finally:
         if process is not None:
-            _stop_process(process)
+            try:
+                _stop_process(process)
+            except (OSError, subprocess.SubprocessError) as error:
+                for stream in (process.stdout, process.stdin):
+                    if stream is not None and not stream.closed:
+                        stream.close()
+                # Keep process identity, worker slot and agent state until an
+                # operator can establish that this process group has stopped.
+                if reserved:
+                    _mark_uncertain_slot(db_path, run_id)
+                raise WorkerProcessUncertain("Worker process termination could not be verified") from error
             for stream in (process.stdout, process.stdin):
                 if stream is not None and not stream.closed:
                     stream.close()
