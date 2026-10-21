@@ -20,16 +20,21 @@ NOW = dt.datetime(2026, 10, 21, 12, tzinfo=dt.timezone.utc).timestamp()
 
 def fixture_case(name, kind="positive"):
     header = "theorem %s : %s :=" % (name, "False" if kind == "negative" else "True")
+    context = ["namespace FixtureBenchmark", "abbrev ℕ := Nat", "section Measured", "open Nat"]
     results = {}
     for strategy, body in STRATEGIES.items():
-        source = "import Colony.Tactic\n" + header + " " + body + "\n"
+        source = ("import Colony.Tactic\nset_option maxHeartbeats 200000\n" + "\n".join(context) + "\n" +
+                  header + " " + body + "\n#print axioms FixtureBenchmark." + name +
+                  "\nend Measured\nend FixtureBenchmark\n")
         results[strategy] = {"status": "proof_failed" if kind == "negative" else "kernel_accepted",
             "wall_seconds": 0.125, "proof_body": body, "axioms": None if kind == "negative" else [],
             "generated_source": source, "generated_source_sha256": hashlib.sha256(source.encode()).hexdigest(),
             "command": ["private-command", "/" + "Users/example/private/argument"]}
     return {"id": name, "source_name": name, "source_line": 1 if kind == "positive" else None,
             "source_url": "https://github.com/example/upstream/blob/" + "b" * 40 + "/Cases.lean#L1" if kind == "positive" else None,
-            "header": header, "kind": kind, "statement_sha256": hashlib.sha256(header.encode()).hexdigest(),
+            "header": header, "kind": kind,
+            "statement_sha256": hashlib.sha256(json.dumps({"context": context, "header": header},
+                ensure_ascii=False, separators=(",", ":")).encode()).hexdigest(),
             "results": results}
 
 
@@ -143,6 +148,60 @@ class BenchmarkStateTests(unittest.TestCase):
         self.write()
         self.assertIsNone(self.read()["report"])
         self.assertEqual(self.read()["status"]["state"], "error")
+
+    def test_coherently_hashed_manual_steps_comments_and_helpers_are_not_strict_wins(self):
+        mutations = {
+            "manual proof with tactic comment": lambda source, header: source.replace(
+                header + " by colony\n", header + " by exact True.intro\n-- by colony\n"),
+            "semicolon proof suffix": lambda source, header: source.replace(
+                header + " by colony\n", header + " by colony; exact True.intro\n"),
+            "changed statement": lambda source, header: source.replace(header, header.replace("True", "False")),
+            "extra helper before target": lambda source, header: source.replace(
+                header, "theorem hidden_helper : True := by exact True.intro\n" + header),
+            "extra helper after target": lambda source, header: source + "theorem hidden_helper : True := by exact True.intro\n",
+            "extra import": lambda source, header: source.replace("import Colony.Tactic\n", "import Colony.Tactic\nimport Mathlib\n"),
+            "changed heartbeat budget": lambda source, header: source.replace("maxHeartbeats 200000", "maxHeartbeats 0"),
+            "wrong axiom evidence target": lambda source, header: source.replace("#print axioms FixtureBenchmark.fixture_positive", "#print axioms FixtureBenchmark.fixture_witness"),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(mutation=name):
+                self.report = fixture_report()
+                case = self.report["cases"][0]
+                result = case["results"]["colony"]
+                result["generated_source"] = mutate(result["generated_source"], case["header"])
+                result["generated_source_sha256"] = hashlib.sha256(result["generated_source"].encode()).hexdigest()
+                self.write()
+                self.assertIsNone(self.read()["report"])
+
+    def test_changed_public_header_cannot_reuse_original_statement_hash(self):
+        case = self.report["cases"][0]
+        old_header = case["header"]
+        case["header"] = old_header.replace("True", "False")
+        for result in case["results"].values():
+            result["generated_source"] = result["generated_source"].replace(old_header, case["header"])
+            result["generated_source_sha256"] = hashlib.sha256(result["generated_source"].encode()).hexdigest()
+        self.write()
+        self.assertIsNone(self.read()["report"])
+
+    def test_helper_context_cannot_be_admitted_by_rehashing_the_statement(self):
+        case = self.report["cases"][0]
+        context = ["namespace FixtureBenchmark", "abbrev ℕ := Nat", "section Measured", "open Nat",
+                   "theorem helper : True := by exact True.intro"]
+        case["statement_sha256"] = hashlib.sha256(json.dumps({"context": context, "header": case["header"]},
+            ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
+        for result in case["results"].values():
+            result["generated_source"] = result["generated_source"].replace("open Nat\n", "open Nat\n" + context[-1] + "\n")
+            result["generated_source_sha256"] = hashlib.sha256(result["generated_source"].encode()).hexdigest()
+        self.write()
+        self.assertIsNone(self.read()["report"])
+
+    def test_control_cases_cannot_enter_the_scored_denominator(self):
+        for location, kind in (("cases", "nonvacuity"), ("controls", "positive")):
+            with self.subTest(location=location):
+                self.report = fixture_report()
+                self.report[location][0]["kind"] = kind
+                self.write()
+                self.assertIsNone(self.read()["report"])
 
     def test_score_counts_must_match_actual_positive_case_outcomes(self):
         self.report["summary"]["colony"]["proved"] = 2

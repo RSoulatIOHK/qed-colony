@@ -734,6 +734,7 @@
 
   function liveCaseCard(item, control = false) {
     const card = el('details', 'live-benchmark-case');
+    card.id = `live-case-${item.id}`;
     const heading = el('summary');
     heading.append(el('strong', '', item.source_name), el('span', 'subtle-label', control ? pretty(item.kind) : item.id));
     card.append(heading, el('pre', 'live-statement', item.header));
@@ -751,6 +752,7 @@
         el('span', accepted && item.kind === 'negative' ? 'live-result-error' : accepted ? 'live-result-proved' : 'live-result-unproved', liveResultLabel(result, item.kind)),
         el('span', 'subtle-label', `${Number(result.wall_seconds).toFixed(3)} s`));
       const evidence = el('details', 'live-generated-source');
+      evidence.id = `live-proof-${item.id}-${strategy}`;
       evidence.append(el('summary', '', 'Generated declaration and axiom evidence'),
         el('p', '', `Generated source SHA-256: ${result.generated_source_sha256}`),
         el('p', '', `Axioms: ${Array.isArray(result.axioms) ? result.axioms.length ? result.axioms.join(', ') : 'none (reported axiom-free)' : 'no axiom evidence produced'}`),
@@ -764,6 +766,7 @@
 
   function renderLiveBenchmark() {
     const container = $('live-benchmark');
+    const expanded = new Set(Array.from(container.querySelectorAll?.('details[open]') || [], (detail) => detail.id));
     container.replaceChildren();
     const live = state.data.live_benchmark || {};
     const recorded = live.status || {};
@@ -833,6 +836,7 @@
     if (report.assurance.security_boundary) container.append(el('p', 'live-benchmark-assurance', report.assurance.security_boundary));
     if (report.source_sha256 || report.runtime_source_sha256) {
       const hashes = el('details', 'live-generated-source');
+      hashes.id = 'live-input-hashes';
       hashes.append(el('summary', '', 'Exact tactic and pinned evaluator input hashes'),
         el('pre', '', JSON.stringify({ source_sha256: report.source_sha256, runtime_source_sha256: report.runtime_source_sha256 }, null, 2)));
       container.append(hashes);
@@ -847,6 +851,7 @@
     report.controls.forEach((item) => controls.append(liveCaseCard(item, true)));
     if (!report.controls.length) controls.append(el('p', 'live-result-error', 'No validity controls were recorded in this report.'));
     container.append(controls);
+    container.querySelectorAll?.('details').forEach((detail) => { detail.open = expanded.has(detail.id); });
   }
 
   function renderBenchmarks() {

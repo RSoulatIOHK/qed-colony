@@ -32,13 +32,15 @@ def install_service(root, source_root=None, interval=120, *, home=None,
     root = paths["root"]
     source = Path(source_root or root).resolve()
     scripts = ("run_live_benchmarks.py", "extract_blaster_nng4.py", "evaluate_lean.py")
+    if (source / "scripts").is_symlink():
+        raise ValueError("Reviewed benchmark scripts directory must be regular")
     for name in scripts:
         path = source / "scripts" / name
         if not path.is_file() or path.is_symlink():
             raise ValueError("Reviewed benchmark script is missing or symlinked: " + name)
     for name in ("colony", "benchmarks"):
         directory = source / name
-        if not directory.is_dir() or any(path.is_symlink() for path in directory.rglob("*")):
+        if directory.is_symlink() or not directory.is_dir() or any(path.is_symlink() for path in directory.rglob("*")):
             raise ValueError("Reviewed benchmark sources must be regular files: " + name)
     environment_path = os.environ.get("PATH", "") if path_value is None else path_value
     for binary in ("git", "lake"):

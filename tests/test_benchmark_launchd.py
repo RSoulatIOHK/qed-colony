@@ -61,6 +61,19 @@ class BenchmarkLaunchdTests(unittest.TestCase):
             self.install()
         self.launch.assert_not_called()
 
+    def test_rejects_symlinked_resource_directories(self):
+        for name in ("scripts", "colony", "benchmarks"):
+            with self.subTest(name=name):
+                directory = self.source / name
+                moved = self.source / (name + "-moved")
+                directory.rename(moved)
+                directory.symlink_to(moved, target_is_directory=True)
+                with self.assertRaises(ValueError):
+                    self.install()
+                self.launch.assert_not_called()
+                directory.unlink()
+                moved.rename(directory)
+
     def test_invalid_interval_does_not_install(self):
         for interval in (0, True, 29, 3601, 86400):
             with self.assertRaises(ValueError):

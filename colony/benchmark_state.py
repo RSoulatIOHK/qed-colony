@@ -106,7 +106,44 @@ def _status(value):
     return clean
 
 
-def _case(value):
+def _check_generated_source(source, header, source_name, statement_hash, body, heartbeats):
+    """Accept only the complete isolated declaration template, never a substring."""
+    declaration = re.match(r"\s*theorem ([A-Za-z_][A-Za-z_0-9.]*)\b", header)
+    if (not declaration or declaration[1] != source_name or not header.endswith(":=")
+            or header.count(":=") != 1 or len(re.findall(r"\btheorem\b", header)) != 1
+            or re.search(r"--|/-|-/|[;#]|\b(?:import|theorem|lemma|example|axiom|def|abbrev|"
+                         r"opaque|constant|instance|macro|syntax|elab|set_option|namespace|section|"
+                         r"end|where|by|sorry|admit|native_decide)\b", header[declaration.end():])):
+        raise ValueError("Invalid isolated benchmark theorem header")
+    prefix = "import Colony.Tactic\nset_option maxHeartbeats %d\n" % heartbeats
+    theorem = header + " " + body + "\n"
+    if not source.startswith(prefix) or source.count(theorem) != 1:
+        raise ValueError("Generated source differs from the fixed tactic template")
+    before, _, after = source[len(prefix):].partition(theorem)
+    if not before.endswith("\n"):
+        raise ValueError("Missing isolated benchmark context boundary")
+    context = before[:-1].split("\n") if before != "\n" else []
+    scopes, namespaces = [], []
+    for command in context:
+        scope = re.fullmatch(r"\s*(namespace|section) ([A-Za-z_][A-Za-z_0-9.]*)\s*", command)
+        if scope:
+            scopes.append(scope[2])
+            if scope[1] == "namespace":
+                namespaces.append(scope[2])
+        elif command.strip() not in {"abbrev ℕ := Nat", "open Nat"}:
+            raise ValueError("Unsupported isolated benchmark context command")
+    statement = json.dumps({"context": context, "header": header}, ensure_ascii=False,
+                           separators=(",", ":")).encode("utf-8")
+    if hashlib.sha256(statement).hexdigest() != statement_hash:
+        raise ValueError("Generated theorem differs from its statement hash")
+    full_name = ".".join(namespaces + [source_name])
+    expected_tail = "#print axioms " + full_name + "\n" + "\n".join("end " + name for name in reversed(scopes)) + "\n"
+    expected = prefix + "\n".join(context) + "\n" + theorem + expected_tail
+    if source != expected or after != expected_tail:
+        raise ValueError("Generated source contains extra proof steps or declarations")
+
+
+def _case(value, heartbeats):
     value = _object(value)
     clean = {key: _text(value[key], 16000 if key == "header" else 250)
              for key in ("id", "source_name", "header", "kind")}
@@ -128,9 +165,10 @@ def _case(value):
             raise ValueError("A kernel result uses a disallowed axiom")
         source = _text(result["generated_source"], 65536)
         source_hash = _hash(result["generated_source_sha256"])
-        if (hashlib.sha256(source.encode("utf-8")).hexdigest() != source_hash
-                or clean["header"].strip() not in source or body not in source):
+        if hashlib.sha256(source.encode("utf-8")).hexdigest() != source_hash:
             raise ValueError("Generated benchmark source hash differs")
+        _check_generated_source(source, clean["header"], clean["source_name"],
+                                clean["statement_sha256"], body, heartbeats)
         clean["results"][strategy] = {
             "status": result["status"], "wall_seconds": _seconds(result["wall_seconds"]),
             "proof_body": body, "axioms": [_text(item, 200) for item in axioms] if axioms is not None else None,
@@ -150,6 +188,7 @@ def _report(value):
     cases, controls = value["cases"], value["controls"]
     if not isinstance(cases, list) or not isinstance(controls, list) or not 1 <= len(cases) <= 1000 or len(controls) > 100:
         raise ValueError("Invalid benchmark case inventory")
+    heartbeats = _count(protocol["max_heartbeats"], 1000000000)
     clean = {"schema": value["schema"], "run_id": _text(value["run_id"], 250),
              "source_revision": _hash(value["source_revision"], 40),
              "started_at": _time(value["started_at"]), "completed_at": _time(value["completed_at"]),
@@ -157,9 +196,13 @@ def _report(value):
                        **{key: _hash(suite[key]) for key in ("suite_sha256", "manifest_sha256", "lock_sha256")}},
              "protocol": {"imports": ["Colony.Tactic"], "proof_bodies": dict(STRATEGIES),
                           "timeout_seconds": _seconds(protocol["timeout_seconds"]),
-                          "max_heartbeats": _count(protocol["max_heartbeats"], 1000000000)},
+                          "max_heartbeats": heartbeats},
              "assurance": {"label": _text(assurance["label"], 1000), "independent_replay": False},
-             "cases": [_case(case) for case in cases], "controls": [_case(case) for case in controls]}
+             "cases": [_case(case, heartbeats) for case in cases],
+             "controls": [_case(case, heartbeats) for case in controls]}
+    if (any(case["kind"] != "positive" for case in clean["cases"])
+            or any(case["kind"] not in {"nonvacuity", "negative"} for case in clean["controls"])):
+        raise ValueError("Benchmark scored cases and validity controls must be separate")
     if clean["protocol"]["timeout_seconds"] <= 0 or clean["protocol"]["max_heartbeats"] <= 0:
         raise ValueError("Benchmark resource limits must be positive")
     if "scope" in suite:
