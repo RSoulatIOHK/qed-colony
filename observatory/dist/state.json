@@ -5,9 +5,17 @@
     "repo_url": "https://github.com/RSoulatIOHK/qed-colony",
     "mission": "An autonomous research colony building a local Lean tactic with kernel-checked proofs."
   },
-  "generated_at": "2026-10-21T08:13:04.354Z",
+  "generated_at": "2026-10-21T08:28:26.563Z",
   "mode": "snapshot",
   "agents": [
+    {
+      "id": "architecture-scout",
+      "name": "Codex researcher",
+      "role": "researcher",
+      "status": "idle",
+      "task_id": null,
+      "last_seen": "2026-10-21T08:16:41.677Z"
+    },
     {
       "id": "build_benchmark",
       "name": "Proof engineer",
@@ -39,6 +47,14 @@
       "status": "working",
       "task_id": "BOOT4",
       "last_seen": "2026-10-21T08:04:50.592Z"
+    },
+    {
+      "id": "frontier-scout",
+      "name": "Codex pilot",
+      "role": "pilot",
+      "status": "idle",
+      "task_id": null,
+      "last_seen": "2026-10-21T08:18:37.608Z"
     }
   ],
   "tasks": [
@@ -144,10 +160,32 @@
       "lease_until": null
     },
     {
+      "id": "R003",
+      "title": "Design the first bounded proof-engine experiment",
+      "role": "pilot",
+      "status": "review",
+      "priority": 150,
+      "depends_on": [],
+      "acceptance": [
+        "Concrete falsifiable hypothesis for the unsolved frontier",
+        "Original statement and ordinary Lean proof path preserved",
+        "Bounded experiment and stop condition",
+        "No invented measurements"
+      ],
+      "description": "Use only AGENTS.md, docs/charter.md, benchmarks/seed-v1.json, and lean/Colony/Tactic.lean. Read at most these four files, do not browse, and do not run benchmarks. Return a final research note of at most 400 words now: choose one improvement for the currently unsolved reverse_involution_frontier; state a falsifiable hypothesis, exact acceptance criterion, expected proof path, experiment steps, and a stop condition. This is a proposal; do not claim measured results or edit code. Finish with the final artifact rather than further investigation.",
+      "summary": "R003 proposal: add one deterministic accumulator-normalization branch to `colony`.\n\n**Hypothesis.** A kernel-proved bridge\n`∀ (xs acc : List Nat), reverseAcc xs acc = xs.reverse ++ acc`\nwill let a bounded rewrite branch solve `reverse_involution_frontier` within the existing limits of 15 seconds and 200,000 heartbeats. The permitted files do not expose `reverseAcc`’s defining equations; proving this bridge is part of the experiment.\n\n**Original target.** Preserve exactly:\n```lean\n∀ (xs : List Nat), reverseAcc (reverseAcc xs []) [] = xs\n```\nDo not alter definitions, assumptions, benchmark specifications, permitted axioms, or resource bounds.\n\n**Expected proof path.** Prove the bridge by structural induction on `xs`, generalizing `acc`. Simplify with the existing defining equations, the induction hypothesis, and ordinary list reversal and append laws. Rewrite both `reverseAcc` applications in the original target using the bridge, then close with append identity and reverse involution. Every step must construct an ordinary Lean proof term.\n\n**Experiment steps.**\n\n1. Allocate at most two implementation hours, one auxiliary lemma, one deterministic tactic branch, and three candidate proof scripts. Record the exact implementation revision and pinned toolchain.\n2. Attempt the bridge proof without modifying protected sources. Add a narrowly scoped rewrite branch using the proved lemma.\n3. Under the unchanged benchmark limits, attempt the original frontier and rerun the seed suite, including non-vacuity and intentionally invalid cases.\n4. Retain proof-checking evidence, the resulting declaration’s axiom report, resource observations, and any failed attempts with their reasons.\n\n**Exact acceptance criterion.** The unchanged frontier closes through `colony`; Lean’s kernel accepts its proof; its transitive axiom dependencies remain within the manifest’s allowlist; previously solved positive and non-vacuity cases remain solved; and `false_shared_payment_safety` remains unproved. A successful process exit alone is insufficient. Report this assurance as Lean kernel acceptance, without claiming exported replay, independent-kernel acceptance, or Cardano correspondence.\n\n**Stop condition.** Stop at the first exhausted budget, unprovable bridge under unchanged definitions, resource-limit failure, or acceptance regression. Record a negative result without expanding search or weakening the challenge.\n\nThis is an unmeasured proposal based only on the four permitted files.",
+      "branch": "codex/r003-b6dd8b207cc3",
+      "pr_url": null,
+      "created_at": "2026-10-21T08:17:42.891Z",
+      "updated_at": "2026-10-21T08:18:37.608Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
       "id": "R001",
       "title": "Compare three architecture candidates for certified UPLC verification",
       "role": "researcher",
-      "status": "ready",
+      "status": "failed",
       "priority": 100,
       "depends_on": [],
       "acceptance": [
@@ -157,11 +195,11 @@
         "No invented benchmark measurements or claims of Cardano correspondence"
       ],
       "description": "Write an experiment proposal comparing certified symbolic execution, compositional weakest-precondition generation, and a certificate-producing solver portfolio. Architecture is unconstrained. Use current repository facts; distinguish hypotheses from measured results. Do not edit code or publish externally.",
-      "summary": "",
-      "branch": null,
+      "summary": "Worker exceeded its 180 second wall-time limit",
+      "branch": "codex/r001-aa837bb519b6",
       "pr_url": null,
       "created_at": "2026-10-21T07:54:32.271Z",
-      "updated_at": "2026-10-21T07:54:32.271Z",
+      "updated_at": "2026-10-21T08:16:41.677Z",
       "lease_owner": null,
       "lease_until": null
     },
@@ -2214,6 +2252,232 @@
       "task_id": "BOOT4",
       "message": "All 36 Python tests and JavaScript syntax check pass; 40 modern Lean seed measurements reproduced",
       "data": {}
+    },
+    {
+      "id": 158,
+      "at": "2026-10-21T08:13:40.583Z",
+      "kind": "agent.registered",
+      "actor": "architecture-scout",
+      "task_id": null,
+      "message": "Codex researcher joined as researcher",
+      "data": {}
+    },
+    {
+      "id": 159,
+      "at": "2026-10-21T08:13:40.586Z",
+      "kind": "task.claimed",
+      "actor": "architecture-scout",
+      "task_id": "R001",
+      "message": "Claimed Compare three architecture candidates for certified UPLC verification",
+      "data": {
+        "lease_seconds": 300
+      }
+    },
+    {
+      "id": 160,
+      "at": "2026-10-21T08:13:40.639Z",
+      "kind": "worker.started",
+      "actor": "architecture-scout",
+      "task_id": "R001",
+      "message": "Started bounded read-only worker",
+      "data": {
+        "branch": "codex/r001-aa837bb519b6",
+        "revision": "bd76a8576962c84e5fa7ea7f2c2c662b28f57e33",
+        "timeout_seconds": 180,
+        "sandbox": "read-only"
+      }
+    },
+    {
+      "id": 161,
+      "at": "2026-10-21T08:15:04.433Z",
+      "kind": "pr.opened",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Bootstrap implementation and evidence published in PR #1",
+      "data": {
+        "url": "https://github.com/RSoulatIOHK/qed-colony/pull/1"
+      }
+    },
+    {
+      "id": 162,
+      "at": "2026-10-21T08:15:04.438Z",
+      "kind": "observatory.deployed",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Hosted Observatory deployed as an owner-private timestamped snapshot",
+      "data": {
+        "url": "https://qed-colony-observatory.iohk-9108.chatgpt.site"
+      }
+    },
+    {
+      "id": 163,
+      "at": "2026-10-21T08:16:41.677Z",
+      "kind": "task.failed",
+      "actor": "architecture-scout",
+      "task_id": "R001",
+      "message": "Worker exceeded its 180 second wall-time limit",
+      "data": {
+        "from": "running",
+        "to": "failed",
+        "branch": "codex/r001-aa837bb519b6",
+        "pr_url": null
+      }
+    },
+    {
+      "id": 164,
+      "at": "2026-10-21T08:16:41.684Z",
+      "kind": "worker.finished",
+      "actor": "architecture-scout",
+      "task_id": "R001",
+      "message": "Bounded run failed; research artifact recorded",
+      "data": {
+        "exit_code": -15,
+        "elapsed_seconds": 181.037,
+        "usage": {},
+        "cost_usd": null,
+        "has_changes": false,
+        "branch": "codex/r001-aa837bb519b6"
+      }
+    },
+    {
+      "id": 165,
+      "at": "2026-10-21T08:17:42.891Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "R003",
+      "message": "Design the first bounded proof-engine experiment",
+      "data": {
+        "role": "pilot"
+      }
+    },
+    {
+      "id": 166,
+      "at": "2026-10-21T08:17:42.902Z",
+      "kind": "experiment.rescoped",
+      "actor": "coordinator",
+      "task_id": "R003",
+      "message": "Broad architecture task hit the wall-time cap; a smaller frontier experiment was scoped without changing its failed record",
+      "data": {}
+    },
+    {
+      "id": 167,
+      "at": "2026-10-21T08:17:43.058Z",
+      "kind": "agent.registered",
+      "actor": "frontier-scout",
+      "task_id": null,
+      "message": "Codex pilot joined as pilot",
+      "data": {}
+    },
+    {
+      "id": 168,
+      "at": "2026-10-21T08:17:43.065Z",
+      "kind": "task.claimed",
+      "actor": "frontier-scout",
+      "task_id": "R003",
+      "message": "Claimed Design the first bounded proof-engine experiment",
+      "data": {
+        "lease_seconds": 300
+      }
+    },
+    {
+      "id": 169,
+      "at": "2026-10-21T08:17:43.135Z",
+      "kind": "worker.started",
+      "actor": "frontier-scout",
+      "task_id": "R003",
+      "message": "Started bounded read-only worker",
+      "data": {
+        "branch": "codex/r003-b6dd8b207cc3",
+        "revision": "bd76a8576962c84e5fa7ea7f2c2c662b28f57e33",
+        "timeout_seconds": 180,
+        "sandbox": "read-only"
+      }
+    },
+    {
+      "id": 170,
+      "at": "2026-10-21T08:18:37.608Z",
+      "kind": "task.review",
+      "actor": "frontier-scout",
+      "task_id": "R003",
+      "message": "R003 proposal: add one deterministic accumulator-normalization branch to `colony`.\n\n**Hypothesis.** A kernel-proved bridge\n`∀ (xs acc : List Nat), reverseAcc xs acc = xs.reverse ++ acc`\nwill let a bounded rewrite branch solve `reverse_involution_frontier` within the existing limits of 15 seconds and 200,000 heartbeats. The permitted files do not expose `reverseAcc`’s defining equations; proving this bridge is part of the experiment.\n\n**Original target.** Preserve exactly:\n```lean\n∀ (xs : List Nat), reverseAcc (reverseAcc xs []) [] = xs\n```\nDo not alter definitions, assumptions, benchmark specifications, permitted axioms, or resource bounds.\n\n**Expected proof path.** Prove the bridge by structural induction on `xs`, generalizing `acc`. Simplify with the existing defining equations, the induction hypothesis, and ordinary list reversal and append laws. Rewrite both `reverseAcc` applications in the original target using the bridge, then close with append identity and reverse involution. Every step must construct an ordinary Lean proof term.\n\n**Experiment steps.**\n\n1. Allocate at most two implementation hours, one auxiliary lemma, one deterministic tactic branch, and three candidate proof scripts. Record the exact implementation revision and pinned toolchain.\n2. Attempt the bridge proof without modifying protected sources. Add a narrowly scoped rewrite branch using the proved lemma.\n3. Under the unchanged benchmark limits, attempt the original frontier and rerun the seed suite, including non-vacuity and intentionally invalid cases.\n4. Retain proof-checking evidence, the resulting declaration’s axiom report, resource observations, and any failed attempts with their reasons.\n\n**Exact acceptance criterion.** The unchanged frontier closes through `colony`; Lean’s kernel accepts its proof; its transitive axiom dependencies remain within the manifest’s allowlist; previously solved positive and non-vacuity cases remain solved; and `false_shared_payment_safety` remains unproved. A successful process exit alone is insufficient. Report this assurance as Lean kernel acceptance, without claiming exported replay, independent-kernel acceptance, or Cardano correspondence.\n\n**Stop condition.** Stop at the first exhausted budget, unprovable bridge under unchanged definitions, resource-limit failure, or acceptance regression. Record a negative result without expanding search or weakening the challenge.\n\nThis is an unmeasured proposal based only on the four permitted files.",
+      "data": {
+        "from": "running",
+        "to": "review",
+        "branch": "codex/r003-b6dd8b207cc3",
+        "pr_url": null
+      }
+    },
+    {
+      "id": 171,
+      "at": "2026-10-21T08:18:37.620Z",
+      "kind": "worker.finished",
+      "actor": "frontier-scout",
+      "task_id": "R003",
+      "message": "Bounded run review; research artifact recorded",
+      "data": {
+        "exit_code": 0,
+        "elapsed_seconds": 54.473,
+        "usage": {
+          "input_tokens": 37888,
+          "cached_input_tokens": 30848,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1471,
+          "reasoning_output_tokens": 891
+        },
+        "cost_usd": null,
+        "has_changes": false,
+        "branch": "codex/r003-b6dd8b207cc3"
+      }
+    },
+    {
+      "id": 172,
+      "at": "2026-10-21T08:21:42.494Z",
+      "kind": "review.recorded",
+      "actor": "build_benchmark",
+      "task_id": "R003",
+      "message": "The proof path is mathematically reasonable. Classify it as a reverseAcc library adapter, preserve the complete unchanged evaluation gate, give baselines equivalent lemma access, and require exact-declaration export for any independent-checking claim.",
+      "data": {
+        "review_id": 6
+      }
+    },
+    {
+      "id": 173,
+      "at": "2026-10-21T08:25:26.069Z",
+      "kind": "verification.profiled",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Whole-environment replay exported 164067 declarations; hardened Lean and lean4lean accepted before the all-checker run was stopped",
+      "data": {
+        "run_url": "https://github.com/RSoulatIOHK/qed-colony/actions/runs/39567617371",
+        "overall_result": "not_completed",
+        "accepted_checkers": [
+          "leanchecker-paranoid",
+          "lean4lean"
+        ],
+        "declarations": 164067
+      }
+    },
+    {
+      "id": 174,
+      "at": "2026-10-21T08:25:26.073Z",
+      "kind": "verification.rescoped",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Replace full-environment export with comparator exports of the eight fixed seed theorem roots and their transitive dependencies; preserve challenge statements and axiom policy",
+      "data": {}
+    },
+    {
+      "id": 175,
+      "at": "2026-10-21T08:28:26.451Z",
+      "kind": "verification.export_scoped",
+      "actor": "build_benchmark",
+      "task_id": "BOOT4",
+      "message": "Eight seed theorem roots and dependencies exported: 1555 declarations, 4371661 bytes; local export only, Linux checking pending",
+      "data": {
+        "declarations": 1555,
+        "bytes": 4371661,
+        "export_seconds_approx": 1.2
+      }
     }
   ],
   "benchmarks": [
@@ -5017,6 +5281,14 @@
       "summary": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
       "id": 5,
       "at": "2026-10-21T08:13:04.245Z"
+    },
+    {
+      "actor": "build_benchmark",
+      "task_id": "R003",
+      "status": "changes_requested",
+      "summary": "The proof path is mathematically reasonable. Classify it as a reverseAcc library adapter, preserve the complete unchanged evaluation gate, give baselines equivalent lemma access, and require exact-declaration export for any independent-checking claim.",
+      "id": 6,
+      "at": "2026-10-21T08:21:42.494Z"
     }
   ]
 }

@@ -41,11 +41,15 @@ The JSON schema is `colony.benchmark_run.v1`. `results` contains one row per str
 
 The command exits 0 when the Colony positives and negative sanity gate pass and no evidence/process error occurred. Expected baseline proof failures are normal. Timeouts and broken environments cannot masquerade as a correctly rejected negative. Generated reports contain real local measurements; do not fabricate results to populate a dashboard.
 
-For a Linux runner with `bubblewrap` and the pinned release toolchain installed, add this separate replay gate after the evaluator:
+For a Linux runner with `bubblewrap` and the pinned release toolchain installed, use this separate proof replay gate:
 
 ```sh
 cd lean
-lake check --paranoid
+lake comparator --config comparator.json
 ```
 
-This command exports the default targets (including all eight positive seed proofs), enforces standard axioms, and invokes the bundled checkers. Its syntax was verified with Lean 4.35.0. The macOS attempt exits 2 because Linux namespaces are required; local benchmark results still explicitly record no independent replay. Challenge/solution comparison in a protected external evaluator remains a separate acceptance milestone.
+`Challenge.lean` independently states exactly the eight positive manifest goals; `SeedProofs.lean` contains the candidate `by colony` proofs. A mapping test requires both declarations to retain the exact prescribed statements. The challenge contains ordinary proofs, so no proof holes are introduced. Comparator ignores the named challenge theorem bodies when matching their statements.
+
+The configuration names those eight roots, enforces the standard axioms, and requires both Lean's default kernel and the independent `lean4lean --import` checker to accept their complete transitive proof dependency closure. Required built-in primitive definitions are also compared. This excludes unrelated imported metaprogram declarations rather than skipping dependencies of a claimed theorem. `lake check --paranoid` remains an optional broader all-default-target audit; it exports the entire imported environment and runs every bundled checker.
+
+The named-root export was exercised locally on Lean 4.35.0. The sandboxed comparator command requires Linux; the macOS attempt exits 2 and runs no checker. Local benchmark JSON remains explicitly labeled as no independent replay. A Linux CI acceptance must be recorded separately with its source revision, configuration, checker results, and scope. The challenge/configuration currently live in the same reviewed repository; an externally owned acceptance boundary remains separate work. Negative cases and the unsupported frontier remain covered by the existing evaluator and are not included as certified roots.

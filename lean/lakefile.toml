@@ -7,3 +7,6 @@ name = "Colony"
 
 [[lean_lib]]
 name = "SeedProofs"
+
+[[lean_lib]]
+name = "Challenge"

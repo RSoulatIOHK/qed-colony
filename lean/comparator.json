@@ -1,0 +1,26 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "SeedProofs",
+  "theorem_names": [
+    "case_arithmetic_monotonicity",
+    "case_reverse_accumulator_length",
+    "case_count_accumulator_invariant",
+    "case_recursive_program_nonvacuity",
+    "case_account_state_invariant",
+    "case_allocated_payments_cover_sales",
+    "case_allocated_payments_nonvacuity",
+    "case_shared_payment_attack_witness"
+  ],
+  "definition_names": [],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "external_kernels": {
+    "lean4lean": [
+      "lean4lean",
+      "--import"
+    ]
+  }
+}

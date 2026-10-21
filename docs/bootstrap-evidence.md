@@ -16,6 +16,16 @@ The control-plane agent independently reviewed the coordinator's worker adapter.
 
 Browser QA found clipped graph cards and stale ordering of recent signals. The Observatory agent repaired layout bounds and ordering. The dashboard uses actual task/event records and explicitly distinguishes local live data from a hosted timestamped snapshot.
 
+## Actual bounded research runs
+
+The first live CLI worker, R001, reached its 180-second limit and was terminated. Its task remains failed. A separately scoped R003 task produced a concise unmeasured experiment proposal within the same cap and entered independent review. The reviewer requested accurate classification as library-adapter work, equal baseline access to new lemmas, and exact-declaration proof replay. The original proposal and review are retained under `research/experiments/`; no engine improvement is claimed from this proposal.
+
+## Proof replay scope
+
+The first Linux `lake check --paranoid` attempt exported the entire imported environment: 164,067 declarations. The hardened Lean kernel and `lean4lean` accepted it. The run did not complete every checker and was stopped; it is not an overall passing paranoid result. The run is [publicly inspectable](https://github.com/RSoulatIOHK/qed-colony/actions/runs/39567617371).
+
+The revised CI uses comparator's named-root export, checking the eight seed theorems and their transitive dependencies against a separate challenge module. It retains the standard axiom policy and runs Lean's kernel plus `lean4lean`. The checked-in challenge still belongs to this repository; independently administered challenge ownership remains future work.
+
 ## Reproduction
 
 ```sh
@@ -31,6 +41,13 @@ On Linux with the pinned toolchain and `bubblewrap`:
 ```sh
 cd lean
 lake check --paranoid
+```
+
+That whole-environment command is an optional, expensive audit. The routine Linux gate is:
+
+```sh
+cd lean
+lake comparator --config comparator.json
 ```
 
 The macOS attempt preserves the sandbox and exits with an unsupported-environment diagnostic because Linux namespaces are unavailable. That attempt supplies no independent proof-checking evidence.
