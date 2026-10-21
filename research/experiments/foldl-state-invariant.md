@@ -2,8 +2,12 @@
 
 ## Scope and source
 
-Base/source revision: `713fa5e229b4d5a19afa7adce2767cb2c9f38723`.
-The probe is implemented in `lean/Colony/Examples/FoldlStateInvariant.lean`.
+Base revision: `713fa5e229b4d5a19afa7adce2767cb2c9f38723`; the example file
+does not exist at that revision. Candidate source revision:
+`bb789f5b0c450cdbe126963bdf1f0efb78d8b31a`, which adds
+`lean/Colony/Examples/FoldlStateInvariant.lean` and this note.
+The source-revision wording in this note was corrected in the working tree
+after the candidate commit, without changing the Lean example.
 No tactic implementation changes were needed. The state is a pair of natural
 numbers; each input is added to both components using `List.foldl`.
 
@@ -30,9 +34,11 @@ theorem run_preserves_equality (inputs : List Nat) (initial : State)
 ```
 
 The procedure, theorem statement, assumptions, and bounds are unchanged across
-attempts. The positive tactic probe was exactly `by colony` on this target; it
-failed. The checked-in proof catches that failure and supplies a generic list
-induction proof so the theorem remains checked by Lean.
+attempts. In a temporary copy of the example, the positive target's complete
+proof body was exactly `by colony`; it failed. The candidate revision instead
+checks in the displayed `fail_if_success colony` guard followed by a generic
+list induction proof, so the theorem remains checked by Lean. That induction
+proof is the source of the accepted theorem, not `colony`.
 
 The nearby false control is:
 
@@ -47,20 +53,19 @@ example (inputs : List Nat) (initial : State)
 
 ## Attempts and commands
 
-- `cd lean && lake env lean Colony/Examples/FoldlStateInvariant.lean` before
-  building the library failed at import resolution (`unknown module prefix
-  'Colony'`). This was a build setup issue.
-- `cd lean && lake build Colony` built the project library (Lean 4.35.0).
-- Retrying `cd lean && lake env lean
-  Colony/Examples/FoldlStateInvariant.lean` with the target body exactly
-  `by colony` failed at the target with `colony: the initial proof portfolio
-  could not close this goal` (exit 1). Thus the exact `by colony` positive
-  attempt did not solve this foldl case.
-- With the induction proof and `fail_if_success colony` guard in place,
-  `cd lean && lake env lean Colony/Examples/FoldlStateInvariant.lean` exited
-  0. The false-control guard also passed; if `colony` had proved its false
-  proposition, `fail_if_success` would have failed the file. Lean emitted only
-  unused-variable warnings for control-example binders.
+- Earlier, `cd lean && lake env lean Colony/Examples/FoldlStateInvariant.lean`
+  failed at import resolution (`unknown module prefix 'Colony'`) before the
+  library was built. This was a build setup failure.
+- At candidate revision `bb789f5b0c450cdbe126963bdf1f0efb78d8b31a`,
+  `cd lean && lake build Colony` exited 0 on the pinned Lean 4.35.0 project.
+  It replayed previously built modules and emitted unrelated linter warnings.
+- A temporary copy replaced only the positive theorem's proof body with
+  `by colony`. Running `lake env lean` on that copy exited 1 and reported
+  `colony: the initial proof portfolio could not close this goal` at the
+  positive target. The temporary copy was removed after this check.
+- `cd lean && lake env lean Colony/Examples/FoldlStateInvariant.lean` on the
+  candidate file exited 0. Both `fail_if_success colony` guards passed. Lean
+  emitted only unused-variable warnings for the false-control binders.
 
 ## Result and assurance
 
