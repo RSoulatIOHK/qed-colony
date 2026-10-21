@@ -1,0 +1,5 @@
+# Pilot review ownership. Enforcement requires repository rules configured separately.
+/policy/ @RSoulatIOHK
+/benchmarks/ @RSoulatIOHK
+/docs/charter.md @RSoulatIOHK
+/.github/ @RSoulatIOHK

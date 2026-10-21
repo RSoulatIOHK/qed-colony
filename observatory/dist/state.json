@@ -1,0 +1,5022 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "QED Colony",
+    "repo_url": "https://github.com/RSoulatIOHK/qed-colony",
+    "mission": "An autonomous research colony building a local Lean tactic with kernel-checked proofs."
+  },
+  "generated_at": "2026-10-21T08:13:04.354Z",
+  "mode": "snapshot",
+  "agents": [
+    {
+      "id": "build_benchmark",
+      "name": "Proof engineer",
+      "role": "proof",
+      "status": "idle",
+      "task_id": null,
+      "last_seen": "2026-10-21T08:13:04.228Z"
+    },
+    {
+      "id": "build_control_plane",
+      "name": "Control plane engineer",
+      "role": "infrastructure",
+      "status": "idle",
+      "task_id": null,
+      "last_seen": "2026-10-21T08:13:04.222Z"
+    },
+    {
+      "id": "build_observatory",
+      "name": "Observatory engineer",
+      "role": "design",
+      "status": "idle",
+      "task_id": null,
+      "last_seen": "2026-10-21T08:04:50.582Z"
+    },
+    {
+      "id": "coordinator",
+      "name": "Research coordinator",
+      "role": "coordinator",
+      "status": "working",
+      "task_id": "BOOT4",
+      "last_seen": "2026-10-21T08:04:50.592Z"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "BOOT4",
+      "title": "Integrate, review, and publish the first colony",
+      "role": "coordinator",
+      "status": "running",
+      "priority": 250,
+      "depends_on": [],
+      "acceptance": [
+        "Public PR with reproducible checks",
+        "Bounded research task and inspectable Observatory"
+      ],
+      "description": "Root coordinator is integrating the three implementation agents, runner, policy, and publication.",
+      "summary": "",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T08:04:50.574Z",
+      "updated_at": "2026-10-21T08:04:50.592Z",
+      "lease_owner": "coordinator",
+      "lease_until": "2026-10-21T09:04:50.592Z"
+    },
+    {
+      "id": "BOOT5",
+      "title": "Fix worker cancellation and resource-limit review findings",
+      "role": "infrastructure",
+      "status": "done",
+      "priority": 240,
+      "depends_on": [],
+      "acceptance": [
+        "Large stdin cannot defeat timeout",
+        "Descendant processes terminated",
+        "Output memory bounded and configuration limits enforced"
+      ],
+      "description": "build_control_plane is implementing independently identified runner defects and regression tests.",
+      "summary": "Implementation reviewed and verified within documented bootstrap scope",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T08:05:29.320Z",
+      "updated_at": "2026-10-21T08:13:04.247Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "BOOT1",
+      "title": "Build the durable task control plane",
+      "role": "infrastructure",
+      "status": "done",
+      "priority": 200,
+      "depends_on": [],
+      "acceptance": [
+        "Atomic claims, dependencies, lease recovery",
+        "Read-only HTTP and actual-state export"
+      ],
+      "description": "Implementation completed by build_control_plane; awaiting bootstrap integration review.",
+      "summary": "Implementation reviewed and verified within documented bootstrap scope",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T08:04:50.574Z",
+      "updated_at": "2026-10-21T08:13:04.234Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "BOOT2",
+      "title": "Build and verify the Observatory",
+      "role": "design",
+      "status": "done",
+      "priority": 200,
+      "depends_on": [],
+      "acceptance": [
+        "Actual records only",
+        "Responsive graph and inspectable artifacts"
+      ],
+      "description": "Implementation completed by build_observatory; browser QA found edge clipping and event-order issues, now repaired.",
+      "summary": "Implementation reviewed and verified within documented bootstrap scope",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T08:04:50.574Z",
+      "updated_at": "2026-10-21T08:13:04.238Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "BOOT3",
+      "title": "Build the Lean tactic and benchmark evidence",
+      "role": "proof",
+      "status": "done",
+      "priority": 200,
+      "depends_on": [],
+      "acceptance": [
+        "Ordinary Lean proof terms",
+        "False and unsupported controls"
+      ],
+      "description": "build_benchmark produced measured seed cases; modern toolchain migration is in progress.",
+      "summary": "Implementation reviewed and verified within documented bootstrap scope",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T08:04:50.574Z",
+      "updated_at": "2026-10-21T08:13:04.242Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "R001",
+      "title": "Compare three architecture candidates for certified UPLC verification",
+      "role": "researcher",
+      "status": "ready",
+      "priority": 100,
+      "depends_on": [],
+      "acceptance": [
+        "Three candidate approaches with a concrete falsifiable experiment each",
+        "Original-theorem proof path and expected bottleneck for each",
+        "A bounded first experiment with a stop condition",
+        "No invented benchmark measurements or claims of Cardano correspondence"
+      ],
+      "description": "Write an experiment proposal comparing certified symbolic execution, compositional weakest-precondition generation, and a certificate-producing solver portfolio. Architecture is unconstrained. Use current repository facts; distinguish hypotheses from measured results. Do not edit code or publish externally.",
+      "summary": "",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T07:54:32.271Z",
+      "updated_at": "2026-10-21T07:54:32.271Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "R002",
+      "title": "Audit the compiled-contract semantic path and trust dependencies",
+      "role": "researcher",
+      "status": "ready",
+      "priority": 90,
+      "depends_on": [],
+      "acceptance": [
+        "Enumerate semantic bridges and required proof obligations",
+        "Separate fuel exhaustion, failure, and success",
+        "Include a non-vacuity strategy",
+        "Identify a reproducible initial contract target"
+      ],
+      "description": "Propose an audit of CardanoLedgerApiBlaster and PlutusCoreBlaster: source provenance, decoding, preprocessing correctness, evaluation bounds, builtins, cryptographic assumptions, and conformance. This is an audit plan, not a claim of completed correspondence.",
+      "summary": "",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T07:54:32.271Z",
+      "updated_at": "2026-10-21T07:54:32.271Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "I001",
+      "title": "Move acceptance into an independent sandboxed evaluator",
+      "role": "infrastructure",
+      "status": "ready",
+      "priority": 85,
+      "depends_on": [],
+      "acceptance": [
+        "Reject changed theorem statements and nonstandard axioms",
+        "Replay exports in a fresh trusted process",
+        "Verify independent kernels on representative proofs",
+        "Document remaining trusted components and platform requirements"
+      ],
+      "description": "Port to a suitable modern pinned Lean and evaluate lake comparator/check with external kernels. Keep trusted challenge/configuration outside worker authority. Add VM/container isolation and a narrow publication broker.",
+      "summary": "",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T07:54:32.271Z",
+      "updated_at": "2026-10-21T07:54:32.271Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "B001",
+      "title": "Freeze the first external comparison corpus",
+      "role": "benchmark",
+      "status": "ready",
+      "priority": 80,
+      "depends_on": [],
+      "acceptance": [
+        "Pinned sources with license and extraction provenance",
+        "Family-balanced cases and full-contract scoring",
+        "Same-toolchain comparison or explicit incompatibility",
+        "No benchmark-name special casing"
+      ],
+      "description": "Select and pin external program-verification cases, including Blaster-compatible cases and new contract families. Record licenses and source hashes; keep solver success separate from certified proof success.",
+      "summary": "",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T07:54:32.271Z",
+      "updated_at": "2026-10-21T07:54:32.271Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "P001",
+      "title": "Implement the winning bounded proof-engine experiment",
+      "role": "engineer",
+      "status": "blocked",
+      "priority": 70,
+      "depends_on": [
+        "R001",
+        "B001"
+      ],
+      "acceptance": [
+        "Reconstruct original theorem proofs",
+        "Report all failures and complete timings",
+        "Independent review of semantic changes",
+        "Public implementation PR with reproduction evidence"
+      ],
+      "description": "Implement the selected experiment after independent review of its research proposal and frozen challenge set. The pilot tactic is disposable; do not preserve its architecture for its own sake.",
+      "summary": "",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T07:54:32.271Z",
+      "updated_at": "2026-10-21T07:54:32.271Z",
+      "lease_owner": null,
+      "lease_until": null
+    },
+    {
+      "id": "C001",
+      "title": "Specify the Plutus Gauntlet batch marketplace",
+      "role": "contracts",
+      "status": "blocked",
+      "priority": 60,
+      "depends_on": [
+        "R002"
+      ],
+      "acceptance": [
+        "Compiled-script hash and language version",
+        "Explicit semantic correspondence scope and bounds",
+        "Valid-transaction witnesses",
+        "Replayable multi-satisfaction counterexample for a vulnerable variant"
+      ],
+      "description": "Specify payment allocation, unique obligations, cancellation, assets, and malformed inputs for an exact compiled marketplace script. Include vulnerable variants and successful witness transactions.",
+      "summary": "",
+      "branch": null,
+      "pr_url": null,
+      "created_at": "2026-10-21T07:54:32.271Z",
+      "updated_at": "2026-10-21T07:54:32.271Z",
+      "lease_owner": null,
+      "lease_until": null
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "at": "2026-10-21T07:54:32.271Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "R001",
+      "message": "Compare three architecture candidates for certified UPLC verification",
+      "data": {
+        "role": "researcher"
+      }
+    },
+    {
+      "id": 2,
+      "at": "2026-10-21T07:54:32.271Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "R002",
+      "message": "Audit the compiled-contract semantic path and trust dependencies",
+      "data": {
+        "role": "researcher"
+      }
+    },
+    {
+      "id": 3,
+      "at": "2026-10-21T07:54:32.271Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "B001",
+      "message": "Freeze the first external comparison corpus",
+      "data": {
+        "role": "benchmark"
+      }
+    },
+    {
+      "id": 4,
+      "at": "2026-10-21T07:54:32.271Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "P001",
+      "message": "Implement the winning bounded proof-engine experiment",
+      "data": {
+        "role": "engineer"
+      }
+    },
+    {
+      "id": 5,
+      "at": "2026-10-21T07:54:32.271Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "I001",
+      "message": "Move acceptance into an independent sandboxed evaluator",
+      "data": {
+        "role": "infrastructure"
+      }
+    },
+    {
+      "id": 6,
+      "at": "2026-10-21T07:54:32.271Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "C001",
+      "message": "Specify the Plutus Gauntlet batch marketplace",
+      "data": {
+        "role": "contracts"
+      }
+    },
+    {
+      "id": 7,
+      "at": "2026-10-21T07:54:32.271Z",
+      "kind": "task.blocked",
+      "actor": "scheduler",
+      "task_id": "P001",
+      "message": "Waiting for dependencies",
+      "data": {
+        "depends_on": [
+          "R001",
+          "B001"
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "at": "2026-10-21T07:54:32.271Z",
+      "kind": "task.blocked",
+      "actor": "scheduler",
+      "task_id": "C001",
+      "message": "Waiting for dependencies",
+      "data": {
+        "depends_on": [
+          "R002"
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "at": "2026-10-21T08:04:16.884Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 1
+      }
+    },
+    {
+      "id": 10,
+      "at": "2026-10-21T08:04:16.890Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 2
+      }
+    },
+    {
+      "id": 11,
+      "at": "2026-10-21T08:04:16.893Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 3
+      }
+    },
+    {
+      "id": 12,
+      "at": "2026-10-21T08:04:16.896Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 4
+      }
+    },
+    {
+      "id": 13,
+      "at": "2026-10-21T08:04:16.898Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 5
+      }
+    },
+    {
+      "id": 14,
+      "at": "2026-10-21T08:04:16.900Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 6
+      }
+    },
+    {
+      "id": 15,
+      "at": "2026-10-21T08:04:16.903Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 7
+      }
+    },
+    {
+      "id": 16,
+      "at": "2026-10-21T08:04:16.905Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 8
+      }
+    },
+    {
+      "id": 17,
+      "at": "2026-10-21T08:04:16.907Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 9
+      }
+    },
+    {
+      "id": 18,
+      "at": "2026-10-21T08:04:16.910Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 10
+      }
+    },
+    {
+      "id": 19,
+      "at": "2026-10-21T08:04:16.912Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 11
+      }
+    },
+    {
+      "id": 20,
+      "at": "2026-10-21T08:04:16.914Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 12
+      }
+    },
+    {
+      "id": 21,
+      "at": "2026-10-21T08:04:16.917Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 13
+      }
+    },
+    {
+      "id": 22,
+      "at": "2026-10-21T08:04:16.919Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 14
+      }
+    },
+    {
+      "id": 23,
+      "at": "2026-10-21T08:04:16.921Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 15
+      }
+    },
+    {
+      "id": 24,
+      "at": "2026-10-21T08:04:16.923Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 16
+      }
+    },
+    {
+      "id": 25,
+      "at": "2026-10-21T08:04:16.925Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 17
+      }
+    },
+    {
+      "id": 26,
+      "at": "2026-10-21T08:04:16.928Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 18
+      }
+    },
+    {
+      "id": 27,
+      "at": "2026-10-21T08:04:16.930Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 19
+      }
+    },
+    {
+      "id": 28,
+      "at": "2026-10-21T08:04:16.932Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 20
+      }
+    },
+    {
+      "id": 29,
+      "at": "2026-10-21T08:04:16.934Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 21
+      }
+    },
+    {
+      "id": 30,
+      "at": "2026-10-21T08:04:16.936Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 22
+      }
+    },
+    {
+      "id": 31,
+      "at": "2026-10-21T08:04:16.938Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 23
+      }
+    },
+    {
+      "id": 32,
+      "at": "2026-10-21T08:04:16.940Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 24
+      }
+    },
+    {
+      "id": 33,
+      "at": "2026-10-21T08:04:16.942Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 25
+      }
+    },
+    {
+      "id": 34,
+      "at": "2026-10-21T08:04:16.945Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 26
+      }
+    },
+    {
+      "id": 35,
+      "at": "2026-10-21T08:04:16.947Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 27
+      }
+    },
+    {
+      "id": 36,
+      "at": "2026-10-21T08:04:16.949Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 28
+      }
+    },
+    {
+      "id": 37,
+      "at": "2026-10-21T08:04:16.952Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 29
+      }
+    },
+    {
+      "id": 38,
+      "at": "2026-10-21T08:04:16.954Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 30
+      }
+    },
+    {
+      "id": 39,
+      "at": "2026-10-21T08:04:16.956Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 31
+      }
+    },
+    {
+      "id": 40,
+      "at": "2026-10-21T08:04:16.958Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 32
+      }
+    },
+    {
+      "id": 41,
+      "at": "2026-10-21T08:04:16.960Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 33
+      }
+    },
+    {
+      "id": 42,
+      "at": "2026-10-21T08:04:16.963Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 34
+      }
+    },
+    {
+      "id": 43,
+      "at": "2026-10-21T08:04:16.965Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 35
+      }
+    },
+    {
+      "id": 44,
+      "at": "2026-10-21T08:04:16.967Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 36
+      }
+    },
+    {
+      "id": 45,
+      "at": "2026-10-21T08:04:16.969Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 37
+      }
+    },
+    {
+      "id": 46,
+      "at": "2026-10-21T08:04:16.972Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 38
+      }
+    },
+    {
+      "id": 47,
+      "at": "2026-10-21T08:04:16.974Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 39
+      }
+    },
+    {
+      "id": 48,
+      "at": "2026-10-21T08:04:16.976Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 40
+      }
+    },
+    {
+      "id": 49,
+      "at": "2026-10-21T08:04:16.978Z",
+      "kind": "benchmark.imported",
+      "actor": "evaluator",
+      "task_id": null,
+      "message": "Imported measured seed results; scope and trust limits retained",
+      "data": {
+        "benchmark_id": "colony-seed-v1",
+        "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+        "summary": {
+          "colony": {
+            "positive_certified": 8,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": true,
+                "sanity_pass": true
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "grind": {
+            "positive_certified": 1,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": false,
+                "sanity_pass": false
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "omega": {
+            "positive_certified": 1,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": false,
+                "sanity_pass": false
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "simp": {
+            "positive_certified": 4,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": true,
+                "sanity_pass": true
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          }
+        },
+        "toolchain": "leanprover/lean4:v4.24.0"
+      }
+    },
+    {
+      "id": 50,
+      "at": "2026-10-21T08:04:50.574Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "BOOT1",
+      "message": "Build the durable task control plane",
+      "data": {
+        "role": "infrastructure"
+      }
+    },
+    {
+      "id": 51,
+      "at": "2026-10-21T08:04:50.574Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "BOOT2",
+      "message": "Build and verify the Observatory",
+      "data": {
+        "role": "design"
+      }
+    },
+    {
+      "id": 52,
+      "at": "2026-10-21T08:04:50.574Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "BOOT3",
+      "message": "Build the Lean tactic and benchmark evidence",
+      "data": {
+        "role": "proof"
+      }
+    },
+    {
+      "id": 53,
+      "at": "2026-10-21T08:04:50.574Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "BOOT4",
+      "message": "Integrate, review, and publish the first colony",
+      "data": {
+        "role": "coordinator"
+      }
+    },
+    {
+      "id": 54,
+      "at": "2026-10-21T08:04:50.580Z",
+      "kind": "agent.registered",
+      "actor": "build_control_plane",
+      "task_id": null,
+      "message": "Control plane engineer joined as infrastructure",
+      "data": {}
+    },
+    {
+      "id": 55,
+      "at": "2026-10-21T08:04:50.582Z",
+      "kind": "agent.registered",
+      "actor": "build_observatory",
+      "task_id": null,
+      "message": "Observatory engineer joined as design",
+      "data": {}
+    },
+    {
+      "id": 56,
+      "at": "2026-10-21T08:04:50.586Z",
+      "kind": "agent.registered",
+      "actor": "build_benchmark",
+      "task_id": null,
+      "message": "Proof engineer joined as proof",
+      "data": {}
+    },
+    {
+      "id": 57,
+      "at": "2026-10-21T08:04:50.589Z",
+      "kind": "agent.registered",
+      "actor": "coordinator",
+      "task_id": null,
+      "message": "Research coordinator joined as coordinator",
+      "data": {}
+    },
+    {
+      "id": 58,
+      "at": "2026-10-21T08:04:50.592Z",
+      "kind": "task.claimed",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Claimed Integrate, review, and publish the first colony",
+      "data": {
+        "lease_seconds": 3600
+      }
+    },
+    {
+      "id": 59,
+      "at": "2026-10-21T08:04:50.595Z",
+      "kind": "bootstrap.integrating",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "Three agent implementations integrated; independent review and modern toolchain port in progress",
+      "data": {}
+    },
+    {
+      "id": 60,
+      "at": "2026-10-21T08:04:50.598Z",
+      "kind": "review.recorded",
+      "actor": "build_control_plane",
+      "task_id": "BOOT4",
+      "message": "Worker review found blocking stdin before the timeout, surviving process descendants, and unbounded output reads. Fixes and regression tests are in progress.",
+      "data": {
+        "review_id": 1
+      }
+    },
+    {
+      "id": 61,
+      "at": "2026-10-21T08:05:29.320Z",
+      "kind": "task.created",
+      "actor": "seed",
+      "task_id": "BOOT5",
+      "message": "Fix worker cancellation and resource-limit review findings",
+      "data": {
+        "role": "infrastructure"
+      }
+    },
+    {
+      "id": 62,
+      "at": "2026-10-21T08:05:29.325Z",
+      "kind": "task.claimed",
+      "actor": "build_control_plane",
+      "task_id": "BOOT5",
+      "message": "Claimed Fix worker cancellation and resource-limit review findings",
+      "data": {
+        "lease_seconds": 1200
+      }
+    },
+    {
+      "id": 63,
+      "at": "2026-10-21T08:05:29.328Z",
+      "kind": "task.ready",
+      "actor": "coordinator",
+      "task_id": "BOOT3",
+      "message": "Port seed proofs and evaluator to Lean 4.35 and rerun measured baselines",
+      "data": {
+        "from": "review",
+        "to": "ready",
+        "branch": null,
+        "pr_url": null
+      }
+    },
+    {
+      "id": 64,
+      "at": "2026-10-21T08:05:29.331Z",
+      "kind": "task.claimed",
+      "actor": "build_benchmark",
+      "task_id": "BOOT3",
+      "message": "Claimed Build the Lean tactic and benchmark evidence",
+      "data": {
+        "lease_seconds": 1200
+      }
+    },
+    {
+      "id": 65,
+      "at": "2026-10-21T08:07:03.369Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 41
+      }
+    },
+    {
+      "id": 66,
+      "at": "2026-10-21T08:07:03.386Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 42
+      }
+    },
+    {
+      "id": 67,
+      "at": "2026-10-21T08:07:03.389Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 43
+      }
+    },
+    {
+      "id": 68,
+      "at": "2026-10-21T08:07:03.391Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 44
+      }
+    },
+    {
+      "id": 69,
+      "at": "2026-10-21T08:07:03.394Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 45
+      }
+    },
+    {
+      "id": 70,
+      "at": "2026-10-21T08:07:03.396Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 46
+      }
+    },
+    {
+      "id": 71,
+      "at": "2026-10-21T08:07:03.398Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 47
+      }
+    },
+    {
+      "id": 72,
+      "at": "2026-10-21T08:07:03.400Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 48
+      }
+    },
+    {
+      "id": 73,
+      "at": "2026-10-21T08:07:03.402Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 49
+      }
+    },
+    {
+      "id": 74,
+      "at": "2026-10-21T08:07:03.404Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 50
+      }
+    },
+    {
+      "id": 75,
+      "at": "2026-10-21T08:07:03.406Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 51
+      }
+    },
+    {
+      "id": 76,
+      "at": "2026-10-21T08:07:03.409Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 52
+      }
+    },
+    {
+      "id": 77,
+      "at": "2026-10-21T08:07:03.411Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 53
+      }
+    },
+    {
+      "id": 78,
+      "at": "2026-10-21T08:07:03.413Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 54
+      }
+    },
+    {
+      "id": 79,
+      "at": "2026-10-21T08:07:03.415Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 55
+      }
+    },
+    {
+      "id": 80,
+      "at": "2026-10-21T08:07:03.418Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 56
+      }
+    },
+    {
+      "id": 81,
+      "at": "2026-10-21T08:07:03.420Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 57
+      }
+    },
+    {
+      "id": 82,
+      "at": "2026-10-21T08:07:03.422Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 58
+      }
+    },
+    {
+      "id": 83,
+      "at": "2026-10-21T08:07:03.424Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 59
+      }
+    },
+    {
+      "id": 84,
+      "at": "2026-10-21T08:07:03.426Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 60
+      }
+    },
+    {
+      "id": 85,
+      "at": "2026-10-21T08:07:03.428Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 61
+      }
+    },
+    {
+      "id": 86,
+      "at": "2026-10-21T08:07:03.430Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 62
+      }
+    },
+    {
+      "id": 87,
+      "at": "2026-10-21T08:07:03.432Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 63
+      }
+    },
+    {
+      "id": 88,
+      "at": "2026-10-21T08:07:03.435Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 64
+      }
+    },
+    {
+      "id": 89,
+      "at": "2026-10-21T08:07:03.437Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 65
+      }
+    },
+    {
+      "id": 90,
+      "at": "2026-10-21T08:07:03.439Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 66
+      }
+    },
+    {
+      "id": 91,
+      "at": "2026-10-21T08:07:03.441Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 67
+      }
+    },
+    {
+      "id": 92,
+      "at": "2026-10-21T08:07:03.443Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 68
+      }
+    },
+    {
+      "id": 93,
+      "at": "2026-10-21T08:07:03.445Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 69
+      }
+    },
+    {
+      "id": 94,
+      "at": "2026-10-21T08:07:03.448Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 70
+      }
+    },
+    {
+      "id": 95,
+      "at": "2026-10-21T08:07:03.450Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 71
+      }
+    },
+    {
+      "id": 96,
+      "at": "2026-10-21T08:07:03.452Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 72
+      }
+    },
+    {
+      "id": 97,
+      "at": "2026-10-21T08:07:03.454Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 73
+      }
+    },
+    {
+      "id": 98,
+      "at": "2026-10-21T08:07:03.456Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 74
+      }
+    },
+    {
+      "id": 99,
+      "at": "2026-10-21T08:07:03.461Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 75
+      }
+    },
+    {
+      "id": 100,
+      "at": "2026-10-21T08:07:03.463Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 76
+      }
+    },
+    {
+      "id": 101,
+      "at": "2026-10-21T08:07:03.465Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 77
+      }
+    },
+    {
+      "id": 102,
+      "at": "2026-10-21T08:07:03.468Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 78
+      }
+    },
+    {
+      "id": 103,
+      "at": "2026-10-21T08:07:03.470Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 79
+      }
+    },
+    {
+      "id": 104,
+      "at": "2026-10-21T08:07:03.472Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 80
+      }
+    },
+    {
+      "id": 105,
+      "at": "2026-10-21T08:07:03.473Z",
+      "kind": "benchmark.imported",
+      "actor": "evaluator",
+      "task_id": null,
+      "message": "Imported measured seed results; scope and trust limits retained",
+      "data": {
+        "benchmark_id": "colony-seed-v1",
+        "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+        "summary": {
+          "colony": {
+            "positive_certified": 8,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": true,
+                "sanity_pass": true
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "grind": {
+            "positive_certified": 1,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": false,
+                "sanity_pass": false
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "omega": {
+            "positive_certified": 1,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": false,
+                "sanity_pass": false
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "simp": {
+            "positive_certified": 4,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": true,
+                "sanity_pass": true
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          }
+        },
+        "toolchain": "leanprover/lean4:v4.35.0"
+      }
+    },
+    {
+      "id": 106,
+      "at": "2026-10-21T08:13:04.066Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 81
+      }
+    },
+    {
+      "id": 107,
+      "at": "2026-10-21T08:13:04.069Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 82
+      }
+    },
+    {
+      "id": 108,
+      "at": "2026-10-21T08:13:04.071Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 83
+      }
+    },
+    {
+      "id": 109,
+      "at": "2026-10-21T08:13:04.073Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 84
+      }
+    },
+    {
+      "id": 110,
+      "at": "2026-10-21T08:13:04.076Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 85
+      }
+    },
+    {
+      "id": 111,
+      "at": "2026-10-21T08:13:04.077Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 86
+      }
+    },
+    {
+      "id": 112,
+      "at": "2026-10-21T08:13:04.079Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 87
+      }
+    },
+    {
+      "id": 113,
+      "at": "2026-10-21T08:13:04.083Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 88
+      }
+    },
+    {
+      "id": 114,
+      "at": "2026-10-21T08:13:04.086Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 89
+      }
+    },
+    {
+      "id": 115,
+      "at": "2026-10-21T08:13:04.089Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 90
+      }
+    },
+    {
+      "id": 116,
+      "at": "2026-10-21T08:13:04.092Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 91
+      }
+    },
+    {
+      "id": 117,
+      "at": "2026-10-21T08:13:04.095Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 92
+      }
+    },
+    {
+      "id": 118,
+      "at": "2026-10-21T08:13:04.097Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 93
+      }
+    },
+    {
+      "id": 119,
+      "at": "2026-10-21T08:13:04.099Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 94
+      }
+    },
+    {
+      "id": 120,
+      "at": "2026-10-21T08:13:04.101Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 95
+      }
+    },
+    {
+      "id": 121,
+      "at": "2026-10-21T08:13:04.103Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 96
+      }
+    },
+    {
+      "id": 122,
+      "at": "2026-10-21T08:13:04.105Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 97
+      }
+    },
+    {
+      "id": 123,
+      "at": "2026-10-21T08:13:04.107Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 98
+      }
+    },
+    {
+      "id": 124,
+      "at": "2026-10-21T08:13:04.109Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 99
+      }
+    },
+    {
+      "id": 125,
+      "at": "2026-10-21T08:13:04.111Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 100
+      }
+    },
+    {
+      "id": 126,
+      "at": "2026-10-21T08:13:04.114Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 101
+      }
+    },
+    {
+      "id": 127,
+      "at": "2026-10-21T08:13:04.116Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 102
+      }
+    },
+    {
+      "id": 128,
+      "at": "2026-10-21T08:13:04.119Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 103
+      }
+    },
+    {
+      "id": 129,
+      "at": "2026-10-21T08:13:04.121Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 104
+      }
+    },
+    {
+      "id": 130,
+      "at": "2026-10-21T08:13:04.124Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 105
+      }
+    },
+    {
+      "id": 131,
+      "at": "2026-10-21T08:13:04.126Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 106
+      }
+    },
+    {
+      "id": 132,
+      "at": "2026-10-21T08:13:04.128Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 107
+      }
+    },
+    {
+      "id": 133,
+      "at": "2026-10-21T08:13:04.131Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 108
+      }
+    },
+    {
+      "id": 134,
+      "at": "2026-10-21T08:13:04.133Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 109
+      }
+    },
+    {
+      "id": 135,
+      "at": "2026-10-21T08:13:04.135Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 110
+      }
+    },
+    {
+      "id": 136,
+      "at": "2026-10-21T08:13:04.136Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "arithmetic monotonicity",
+      "data": {
+        "benchmark_id": 111
+      }
+    },
+    {
+      "id": 137,
+      "at": "2026-10-21T08:13:04.139Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse accumulator length",
+      "data": {
+        "benchmark_id": 112
+      }
+    },
+    {
+      "id": 138,
+      "at": "2026-10-21T08:13:04.141Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "count accumulator invariant",
+      "data": {
+        "benchmark_id": 113
+      }
+    },
+    {
+      "id": 139,
+      "at": "2026-10-21T08:13:04.142Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "recursive program nonvacuity",
+      "data": {
+        "benchmark_id": 114
+      }
+    },
+    {
+      "id": 140,
+      "at": "2026-10-21T08:13:04.144Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "account state invariant",
+      "data": {
+        "benchmark_id": 115
+      }
+    },
+    {
+      "id": 141,
+      "at": "2026-10-21T08:13:04.147Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments cover sales",
+      "data": {
+        "benchmark_id": 116
+      }
+    },
+    {
+      "id": 142,
+      "at": "2026-10-21T08:13:04.149Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "allocated payments nonvacuity",
+      "data": {
+        "benchmark_id": 117
+      }
+    },
+    {
+      "id": 143,
+      "at": "2026-10-21T08:13:04.151Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "shared payment attack witness",
+      "data": {
+        "benchmark_id": 118
+      }
+    },
+    {
+      "id": 144,
+      "at": "2026-10-21T08:13:04.153Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "false shared payment safety",
+      "data": {
+        "benchmark_id": 119
+      }
+    },
+    {
+      "id": 145,
+      "at": "2026-10-21T08:13:04.155Z",
+      "kind": "benchmark.recorded",
+      "actor": "benchmark",
+      "task_id": null,
+      "message": "reverse involution frontier",
+      "data": {
+        "benchmark_id": 120
+      }
+    },
+    {
+      "id": 146,
+      "at": "2026-10-21T08:13:04.157Z",
+      "kind": "benchmark.imported",
+      "actor": "evaluator",
+      "task_id": null,
+      "message": "Imported measured seed results; scope and trust limits retained",
+      "data": {
+        "benchmark_id": "colony-seed-v1",
+        "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+        "summary": {
+          "colony": {
+            "positive_certified": 8,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": true,
+                "sanity_pass": true
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "grind": {
+            "positive_certified": 1,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": false,
+                "sanity_pass": false
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "omega": {
+            "positive_certified": 1,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": false,
+                "sanity_pass": false
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          },
+          "simp": {
+            "positive_certified": 4,
+            "positive_total": 8,
+            "negative_checks": [
+              {
+                "id": "false_shared_payment_safety",
+                "rejected": true,
+                "positive_witnesses_certified": true,
+                "sanity_pass": true
+              }
+            ],
+            "unsupported_certified": 0,
+            "timeouts": 0,
+            "evidence_errors": 0
+          }
+        },
+        "toolchain": "leanprover/lean4:v4.35.0"
+      }
+    },
+    {
+      "id": 147,
+      "at": "2026-10-21T08:13:04.222Z",
+      "kind": "task.review",
+      "actor": "build_control_plane",
+      "task_id": "BOOT5",
+      "message": "All independently identified runner defects fixed; 13 focused worker regression tests pass",
+      "data": {
+        "from": "running",
+        "to": "review",
+        "branch": null,
+        "pr_url": null
+      }
+    },
+    {
+      "id": 148,
+      "at": "2026-10-21T08:13:04.228Z",
+      "kind": "task.review",
+      "actor": "build_benchmark",
+      "task_id": "BOOT3",
+      "message": "Lean 4.35 build and all 40 measured benchmark rows complete; no independent replay claimed locally",
+      "data": {
+        "from": "running",
+        "to": "review",
+        "branch": null,
+        "pr_url": null
+      }
+    },
+    {
+      "id": 149,
+      "at": "2026-10-21T08:13:04.232Z",
+      "kind": "review.recorded",
+      "actor": "coordinator",
+      "task_id": "BOOT1",
+      "message": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
+      "data": {
+        "review_id": 2
+      }
+    },
+    {
+      "id": 150,
+      "at": "2026-10-21T08:13:04.234Z",
+      "kind": "task.done",
+      "actor": "coordinator",
+      "task_id": "BOOT1",
+      "message": "Implementation reviewed and verified within documented bootstrap scope",
+      "data": {
+        "from": "review",
+        "to": "done",
+        "branch": null,
+        "pr_url": null
+      }
+    },
+    {
+      "id": 151,
+      "at": "2026-10-21T08:13:04.236Z",
+      "kind": "review.recorded",
+      "actor": "coordinator",
+      "task_id": "BOOT2",
+      "message": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
+      "data": {
+        "review_id": 3
+      }
+    },
+    {
+      "id": 152,
+      "at": "2026-10-21T08:13:04.238Z",
+      "kind": "task.done",
+      "actor": "coordinator",
+      "task_id": "BOOT2",
+      "message": "Implementation reviewed and verified within documented bootstrap scope",
+      "data": {
+        "from": "review",
+        "to": "done",
+        "branch": null,
+        "pr_url": null
+      }
+    },
+    {
+      "id": 153,
+      "at": "2026-10-21T08:13:04.241Z",
+      "kind": "review.recorded",
+      "actor": "coordinator",
+      "task_id": "BOOT3",
+      "message": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
+      "data": {
+        "review_id": 4
+      }
+    },
+    {
+      "id": 154,
+      "at": "2026-10-21T08:13:04.242Z",
+      "kind": "task.done",
+      "actor": "coordinator",
+      "task_id": "BOOT3",
+      "message": "Implementation reviewed and verified within documented bootstrap scope",
+      "data": {
+        "from": "review",
+        "to": "done",
+        "branch": null,
+        "pr_url": null
+      }
+    },
+    {
+      "id": 155,
+      "at": "2026-10-21T08:13:04.245Z",
+      "kind": "review.recorded",
+      "actor": "coordinator",
+      "task_id": "BOOT5",
+      "message": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
+      "data": {
+        "review_id": 5
+      }
+    },
+    {
+      "id": 156,
+      "at": "2026-10-21T08:13:04.247Z",
+      "kind": "task.done",
+      "actor": "coordinator",
+      "task_id": "BOOT5",
+      "message": "Implementation reviewed and verified within documented bootstrap scope",
+      "data": {
+        "from": "review",
+        "to": "done",
+        "branch": null,
+        "pr_url": null
+      }
+    },
+    {
+      "id": 157,
+      "at": "2026-10-21T08:13:04.249Z",
+      "kind": "validation.passed",
+      "actor": "coordinator",
+      "task_id": "BOOT4",
+      "message": "All 36 Python tests and JavaScript syntax check pass; 40 modern Lean seed measurements reproduced",
+      "data": {}
+    }
+  ],
+  "benchmarks": [
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.766817,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "d81a6b7b6265c2072e13d49c6ac6dcc8ec52d492179d34ca62de17f44c4abfeb",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 1,
+      "at": "2026-10-21T08:04:16.884Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.791389,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "a1cb74447b464dac9aedf58886c30fdcb024eb02401ca470042bdfd34ec7d5e3",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 2,
+      "at": "2026-10-21T08:04:16.890Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.724473,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "662d7503533ad7ff375a87ef82d16d19b1e715e7633bf00c537f91935b2d6de0",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 3,
+      "at": "2026-10-21T08:04:16.893Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.719176,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "cacd2b848c7230e3c9ad9c12b6bf107e214a08c5c7bfa1ecbdfb413ca629e4a4",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 4,
+      "at": "2026-10-21T08:04:16.896Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.692426,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "78326f46aeaae486684e848af92d58617ce357d613a0dc9e28973295683bd2d3",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 5,
+      "at": "2026-10-21T08:04:16.898Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.674963,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "b57bea967232a045961780684952dba149e161982165617e4362a4bec5d5db9f",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 6,
+      "at": "2026-10-21T08:04:16.900Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.656394,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "79960ebc5a3f0568ebc467448cfb94427f782f5d8ca6eb5f6497dcda6c7331d2",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 7,
+      "at": "2026-10-21T08:04:16.903Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.676619,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "cfccf9163550877a2d8f4365fe51bbc3d31adab14e90ed229df495c983e0ab54",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 8,
+      "at": "2026-10-21T08:04:16.905Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "colony",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.708343,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "568009eb0bf221f8dba2df7ab79fa9a8ea7db39f861616a3f14c4b4ac5b7e5f4",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 9,
+      "at": "2026-10-21T08:04:16.907Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "colony",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.721677,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "11c7380c6992ff4bb053189eb48d3fe8d907225a662fb5a3af953c8f47ceabc6",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 10,
+      "at": "2026-10-21T08:04:16.910Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.683893,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "49ab0e71cc395bf914e4a56dbeedde27acfacf1a1f1b6250efe17554bd6e8577",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 11,
+      "at": "2026-10-21T08:04:16.912Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.675859,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "6c48842fb77dac2bcf1f9f00827f4e15f555b64febc115a92d9ff94cb00241af",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 12,
+      "at": "2026-10-21T08:04:16.914Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.701531,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "2f4ba9b34ed148fd7527811862b2aac6d794213ed13fb023bf08aec9d95ba445",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 13,
+      "at": "2026-10-21T08:04:16.917Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.662935,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "0845d33857e8cb24e5b0a5014bd91d50aba516fbef1e31b9cb05e3ab9801ddae",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 14,
+      "at": "2026-10-21T08:04:16.919Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.656436,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "5cc80877d090c7c7025921187616c7d6d0a7bb0607ef0aa237637a84f5520143",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 15,
+      "at": "2026-10-21T08:04:16.921Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.680158,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "f1ef02fc238af11b9697361f96341a8dc0d6e75b6b0b8bba8651d43b3563193b",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 16,
+      "at": "2026-10-21T08:04:16.923Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.693932,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "1d5407e22d6d3bf9148044f1600bc2278e4ff1f555968c27e5c4f53db2a10b68",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 17,
+      "at": "2026-10-21T08:04:16.925Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.71258,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "3093453e05d61b6d715c8dafe5c82f406d4b4dff72a5d6de98269546c4733779",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 18,
+      "at": "2026-10-21T08:04:16.928Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.715406,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "d666b3192ead5f9ea543acedb2961d97171bc42248e318f425645f6cf6cafdee",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 19,
+      "at": "2026-10-21T08:04:16.930Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.709736,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "edf690c34177bcb00445f7b508838b9f7a6f8033a337ba8bd32bdf7168d80f9e",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 20,
+      "at": "2026-10-21T08:04:16.932Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.684581,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "17a202f00fc7016d70c065dedf0d0d98034c02de5aba1653055629cd61bebaec",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 21,
+      "at": "2026-10-21T08:04:16.934Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.681386,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "046b473c5bf80c9330b5634a93d09ac9a31192afec79bb20eff52403ad305525",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 22,
+      "at": "2026-10-21T08:04:16.936Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.662925,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "ea442afc91da9753a7b7836426dba6a0fdc2e39dc2399e0e3a040baa48a35b97",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 23,
+      "at": "2026-10-21T08:04:16.938Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.69357,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "33b61e46f012599aae1b928c6d77269ed245ee2cb9a2c8b62b9de1ec5ad443ef",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 24,
+      "at": "2026-10-21T08:04:16.940Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.755238,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "cae20b53142ec7f7036e80079543daf5f40cda1b1556ceb994a8820966a6e207",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 25,
+      "at": "2026-10-21T08:04:16.942Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.709977,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "e90dae78bf7bab834d9d63196df62142427c26d6842b9a4f0a7d631accd1c123",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 26,
+      "at": "2026-10-21T08:04:16.945Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.789929,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "4806b3fe773139e94d9f87cb9081a717869a37f4f0e8d62f0e4cbed73d169ee0",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 27,
+      "at": "2026-10-21T08:04:16.947Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.693898,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "c763d92f76c3300255f3ecc2561a5f60e0f38d4db032be572391ff48c4384f23",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 28,
+      "at": "2026-10-21T08:04:16.949Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.654806,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "e1956262ecc71480de0506184069a2b2e65760ff4dffe813ce03ec90fe5df633",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 29,
+      "at": "2026-10-21T08:04:16.952Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.642414,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "bb9a184e4cfa52a754b12f9b6fdc112aad153e0837d57ee65da68192ef1fa184",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 30,
+      "at": "2026-10-21T08:04:16.954Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.698038,
+      "axioms": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "124d1917728f2a447b45710dab1b4ecb5f0d79d01bd8c7389d558d28fbb33a57",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 31,
+      "at": "2026-10-21T08:04:16.956Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.680291,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "0ca00ec8a3d48ebbf99549eb6c2257abae9e536d2af96327d7f331cf8f550e82",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 32,
+      "at": "2026-10-21T08:04:16.958Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.663837,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "c0cc566367839f65416a18f186a1e57f7ab1675accef59fbe102e6b1f2527997",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 33,
+      "at": "2026-10-21T08:04:16.960Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.680126,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "7b01273bf277e55fe279a28e2bb1245e57a45864ad1c108d4bfb555294f7f640",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 34,
+      "at": "2026-10-21T08:04:16.963Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.683302,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "801eaca3d87bb2caf726839079916eb38b476581599b606b5697653dde5d585c",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 35,
+      "at": "2026-10-21T08:04:16.965Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.677521,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "7cfacc9807aab9ce2c8f53ed3a8230a97560b9ee2d8f96d78e8400bb66204e53",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 36,
+      "at": "2026-10-21T08:04:16.967Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.980839,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "9bb1eedb647327d10b812330e9f323b0c1bb9c8245d085fe702be2e24f464217",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 37,
+      "at": "2026-10-21T08:04:16.969Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.707777,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "23a35f68049b945e152131b0e2155a493628269daaed603d29ad825d4c4f2e27",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 38,
+      "at": "2026-10-21T08:04:16.972Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.687252,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "0ea03809935ad396fe655a656b5eef1c2b16ede3d9590b86aca6de9a0697907b",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 39,
+      "at": "2026-10-21T08:04:16.974Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.761694,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.24.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "5ee2e1a7a9c37de0cd07f2c23df584efd682906dd14c4b4664f584666178fd10",
+      "measured_at": "2026-10-21T07:55:56.243044+00:00",
+      "run_key": "c64d77e133800187f5e42a13065d8075ff01c05564f649daa7c2ce218091ee29",
+      "id": 40,
+      "at": "2026-10-21T08:04:16.976Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.809898,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "d81a6b7b6265c2072e13d49c6ac6dcc8ec52d492179d34ca62de17f44c4abfeb",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 41,
+      "at": "2026-10-21T08:07:03.369Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.808717,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "a1cb74447b464dac9aedf58886c30fdcb024eb02401ca470042bdfd34ec7d5e3",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 42,
+      "at": "2026-10-21T08:07:03.386Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.746487,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "662d7503533ad7ff375a87ef82d16d19b1e715e7633bf00c537f91935b2d6de0",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 43,
+      "at": "2026-10-21T08:07:03.389Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.734673,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "cacd2b848c7230e3c9ad9c12b6bf107e214a08c5c7bfa1ecbdfb413ca629e4a4",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 44,
+      "at": "2026-10-21T08:07:03.391Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.772574,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "78326f46aeaae486684e848af92d58617ce357d613a0dc9e28973295683bd2d3",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 45,
+      "at": "2026-10-21T08:07:03.394Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.744783,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "b57bea967232a045961780684952dba149e161982165617e4362a4bec5d5db9f",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 46,
+      "at": "2026-10-21T08:07:03.396Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.796606,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "79960ebc5a3f0568ebc467448cfb94427f782f5d8ca6eb5f6497dcda6c7331d2",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 47,
+      "at": "2026-10-21T08:07:03.398Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.739315,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "cfccf9163550877a2d8f4365fe51bbc3d31adab14e90ed229df495c983e0ab54",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 48,
+      "at": "2026-10-21T08:07:03.400Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "colony",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.779122,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "568009eb0bf221f8dba2df7ab79fa9a8ea7db39f861616a3f14c4b4ac5b7e5f4",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 49,
+      "at": "2026-10-21T08:07:03.402Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "colony",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.796073,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "11c7380c6992ff4bb053189eb48d3fe8d907225a662fb5a3af953c8f47ceabc6",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 50,
+      "at": "2026-10-21T08:07:03.404Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.748346,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "49ab0e71cc395bf914e4a56dbeedde27acfacf1a1f1b6250efe17554bd6e8577",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 51,
+      "at": "2026-10-21T08:07:03.406Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.766546,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "6c48842fb77dac2bcf1f9f00827f4e15f555b64febc115a92d9ff94cb00241af",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 52,
+      "at": "2026-10-21T08:07:03.409Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.775164,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "2f4ba9b34ed148fd7527811862b2aac6d794213ed13fb023bf08aec9d95ba445",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 53,
+      "at": "2026-10-21T08:07:03.411Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.750179,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "0845d33857e8cb24e5b0a5014bd91d50aba516fbef1e31b9cb05e3ab9801ddae",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 54,
+      "at": "2026-10-21T08:07:03.413Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.786771,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "5cc80877d090c7c7025921187616c7d6d0a7bb0607ef0aa237637a84f5520143",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 55,
+      "at": "2026-10-21T08:07:03.415Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.753147,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "f1ef02fc238af11b9697361f96341a8dc0d6e75b6b0b8bba8651d43b3563193b",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 56,
+      "at": "2026-10-21T08:07:03.418Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.765242,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "1d5407e22d6d3bf9148044f1600bc2278e4ff1f555968c27e5c4f53db2a10b68",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 57,
+      "at": "2026-10-21T08:07:03.420Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.786637,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "3093453e05d61b6d715c8dafe5c82f406d4b4dff72a5d6de98269546c4733779",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 58,
+      "at": "2026-10-21T08:07:03.422Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.772676,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "d666b3192ead5f9ea543acedb2961d97171bc42248e318f425645f6cf6cafdee",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 59,
+      "at": "2026-10-21T08:07:03.424Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.745595,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "edf690c34177bcb00445f7b508838b9f7a6f8033a337ba8bd32bdf7168d80f9e",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 60,
+      "at": "2026-10-21T08:07:03.426Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.776044,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "17a202f00fc7016d70c065dedf0d0d98034c02de5aba1653055629cd61bebaec",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 61,
+      "at": "2026-10-21T08:07:03.428Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.756883,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "046b473c5bf80c9330b5634a93d09ac9a31192afec79bb20eff52403ad305525",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 62,
+      "at": "2026-10-21T08:07:03.430Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.784955,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "ea442afc91da9753a7b7836426dba6a0fdc2e39dc2399e0e3a040baa48a35b97",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 63,
+      "at": "2026-10-21T08:07:03.432Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.747791,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "33b61e46f012599aae1b928c6d77269ed245ee2cb9a2c8b62b9de1ec5ad443ef",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 64,
+      "at": "2026-10-21T08:07:03.435Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.743565,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "cae20b53142ec7f7036e80079543daf5f40cda1b1556ceb994a8820966a6e207",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 65,
+      "at": "2026-10-21T08:07:03.437Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.765579,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "e90dae78bf7bab834d9d63196df62142427c26d6842b9a4f0a7d631accd1c123",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 66,
+      "at": "2026-10-21T08:07:03.439Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.75774,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "4806b3fe773139e94d9f87cb9081a717869a37f4f0e8d62f0e4cbed73d169ee0",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 67,
+      "at": "2026-10-21T08:07:03.441Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.784707,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "c763d92f76c3300255f3ecc2561a5f60e0f38d4db032be572391ff48c4384f23",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 68,
+      "at": "2026-10-21T08:07:03.443Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.777407,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "e1956262ecc71480de0506184069a2b2e65760ff4dffe813ce03ec90fe5df633",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 69,
+      "at": "2026-10-21T08:07:03.445Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.750965,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "bb9a184e4cfa52a754b12f9b6fdc112aad153e0837d57ee65da68192ef1fa184",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 70,
+      "at": "2026-10-21T08:07:03.448Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.774996,
+      "axioms": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "124d1917728f2a447b45710dab1b4ecb5f0d79d01bd8c7389d558d28fbb33a57",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 71,
+      "at": "2026-10-21T08:07:03.450Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.762614,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "0ca00ec8a3d48ebbf99549eb6c2257abae9e536d2af96327d7f331cf8f550e82",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 72,
+      "at": "2026-10-21T08:07:03.452Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.781096,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "c0cc566367839f65416a18f186a1e57f7ab1675accef59fbe102e6b1f2527997",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 73,
+      "at": "2026-10-21T08:07:03.454Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.801559,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "7b01273bf277e55fe279a28e2bb1245e57a45864ad1c108d4bfb555294f7f640",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 74,
+      "at": "2026-10-21T08:07:03.456Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.773966,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "801eaca3d87bb2caf726839079916eb38b476581599b606b5697653dde5d585c",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 75,
+      "at": "2026-10-21T08:07:03.461Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.762051,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "7cfacc9807aab9ce2c8f53ed3a8230a97560b9ee2d8f96d78e8400bb66204e53",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 76,
+      "at": "2026-10-21T08:07:03.463Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.773821,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "9bb1eedb647327d10b812330e9f323b0c1bb9c8245d085fe702be2e24f464217",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 77,
+      "at": "2026-10-21T08:07:03.465Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.767893,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "23a35f68049b945e152131b0e2155a493628269daaed603d29ad825d4c4f2e27",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 78,
+      "at": "2026-10-21T08:07:03.468Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.811114,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "0ea03809935ad396fe655a656b5eef1c2b16ede3d9590b86aca6de9a0697907b",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 79,
+      "at": "2026-10-21T08:07:03.470Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.791098,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "5ee2e1a7a9c37de0cd07f2c23df584efd682906dd14c4b4664f584666178fd10",
+      "measured_at": "2026-10-21T08:06:08.993832+00:00",
+      "run_key": "c5c13efe8cd9b26f3e1243d231e85a301fc44e6f7407b641e8d1711eb7cdc598",
+      "id": 80,
+      "at": "2026-10-21T08:07:03.472Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.717873,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "d81a6b7b6265c2072e13d49c6ac6dcc8ec52d492179d34ca62de17f44c4abfeb",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 81,
+      "at": "2026-10-21T08:13:04.066Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.78896,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "a1cb74447b464dac9aedf58886c30fdcb024eb02401ca470042bdfd34ec7d5e3",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 82,
+      "at": "2026-10-21T08:13:04.069Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.774136,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "662d7503533ad7ff375a87ef82d16d19b1e715e7633bf00c537f91935b2d6de0",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 83,
+      "at": "2026-10-21T08:13:04.071Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.80054,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "cacd2b848c7230e3c9ad9c12b6bf107e214a08c5c7bfa1ecbdfb413ca629e4a4",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 84,
+      "at": "2026-10-21T08:13:04.073Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.793213,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "78326f46aeaae486684e848af92d58617ce357d613a0dc9e28973295683bd2d3",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 85,
+      "at": "2026-10-21T08:13:04.076Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.781093,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "b57bea967232a045961780684952dba149e161982165617e4362a4bec5d5db9f",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 86,
+      "at": "2026-10-21T08:13:04.077Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.788699,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "79960ebc5a3f0568ebc467448cfb94427f782f5d8ca6eb5f6497dcda6c7331d2",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 87,
+      "at": "2026-10-21T08:13:04.079Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "colony",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.75862,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "cfccf9163550877a2d8f4365fe51bbc3d31adab14e90ed229df495c983e0ab54",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 88,
+      "at": "2026-10-21T08:13:04.083Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "colony",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.848573,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "568009eb0bf221f8dba2df7ab79fa9a8ea7db39f861616a3f14c4b4ac5b7e5f4",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 89,
+      "at": "2026-10-21T08:13:04.086Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "colony",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.794287,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "11c7380c6992ff4bb053189eb48d3fe8d907225a662fb5a3af953c8f47ceabc6",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 90,
+      "at": "2026-10-21T08:13:04.089Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.766385,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "49ab0e71cc395bf914e4a56dbeedde27acfacf1a1f1b6250efe17554bd6e8577",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 91,
+      "at": "2026-10-21T08:13:04.092Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.800192,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "6c48842fb77dac2bcf1f9f00827f4e15f555b64febc115a92d9ff94cb00241af",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 92,
+      "at": "2026-10-21T08:13:04.095Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.773233,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "2f4ba9b34ed148fd7527811862b2aac6d794213ed13fb023bf08aec9d95ba445",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 93,
+      "at": "2026-10-21T08:13:04.097Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.8087,
+      "axioms": [
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "0845d33857e8cb24e5b0a5014bd91d50aba516fbef1e31b9cb05e3ab9801ddae",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 94,
+      "at": "2026-10-21T08:13:04.099Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.835953,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "5cc80877d090c7c7025921187616c7d6d0a7bb0607ef0aa237637a84f5520143",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 95,
+      "at": "2026-10-21T08:13:04.101Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.772495,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "f1ef02fc238af11b9697361f96341a8dc0d6e75b6b0b8bba8651d43b3563193b",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 96,
+      "at": "2026-10-21T08:13:04.103Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.804286,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "1d5407e22d6d3bf9148044f1600bc2278e4ff1f555968c27e5c4f53db2a10b68",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 97,
+      "at": "2026-10-21T08:13:04.105Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "simp",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.82274,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "3093453e05d61b6d715c8dafe5c82f406d4b4dff72a5d6de98269546c4733779",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 98,
+      "at": "2026-10-21T08:13:04.107Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.834853,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "d666b3192ead5f9ea543acedb2961d97171bc42248e318f425645f6cf6cafdee",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 99,
+      "at": "2026-10-21T08:13:04.109Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "simp",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.830001,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "edf690c34177bcb00445f7b508838b9f7a6f8033a337ba8bd32bdf7168d80f9e",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 100,
+      "at": "2026-10-21T08:13:04.111Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.784451,
+      "axioms": [
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "17a202f00fc7016d70c065dedf0d0d98034c02de5aba1653055629cd61bebaec",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 101,
+      "at": "2026-10-21T08:13:04.114Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.795298,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "046b473c5bf80c9330b5634a93d09ac9a31192afec79bb20eff52403ad305525",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 102,
+      "at": "2026-10-21T08:13:04.116Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.806544,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "ea442afc91da9753a7b7836426dba6a0fdc2e39dc2399e0e3a040baa48a35b97",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 103,
+      "at": "2026-10-21T08:13:04.119Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.816515,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "33b61e46f012599aae1b928c6d77269ed245ee2cb9a2c8b62b9de1ec5ad443ef",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 104,
+      "at": "2026-10-21T08:13:04.121Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.820209,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "cae20b53142ec7f7036e80079543daf5f40cda1b1556ceb994a8820966a6e207",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 105,
+      "at": "2026-10-21T08:13:04.124Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.792378,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "e90dae78bf7bab834d9d63196df62142427c26d6842b9a4f0a7d631accd1c123",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 106,
+      "at": "2026-10-21T08:13:04.126Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.804159,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "4806b3fe773139e94d9f87cb9081a717869a37f4f0e8d62f0e4cbed73d169ee0",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 107,
+      "at": "2026-10-21T08:13:04.128Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.843854,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "c763d92f76c3300255f3ecc2561a5f60e0f38d4db032be572391ff48c4384f23",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 108,
+      "at": "2026-10-21T08:13:04.131Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.809135,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "e1956262ecc71480de0506184069a2b2e65760ff4dffe813ce03ec90fe5df633",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 109,
+      "at": "2026-10-21T08:13:04.133Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "omega",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.829046,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "bb9a184e4cfa52a754b12f9b6fdc112aad153e0837d57ee65da68192ef1fa184",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 110,
+      "at": "2026-10-21T08:13:04.135Z"
+    },
+    {
+      "name": "arithmetic monotonicity",
+      "case_id": "arithmetic_monotonicity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "arithmetic",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "certified",
+      "assurance": "lean_kernel",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.872855,
+      "axioms": [
+        "Classical.choice",
+        "Quot.sound",
+        "propext"
+      ],
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f57fb9b0b92eae020d81f11fbd10ae6f83f950e09fd581d7da43e6cacc6ca99c",
+      "generated_source_sha256": "124d1917728f2a447b45710dab1b4ecb5f0d79d01bd8c7389d558d28fbb33a57",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 111,
+      "at": "2026-10-21T08:13:04.136Z"
+    },
+    {
+      "name": "reverse accumulator length",
+      "case_id": "reverse_accumulator_length",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.809867,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "25a730e96c29e9d5087d03d1f06a7918ac4763d4aae81f8771dd82982c76305d",
+      "generated_source_sha256": "0ca00ec8a3d48ebbf99549eb6c2257abae9e536d2af96327d7f331cf8f550e82",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 112,
+      "at": "2026-10-21T08:13:04.139Z"
+    },
+    {
+      "name": "count accumulator invariant",
+      "case_id": "count_accumulator_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.818982,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "278ebb8261e1a6701b2535537fc33b070878e4e3a8ccdad930406140199fd9af",
+      "generated_source_sha256": "c0cc566367839f65416a18f186a1e57f7ab1675accef59fbe102e6b1f2527997",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 113,
+      "at": "2026-10-21T08:13:04.141Z"
+    },
+    {
+      "name": "recursive program nonvacuity",
+      "case_id": "recursive_program_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.825045,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "61db1c245d3b81c831298b8d3ea980c8a24e1cd38d592f454fb7f13e338c7b92",
+      "generated_source_sha256": "7b01273bf277e55fe279a28e2bb1245e57a45864ad1c108d4bfb555294f7f640",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 114,
+      "at": "2026-10-21T08:13:04.142Z"
+    },
+    {
+      "name": "account state invariant",
+      "case_id": "account_state_invariant",
+      "benchmark_id": "colony-seed-v1",
+      "track": "state_transition",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.84872,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "c26ed9c2ec130cc1cc3c56cbab7d1ba5a8d86a7ede3492b7734879f898285edf",
+      "generated_source_sha256": "801eaca3d87bb2caf726839079916eb38b476581599b606b5697653dde5d585c",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 115,
+      "at": "2026-10-21T08:13:04.144Z"
+    },
+    {
+      "name": "allocated payments cover sales",
+      "case_id": "allocated_payments_cover_sales",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.823811,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "f1d9b08ff4d7d7da9d94cf5cfa3d4ac40be4d06e24987a3259d7749e0e7534c7",
+      "generated_source_sha256": "7cfacc9807aab9ce2c8f53ed3a8230a97560b9ee2d8f96d78e8400bb66204e53",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 116,
+      "at": "2026-10-21T08:13:04.147Z"
+    },
+    {
+      "name": "allocated payments nonvacuity",
+      "case_id": "allocated_payments_nonvacuity",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.797909,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "53e5c7c09bb9e596f9442824f6eec98b266c668d9211444a15cf712957d1f34a",
+      "generated_source_sha256": "9bb1eedb647327d10b812330e9f323b0c1bb9c8245d085fe702be2e24f464217",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 117,
+      "at": "2026-10-21T08:13:04.149Z"
+    },
+    {
+      "name": "shared payment attack witness",
+      "case_id": "shared_payment_attack_witness",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "positive",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.841112,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "0b06104a25f68531287d24d3919720571fbdd9d512f3b4b36dcacdd48b161bee",
+      "generated_source_sha256": "23a35f68049b945e152131b0e2155a493628269daaed603d29ad825d4c4f2e27",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 118,
+      "at": "2026-10-21T08:13:04.151Z"
+    },
+    {
+      "name": "false shared payment safety",
+      "case_id": "false_shared_payment_safety",
+      "benchmark_id": "colony-seed-v1",
+      "track": "marketplace_toy_model",
+      "kind": "negative",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.802129,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "40874dd4e95e503a0cb295ad71ed406458657cf95ffea040a1cbf21db854224d",
+      "generated_source_sha256": "0ea03809935ad396fe655a656b5eef1c2b16ede3d9590b86aca6de9a0697907b",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 119,
+      "at": "2026-10-21T08:13:04.153Z"
+    },
+    {
+      "name": "reverse involution frontier",
+      "case_id": "reverse_involution_frontier",
+      "benchmark_id": "colony-seed-v1",
+      "track": "recursive_program",
+      "kind": "unsupported",
+      "strategy": "grind",
+      "status": "proof_failed",
+      "assurance": "none",
+      "independent_replay": false,
+      "trust_label": "Lean elaboration kernel; standard axiom allowlist; no independent external replay",
+      "wall_seconds": 0.82432,
+      "axioms": null,
+      "description": "Small seed unit cases over toy Lean programs; not compiled Cardano verification or evidence of outperformance.",
+      "toolchain": "leanprover/lean4:v4.35.0",
+      "statement_sha256": "827e2ea57b1bfb738ed0dda511ef844ad0a09a949fdee9a824896ba6a10ea733",
+      "generated_source_sha256": "5ee2e1a7a9c37de0cd07f2c23df584efd682906dd14c4b4664f584666178fd10",
+      "measured_at": "2026-10-21T08:12:11.273107+00:00",
+      "run_key": "7048fb93fbfcf4b121c714c2328548101a3d8ca0d352ae64ba4541e3c08c7fcb",
+      "id": 120,
+      "at": "2026-10-21T08:13:04.155Z"
+    }
+  ],
+  "reviews": [
+    {
+      "actor": "build_control_plane",
+      "task_id": "BOOT4",
+      "status": "changes_requested",
+      "summary": "Worker review found blocking stdin before the timeout, surviving process descendants, and unbounded output reads. Fixes and regression tests are in progress.",
+      "id": 1,
+      "at": "2026-10-21T08:04:50.598Z"
+    },
+    {
+      "actor": "coordinator",
+      "task_id": "BOOT1",
+      "status": "approved",
+      "summary": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
+      "id": 2,
+      "at": "2026-10-21T08:13:04.232Z"
+    },
+    {
+      "actor": "coordinator",
+      "task_id": "BOOT2",
+      "status": "approved",
+      "summary": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
+      "id": 3,
+      "at": "2026-10-21T08:13:04.236Z"
+    },
+    {
+      "actor": "coordinator",
+      "task_id": "BOOT3",
+      "status": "approved",
+      "summary": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
+      "id": 4,
+      "at": "2026-10-21T08:13:04.241Z"
+    },
+    {
+      "actor": "coordinator",
+      "task_id": "BOOT5",
+      "status": "approved",
+      "summary": "Reviewed implementation and relevant test evidence; bootstrap scope accepted. Production privilege boundaries and independent challenge administration remain roadmap work.",
+      "id": 5,
+      "at": "2026-10-21T08:13:04.245Z"
+    }
+  ]
+}

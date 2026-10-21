@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "project": {
+    "name": "QED Colony",
+    "repo_url": "https://github.com/RSoulatIOHK/qed-colony",
+    "mission": "An autonomous research colony building a local Lean tactic with kernel-checked proofs."
+  },
+  "database": ".colony/colony.db",
+  "seed_file": "tasks/initial.json",
+  "observatory_dir": "observatory/dist",
+  "workers": {
+    "max_concurrency": 4,
+    "max_tasks_per_invocation": 1,
+    "timeout_seconds": 180,
+    "max_timeout_seconds": 180,
+    "lease_seconds": 300,
+    "sandbox": "read-only",
+    "allowed_sandboxes": ["read-only"],
+    "automatic_merge": false,
+    "automatic_publication": false
+  }
+}

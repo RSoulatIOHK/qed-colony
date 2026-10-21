@@ -1,0 +1,14 @@
+.colony/
+__pycache__/
+*.py[cod]
+.DS_Store
+.venv/
+lean/.lake/
+artifacts/
+observatory/.openai/local/
+observatory/.git/
+*.sqlite*
+*.db
+.env
+.env.*
+!.env.example

@@ -1,0 +1,9 @@
+name = "colony"
+version = "0.1.0"
+defaultTargets = ["Colony", "SeedProofs"]
+
+[[lean_lib]]
+name = "Colony"
+
+[[lean_lib]]
+name = "SeedProofs"

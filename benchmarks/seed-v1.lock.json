@@ -1,0 +1,7 @@
+{
+  "schema": "colony.challenge_lock.v1",
+  "manifest_sha256": "31c6251d0eb612fe4d79c7a30a7c6c96fc32180e75a6c08a2e92a8de7a4884ce",
+  "protected_source_sha256": {
+    "lean/Colony/Seeds.lean": "742bb22fbd5bd39ed99b6e692b3620f0711ce981f741cf187e1c41aaec73787e"
+  }
+}
