@@ -42,6 +42,13 @@ private def arithmeticPortfolio : TacticM Unit := do
       throwError "colony: bounded order search left goals"
     return
   catch _ => start.restore
+  let divisionStart ← saveState
+  try
+    evalTactic (← `(tactic| first
+      | (solve | apply Nat.mod_lt; omega)
+      | (solve | exact Nat.div_le_self _ _)))
+    return
+  catch _ => divisionStart.restore
   evalTactic (← `(tactic| first
     | (solve | omega)
     | (solve | simp_all <;> omega)
